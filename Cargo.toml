@@ -1,0 +1,31 @@
+[workspace]
+members = [
+    "cli",
+    "core",
+    "compiler",
+
+    "packages/typst.ts",
+
+    "exporter/ws",
+    "exporter/raster",
+    "exporter/canvas",
+
+    "contrib/fontctl",
+]
+
+[patch.crates-io]
+typst-ts-core = { path = "core" }
+typst-ts-compiler = { path = "compiler" }
+typst-ts-raster-exporter = { path = "exporter/raster" }
+typst-ts-canvas-exporter = { path = "exporter/canvas" }
+
+typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
+typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
+
+# typst = { path = "../typst" }
+# typst-library = { path = "../typst/library" }
+
+[profile.release]
+opt-level = 3
+debug = true
+lto = "thin"
