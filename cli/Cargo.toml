@@ -24,6 +24,8 @@ clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true
 
+toml.workspace = true
+
 # comemo.workspace = true
 # chrono.workspace = true
 # tokio.workspace = true
@@ -43,10 +45,10 @@ log.workspace = true
 # codespan-reporting.workspace = true
 # human-panic.workspace = true
 
-# typst-ts-core.workspace = true
-# typst-ts-compiler = { workspace = true, default-features = false, features = [
-#     "system",
-# ] }
+typst-ts-core.workspace = true
+typst-ts-compiler = { workspace = true, default-features = false, features = [
+    "system",
+] }
 
 # typst-ts-ast-exporter.workspace = true
 # typst-ts-pdf-exporter = { workspace = true, optional = true }

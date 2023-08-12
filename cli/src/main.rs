@@ -1,7 +1,7 @@
 use std::process::exit;
 
 use clap::{Args, Command, FromArgMatches};
-use typst_book_cli::{BuildArgs, Opts, ServeArgs, Subcommands};
+use typst_book_cli::{compile::create_driver, BuildArgs, Opts, ServeArgs, Subcommands};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -35,8 +35,10 @@ fn main() {
     }
 }
 
-fn build(_args: BuildArgs) -> ! {
-    println!("hello world");
+fn build(args: BuildArgs) -> ! {
+    let driver = create_driver(args.compile);
+
+    println!("hello world {:?}", driver.entry_file);
     exit(0)
 }
 

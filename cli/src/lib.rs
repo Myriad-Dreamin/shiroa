@@ -2,6 +2,7 @@ pub mod compile;
 pub mod render;
 pub mod serve;
 pub mod summary;
+pub mod utils;
 
 use std::path::PathBuf;
 
