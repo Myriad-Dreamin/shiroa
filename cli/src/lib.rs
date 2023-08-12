@@ -22,13 +22,15 @@ pub struct Opts {
 )]
 #[allow(clippy::large_enum_variant)]
 pub enum Subcommands {
+    #[clap(about = "build book.")]
+    Build(BuildArgs),
     #[clap(about = "serve book.")]
     Serve(ServeArgs),
 }
 
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
-pub struct ServeArgs {
+pub struct CompileArgs {
     /// Path to typst workspace.
     #[clap(long, short, default_value = ".")]
     pub workspace: String,
@@ -40,4 +42,20 @@ pub struct ServeArgs {
     /// Add additional directories to search for fonts
     #[clap(long = "font-path", value_name = "DIR", action = ArgAction::Append)]
     pub font_paths: Vec<PathBuf>,
+}
+
+#[derive(Default, Debug, Clone, Parser)]
+#[clap(next_help_heading = "Build options")]
+pub struct BuildArgs {
+    /// arguments for compile setting.
+    #[clap(flatten)]
+    pub compile: CompileArgs,
+}
+
+#[derive(Default, Debug, Clone, Parser)]
+#[clap(next_help_heading = "Compile options")]
+pub struct ServeArgs {
+    /// arguments for compile setting.
+    #[clap(flatten)]
+    pub compile: CompileArgs,
 }

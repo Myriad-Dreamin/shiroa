@@ -1,7 +1,7 @@
 use std::process::exit;
 
 use clap::{Args, Command, FromArgMatches};
-use typst_book_cli::{Opts, ServeArgs, Subcommands};
+use typst_book_cli::{BuildArgs, Opts, ServeArgs, Subcommands};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -24,6 +24,7 @@ fn main() {
         .init();
 
     match opts.sub {
+        Some(Subcommands::Build(args)) => build(args),
         Some(Subcommands::Serve(args)) => serve(args),
         None => help_sub_command(),
     };
@@ -32,6 +33,11 @@ fn main() {
     {
         unreachable!("The subcommand must exit the process.");
     }
+}
+
+fn build(_args: BuildArgs) -> ! {
+    println!("hello world");
+    exit(0)
 }
 
 fn serve(_args: ServeArgs) -> ! {
