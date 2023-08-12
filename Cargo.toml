@@ -33,6 +33,10 @@ clap = { version = "4.3", features = ["derive", "env", "unicode", "wrap_help"] }
 clap_complete = "4.3"
 clap_complete_fig = "4.3"
 
+# logging and tracing
+env_logger = "0.10.0"
+log = "0.4.17"
+
 # [patch.crates-io]
 # typst-ts-core = { path = "core" }
 # typst-ts-compiler = { path = "compiler" }
