@@ -1,0 +1,60 @@
+[package]
+name = "typst-book-cli"
+description = "Command line tool for typst-book."
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "typst-book"
+path = "src/main.rs"
+test = false
+doctest = false
+bench = false
+doc = false
+
+[dependencies]
+# typst.workspace = true
+# typst-library.workspace = true
+
+clap.workspace = true
+clap_complete.workspace = true
+clap_complete_fig.workspace = true
+
+# comemo.workspace = true
+# chrono.workspace = true
+# tokio.workspace = true
+
+# serde.workspace = true
+# serde_json.workspace = true
+# toml.workspace = true
+
+# env_logger.workspace = true
+# log.workspace = true
+
+# tracing.workspace = true
+# tracing-error.workspace = true
+# flate2.workspace = true
+# tracing-subscriber.workspace = true
+
+# codespan-reporting.workspace = true
+# human-panic.workspace = true
+
+# typst-ts-core.workspace = true
+# typst-ts-compiler = { workspace = true, default-features = false, features = [
+#     "system",
+# ] }
+
+# typst-ts-ast-exporter.workspace = true
+# typst-ts-pdf-exporter = { workspace = true, optional = true }
+# typst-ts-raster-exporter = { workspace = true, optional = true }
+# typst-ts-serde-exporter = { workspace = true, optional = true }
+# typst-ts-svg-exporter = { workspace = true, optional = true }
+# typst-ts-tir-exporter = { workspace = true, optional = true }
+
+[build-dependencies]
+anyhow.workspace = true
+vergen.workspace = true

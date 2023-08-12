@@ -5,6 +5,7 @@
 *.artifact.json
 *.pdf
 *.rmp
+*.tsbuildinfo
 /out.json
 
 target/

@@ -1,31 +1,54 @@
+[workspace.package]
+description = "Typst Book."
+authors = ["typst-book Developers"]
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+license = "Apache-2.0"
+homepage = "https://github.com/Myriad-Dreamin/typst-book"
+repository = "https://github.com/Myriad-Dreamin/typst-book"
+
+
 [workspace]
-members = [
-    "cli",
-    "core",
-    "compiler",
-
-    "packages/typst.ts",
-
-    "exporter/ws",
-    "exporter/raster",
-    "exporter/canvas",
-
-    "contrib/fontctl",
-]
-
-[patch.crates-io]
-typst-ts-core = { path = "core" }
-typst-ts-compiler = { path = "compiler" }
-typst-ts-raster-exporter = { path = "exporter/raster" }
-typst-ts-canvas-exporter = { path = "exporter/canvas" }
-
-typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
-typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
-
-# typst = { path = "../typst" }
-# typst-library = { path = "../typst/library" }
+resolver = "2"
+members = ["cli"]
 
 [profile.release]
 opt-level = 3
 debug = true
 lto = "thin"
+
+[profile.release-stripped]
+inherits = "release"
+debug = false
+strip = true
+
+[workspace.dependencies]
+
+# general
+anyhow = "1"
+
+# cli
+clap = { version = "4.3", features = ["derive", "env", "unicode", "wrap_help"] }
+clap_complete = "4.3"
+clap_complete_fig = "4.3"
+
+# [patch.crates-io]
+# typst-ts-core = { path = "core" }
+# typst-ts-compiler = { path = "compiler" }
+# typst-ts-raster-exporter = { path = "exporter/raster" }
+# typst-ts-canvas-exporter = { path = "exporter/canvas" }
+
+# typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
+# typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
+
+# # typst = { path = "../typst" }
+# # typst-library = { path = "../typst/library" }
+
+# misc
+vergen = { version = "7.5.1", features = ["build", "cargo", "git", "rustc"] }
+
+# [profile.release]
+# opt-level = 3
+# debug = true
+# lto = "thin"

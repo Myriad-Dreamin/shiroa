@@ -1,0 +1,20 @@
+{
+  "name": "typst-book",
+  "version": "0.1.0",
+  "description": "Typst Book.",
+  "main": "dist/main.js",
+  "repository": "https://github.com/Myriad-Dreamin/typst-book",
+  "author": "Myriad-Dreamin",
+  "contributors": [
+    "typst-book Developers"
+  ],
+  "scripts": {
+    "build": "tsc -p ./tsconfig.lib.json --outDir dist"
+  },
+  "license": "Apache-2.0",
+  "private": false,
+  "devDependencies": {
+    "typescript": "^5.1.6",
+    "@types/web": "^0.0.99"
+  }
+}
