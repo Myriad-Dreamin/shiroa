@@ -1,7 +1,9 @@
 use std::process::exit;
 
 use clap::{Args, Command, FromArgMatches};
-use typst_book_cli::{compile::create_driver, BuildArgs, Opts, ServeArgs, Subcommands};
+use typst_book_cli::{
+    compile::create_driver, utils::async_continue, BuildArgs, Opts, ServeArgs, Subcommands,
+};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -42,7 +44,9 @@ fn build(args: BuildArgs) -> ! {
     exit(0)
 }
 
-fn serve(_args: ServeArgs) -> ! {
-    println!("hello world");
-    exit(0)
+fn serve(args: ServeArgs) -> ! {
+    async_continue(async {
+        typst_book_cli::serve::serve(args).await;
+        exit(0)
+    })
 }

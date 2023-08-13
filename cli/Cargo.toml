@@ -20,6 +20,8 @@ doc = false
 # typst.workspace = true
 # typst-library.workspace = true
 
+warp.workspace = true
+
 clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true
@@ -28,7 +30,7 @@ toml.workspace = true
 
 # comemo.workspace = true
 # chrono.workspace = true
-# tokio.workspace = true
+tokio.workspace = true
 
 # serde.workspace = true
 # serde_json.workspace = true
@@ -46,9 +48,7 @@ log.workspace = true
 # human-panic.workspace = true
 
 typst-ts-core.workspace = true
-typst-ts-compiler = { workspace = true, default-features = false, features = [
-    "system",
-] }
+typst-ts-compiler.workspace = true
 
 # typst-ts-ast-exporter.workspace = true
 # typst-ts-pdf-exporter = { workspace = true, optional = true }
