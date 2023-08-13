@@ -2,10 +2,27 @@
 # yarn lockfile v1
 
 
+"@myriaddreamin/typst-ts-renderer@0.3.2-rc1":
+  version "0.3.2-rc1"
+  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst-ts-renderer/-/typst-ts-renderer-0.3.2-rc1.tgz#88b1e222f272b359a20784c80d7d5e7185712ca7"
+  integrity sha512-rOUebKY1ZRFL+/wdrKPX/Cq93NbXIvuNhI/eGsKtLmbonIS7yDOzRbGsrjLG1mPFLDwDTmozwuP4nNCMBfGc1Q==
+
+"@myriaddreamin/typst.ts@0.3.2-rc1":
+  version "0.3.2-rc1"
+  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst.ts/-/typst.ts-0.3.2-rc1.tgz#c3c32869857fbcaf7d6777605051b96ac5d56ae5"
+  integrity sha512-Wz9RxAYMUBQ/ZZp6+t77qv1iIlOZszjloWIMAVHne2qk9BCztkqA6JgJSlFtS9E+Ee3bhcnxASfWwoC+D2PR+A==
+  dependencies:
+    idb "^7.1.1"
+
 "@types/web@^0.0.99":
   version "0.0.99"
   resolved "https://registry.yarnpkg.com/@types/web/-/web-0.0.99.tgz#a9c3a088e4634f6b08977f4fc733c916c2b0d50e"
   integrity sha512-xMz3tOvtkZzc7RpQrDNiLe5sfMmP+fz8bOxHIZ/U8qXyvzDX4L4Ss1HCjor/O9DSelba+1iXK1VM7lruX28hiQ==
+
+idb@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/idb/-/idb-7.1.1.tgz#d910ded866d32c7ced9befc5bfdf36f572ced72b"
+  integrity sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==
 
 typescript@^5.1.6:
   version "5.1.6"

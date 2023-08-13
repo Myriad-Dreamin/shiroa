@@ -3572,6 +3572,7 @@ dependencies = [
  "toml",
  "typst-ts-compiler",
  "typst-ts-core",
+ "typst-ts-svg-exporter",
  "vergen",
  "warp",
 ]

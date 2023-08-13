@@ -1,6 +1,7 @@
 use handlebars::Handlebars;
 use log::debug;
 use serde_json::json;
+use typst_ts_compiler::service::CompileDriver;
 
 use crate::{
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper},
@@ -8,13 +9,22 @@ use crate::{
 };
 
 pub struct Renderer {
+    // html renderer
     handlebars: Handlebars<'static>,
+
+    // typst compiler
+    driver: CompileDriver,
+
     book_config: toml::Table,
     book_meta: BookMetaWrapper,
 }
 
 impl Renderer {
-    pub fn new(book_config: toml::Table, book_meta: BookMetaWrapper) -> Self {
+    pub fn new(
+        book_config: toml::Table,
+        driver: CompileDriver,
+        book_meta: BookMetaWrapper,
+    ) -> Self {
         let mut handlebars = Handlebars::new();
         // todo
         let theme = theme::Theme::new(std::path::Path::new("themes/typst-book"));
@@ -35,6 +45,7 @@ impl Renderer {
 
         Self {
             handlebars,
+            driver,
             book_config,
             book_meta,
         }
@@ -125,7 +136,28 @@ impl Renderer {
         chapters
     }
 
-    pub fn html_render(&self, _ch: BTreeMap<String, serde_json::Value>, path: String) -> String {
+    pub fn typst_render(
+        &mut self,
+        _ch: BTreeMap<String, serde_json::Value>,
+        path: String,
+    ) -> Result<String, String> {
+        // const base_dir = this.hexo.base_dir;
+
+        let source_dir = "github-pages/docs";
+        // let dest_dir = "github-pages/dist";
+
+        let source = std::path::Path::new(source_dir).join(path);
+        // let dest = std::path::Path::new(dest_dir).join(&path);
+
+        self.driver.entry_file = source.clone();
+        let doc = self.driver.compile().unwrap();
+
+        let svg = typst_ts_svg_exporter::render_html_svg(&doc);
+
+        Ok(svg)
+    }
+
+    pub fn html_render(&mut self, ch: BTreeMap<String, serde_json::Value>, path: String) -> String {
         // todo: split to make_data
         let mut data = serde_json::to_value(self.book_config["book"].clone()).unwrap();
         let data = data.as_object_mut().unwrap();
@@ -159,6 +191,11 @@ impl Renderer {
         // inject chapters
         let chapters = self.convert_chapters();
         data.insert("chapters".to_owned(), json!(chapters));
+
+        data.insert(
+            "content".to_owned(),
+            serde_json::Value::String(self.typst_render(ch, path).unwrap()),
+        );
 
         self.handlebars.render("index", &data).unwrap()
     }

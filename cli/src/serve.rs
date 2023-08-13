@@ -11,13 +11,20 @@ pub async fn serve(args: ServeArgs) {
 
     // map these files to the root of the github-pages server
     let gh_pages = warp::path("typst-book").and({
-        let renderer = warp::path("renderer").and(warp::fs::dir(
+        let renderer_wasm = warp::path("renderer").and(warp::fs::dir(
             "frontend/node_modules/@myriaddreamin/typst-ts-renderer",
         ));
+        let renderer_js = warp::path("typst-main.js").and(warp::fs::file(
+            "frontend/node_modules/@myriaddreamin/typst.ts/dist/main.js",
+        ));
+        let svg_utils_js =
+            warp::path("svg_utils.js").and(warp::fs::file("frontend/src/svg_utils.cjs"));
         let typst_book = warp::path("typst-book.js").and(warp::fs::file("frontend/dist/main.js"));
         let dist_dir = warp::fs::dir("github-pages/dist");
 
-        renderer
+        renderer_wasm
+            .or(renderer_js)
+            .or(svg_utils_js)
             .or(dist_dir)
             .or(typst_book)
             .or(warp::fs::dir("github-pages"))

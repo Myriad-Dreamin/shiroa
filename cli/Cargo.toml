@@ -51,7 +51,7 @@ typst-ts-core.workspace = true
 typst-ts-compiler.workspace = true
 handlebars.workspace = true
 
-# typst-ts-svg-exporter = { workspace = true, optional = true }
+typst-ts-svg-exporter.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true

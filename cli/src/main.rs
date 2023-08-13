@@ -63,7 +63,8 @@ fn build(args: BuildArgs) -> ! {
     .unwrap();
 
     let book_meta = res.first().unwrap().value.clone();
-    let renderer = typst_book_cli::render::Renderer::new(book_config, book_meta.clone());
+    let mut renderer =
+        typst_book_cli::render::Renderer::new(book_config, driver, book_meta.clone());
 
     pub fn convert_chapters(
         book_meta: &BookMetaWrapper,
