@@ -125,13 +125,13 @@ impl Renderer {
         chapters
     }
 
-    pub fn html_render(&self) -> String {
+    pub fn html_render(&self, _ch: BTreeMap<String, serde_json::Value>, path: String) -> String {
         // todo: split to make_data
         let mut data = serde_json::to_value(self.book_config["book"].clone()).unwrap();
         let data = data.as_object_mut().unwrap();
 
         // inject path (for current document)
-        data.insert("path".to_owned(), json!("get-started.typ"));
+        data.insert("path".to_owned(), json!(path));
 
         data.insert("fold_enable".to_owned(), json!(false));
         data.insert("fold_level".to_owned(), json!(0u64));
@@ -182,41 +182,6 @@ pub(crate) fn bracket_escape(mut s: &str) -> String {
     escaped
 }
 
-/// Takes a path and returns a path containing just enough `../` to point to
-/// the root of the given path.
-///
-/// This is mostly interesting for a relative path to point back to the
-/// directory from where the path starts.
-///
-/// ```rust
-/// # use std::path::Path;
-/// # use mdbook::utils::fs::path_to_root;
-/// let path = Path::new("some/relative/path");
-/// assert_eq!(path_to_root(path), "../../");
-/// ```
-///
-/// **note:** it's not very fool-proof, if you find a situation where
-/// it doesn't return the correct path.
-/// Consider [submitting a new issue](https://github.com/rust-lang/mdBook/issues)
-/// or a [pull-request](https://github.com/rust-lang/mdBook/pulls) to improve it.
-pub(crate) fn path_to_root<P: Into<std::path::PathBuf>>(path: P) -> String {
-    // Remove filename and add "../" for every directory
-
-    path.into()
-        .parent()
-        .expect("")
-        .components()
-        .fold(String::new(), |mut s, c| {
-            match c {
-                std::path::Component::Normal(_) => s.push_str("../"),
-                _ => {
-                    debug!("Other path component... {:?}", c);
-                }
-            }
-            s
-        })
-}
-
 use handlebars::{Context, Helper, HelperDef, Output, RenderContext, RenderError};
 
 // Handlebars helper to construct TOC
@@ -244,6 +209,13 @@ impl HelperDef for RenderToc {
             serde_json::value::from_value::<Vec<BTreeMap<String, String>>>(c.as_json().clone())
                 .map_err(|_| RenderError::new("Could not decode the JSON data"))
         })?;
+
+        let path_to_root = rc
+            .evaluate(ctx, "@root/path_to_root")?
+            .as_json()
+            .as_str()
+            .ok_or_else(|| RenderError::new("Type error for `path_to_root`, string expected"))?
+            .replace('\"', "");
 
         let current_path = rc
             .evaluate(ctx, "@root/path")?
@@ -338,7 +310,8 @@ impl HelperDef for RenderToc {
             match item.get("path") {
                 Some(path) if !path.is_empty() => {
                     out.write("<a href=\"")?;
-                    let tmp = Path::new(path)
+                    let tmp = Path::new(&path_to_root)
+                        .join(path)
                         .with_extension("html")
                         .to_str()
                         .unwrap()
@@ -346,9 +319,11 @@ impl HelperDef for RenderToc {
                         .replace('\\', "/");
 
                     // Add link
-                    out.write(&path_to_root(&current_path))?;
+                    // out.write(&path_to_root(&current_path))?;
                     out.write(&tmp)?;
                     out.write("\"")?;
+
+                    println!("compare path = {path:?}, current_path = {current_path:?}");
 
                     if path == &current_path || is_first_chapter {
                         is_first_chapter = false;
