@@ -2,6 +2,7 @@ pub mod compile;
 pub mod render;
 pub mod serve;
 pub mod summary;
+pub mod theme;
 pub mod utils;
 
 use std::path::PathBuf;
@@ -17,7 +18,7 @@ pub struct Opts {
 
 #[derive(Debug, Subcommand)]
 #[clap(
-    about = "The cli for typst.ts.",
+    about = "The cli for typst-book.",
     after_help = "",
     next_display_order = None
 )]

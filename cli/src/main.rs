@@ -48,7 +48,23 @@ fn build(args: BuildArgs) -> ! {
     let res = serde_json::to_value(&res).unwrap();
     let res: QueryBookMetaJsonResults = serde_json::from_value(res).unwrap();
 
-    println!("{:?}", res);
+    println!("metadata: {:?}", res);
+
+    assert!(res.len() == 1);
+
+    let book_config = toml::from_str(
+        std::fs::read_to_string("github-pages/docs/book.toml")
+            .unwrap()
+            .as_str(),
+    )
+    .unwrap();
+
+    let renderer =
+        typst_book_cli::render::Renderer::new(book_config, res.first().unwrap().value.clone());
+
+    std::fs::create_dir_all("github-pages/dist/").unwrap();
+
+    std::fs::write("github-pages/dist/index.html", renderer.html_render()).unwrap();
 
     exit(0)
 }

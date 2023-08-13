@@ -15,10 +15,10 @@ pub async fn serve(args: ServeArgs) {
             "frontend/node_modules/@myriaddreamin/typst-ts-renderer",
         ));
         let typst_book = warp::path("typst-book.js").and(warp::fs::file("frontend/dist/main.js"));
-        let theme_dir = warp::fs::dir("themes/typst-book");
+        let dist_dir = warp::fs::dir("github-pages/dist");
 
         renderer
-            .or(theme_dir)
+            .or(dist_dir)
             .or(typst_book)
             .or(warp::fs::dir("github-pages"))
     });

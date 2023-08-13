@@ -10,22 +10,28 @@ pub enum BookMetaContent {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind")]
 pub enum BookMetaElement {
-    #[serde(rename = "book")]
-    Book { content: Vec<BookMetaElement> },
     #[serde(rename = "part")]
     Part { title: BookMetaContent, level: i32 },
     #[serde(rename = "chapter")]
     Chapter {
         title: BookMetaContent,
-        link: String,
+        link: Option<String>,
         #[serde(default)]
-        subs: Vec<BookMetaElement>,
+        sub: Vec<BookMetaElement>,
+        section: Option<String>,
     },
+    #[serde(rename = "separator")]
+    Separator {},
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct BookMetaWrapper {
+    pub content: Vec<BookMetaElement>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct QueryBookMetaJsonResultItem {
-    pub value: BookMetaElement,
+    pub value: BookMetaWrapper,
 }
 
 pub type QueryBookMetaJsonResults = Vec<QueryBookMetaJsonResultItem>;

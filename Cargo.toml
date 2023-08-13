@@ -31,6 +31,8 @@ typst-ts-svg-exporter = "0.3"
 typst-ts-core = "0.3"
 typst-ts-compiler = "0.3"
 
+handlebars = "4.3"
+
 # general
 anyhow = "1"
 tokio = { version = "1.28.1", features = ["full"] }

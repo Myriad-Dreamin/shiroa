@@ -12,9 +12,10 @@
     ))
 }
 
-#let chapter(link, title) = metadata((
+#let chapter(link, title, section: none) = metadata((
     kind: "chapter",
     link: link,
+    section: section,
     title: (
       kind: "plain-text",
       content: title.text,
@@ -39,8 +40,9 @@
 #book-meta(
   summary: [
     = Introduction
-    - #chapter("installation.typ")[Installation]
-    - #chapter("get-started.typ")[Get Started]
+    - #chapter("installation.typ", section: "1.1")[Installation]
+    - #chapter("get-started.typ", section: "1.2")[Get Started]
+      - #chapter(none, section: "1.2.1")[Drafting chapter]
   ]
 )
 
