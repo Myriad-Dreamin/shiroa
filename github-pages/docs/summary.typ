@@ -15,13 +15,19 @@
 #let chapter(link, title) = metadata((
     kind: "chapter",
     link: link,
-    title: title,
+    title: (
+      kind: "plain-text",
+      content: title.text,
+    ),
 ))
 
 #let post-chapter( title) = metadata((
     kind: "chapter",
     link: link,
-    title: title.text,
+    title: (
+      kind: "plain-text",
+      content: title.text,
+    ),
 ))
 
 #let divider = metadata((
@@ -51,7 +57,11 @@
   if heading == node.func() {
     return (
         kind: "part",
-        title: node,
+        level: node.level,
+        title: (
+          kind: "plain-text",
+          content: node.body.text,
+        ),
     )
   }
 
