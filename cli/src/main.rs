@@ -2,7 +2,8 @@ use std::process::exit;
 
 use clap::{Args, Command, FromArgMatches};
 use typst_book_cli::{
-    compile::create_driver, utils::async_continue, BuildArgs, Opts, ServeArgs, Subcommands,
+    compile::create_driver, summary::QueryBookMetaJsonResults, utils::async_continue, BuildArgs,
+    Opts, ServeArgs, Subcommands,
 };
 
 fn get_cli(sub_command_required: bool) -> Command {
@@ -38,9 +39,17 @@ fn main() {
 }
 
 fn build(args: BuildArgs) -> ! {
-    let driver = create_driver(args.compile);
+    let mut driver = create_driver(args.compile);
 
-    println!("hello world {:?}", driver.entry_file);
+    let doc = driver.compile().unwrap();
+    let res = driver
+        .query("<typst-book-book-meta>".to_string(), &doc)
+        .unwrap();
+    let res = serde_json::to_value(&res).unwrap();
+    let res: QueryBookMetaJsonResults = serde_json::from_value(res).unwrap();
+
+    println!("{:?}", res);
+
     exit(0)
 }
 

@@ -3507,6 +3507,8 @@ dependencies = [
  "clap_complete_fig",
  "env_logger",
  "log",
+ "serde",
+ "serde_json",
  "tokio",
  "toml",
  "typst-ts-compiler",
