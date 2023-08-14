@@ -10,7 +10,7 @@ use crate::{
     utils::make_absolute,
 };
 
-pub struct Renderer {
+pub struct HtmlRenderer {
     // html renderer
     handlebars: Handlebars<'static>,
 
@@ -21,7 +21,7 @@ pub struct Renderer {
     book_meta: BookMetaWrapper,
 }
 
-impl Renderer {
+impl HtmlRenderer {
     pub fn new(
         book_config: toml::Table,
         driver: DynamicLayoutCompiler<CompileDriver>,

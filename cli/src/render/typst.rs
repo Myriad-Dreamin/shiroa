@@ -7,7 +7,7 @@ use typst_ts_compiler::{
 use typst_ts_core::{config::CompileOpts, path::PathClean};
 
 use crate::{
-    utils::{make_absolute, UnwrapOrExit},
+    utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
 
@@ -21,6 +21,7 @@ impl TypstRenderer {
     pub fn new(args: CompileArgs) -> Self {
         let workspace_dir = make_absolute(Path::new(&args.workspace)).clean();
         let root_dir = make_absolute(Path::new(&args.dir)).clean();
+        let dest_dir = make_absolute_from(Path::new(&args.dest_dir), || root_dir.clone()).clean();
 
         let world = TypstSystemWorld::new(CompileOpts {
             root_dir: workspace_dir.clone(),
@@ -40,7 +41,7 @@ impl TypstRenderer {
         Self {
             compiler: driver,
             root_dir,
-            dest_dir: Path::new(&args.dest_dir).to_owned(),
+            dest_dir,
         }
     }
 

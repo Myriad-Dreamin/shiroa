@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::Path, process::exit};
 use clap::{Args, Command, FromArgMatches};
 use serde_json::json;
 use typst_book_cli::{
-    render::TypstRenderer,
+    project::Project,
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper, QueryBookMetaJsonResults},
     utils::async_continue,
     BuildArgs, Opts, ServeArgs, Subcommands,
@@ -31,22 +31,11 @@ fn main() {
         .filter_module("typst_library::", log::LevelFilter::Warn)
         .init();
 
-    let mut sub = if let Some(sub) = opts.sub {
+    let sub = if let Some(sub) = opts.sub {
         sub
     } else {
         help_sub_command();
     };
-
-    // Set default workspace to the book's root directory.
-    if let Some(compile_args) = match &mut sub {
-        Subcommands::Build(args) => Some(&mut args.compile),
-        _ => None,
-        // Subcommands::Serve(args) => Some(&mut args.compile),
-    } {
-        if compile_args.workspace.is_empty() {
-            compile_args.workspace = compile_args.dir.clone();
-        }
-    }
 
     match sub {
         Subcommands::Build(args) => build(args),
@@ -60,7 +49,8 @@ fn main() {
 }
 
 fn build(args: BuildArgs) -> ! {
-    let mut driver = TypstRenderer::new(args.compile);
+    let proj = Project::new(args.compile);
+    let mut driver = proj.typst_renderer();
 
     driver.set_entry_file(Path::new("summary.typ"));
     let doc = driver.compiler.pure_compile().unwrap();
@@ -84,7 +74,7 @@ fn build(args: BuildArgs) -> ! {
 
     let book_meta = res.first().unwrap().value.clone();
     let mut renderer =
-        typst_book_cli::render::Renderer::new(book_config, driver.compiler, book_meta.clone());
+        typst_book_cli::render::HtmlRenderer::new(book_config, driver.compiler, book_meta.clone());
 
     pub fn convert_chapters(
         book_meta: &BookMetaWrapper,
