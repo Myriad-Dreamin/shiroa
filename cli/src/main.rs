@@ -15,8 +15,9 @@ fn get_cli(sub_command_required: bool) -> Command {
     Opts::augment_args(cli).subcommand_required(sub_command_required)
 }
 
-fn help_sub_command() {
+fn help_sub_command() -> ! {
     Opts::from_arg_matches(&get_cli(true).get_matches()).unwrap();
+    exit(0)
 }
 
 fn main() {
@@ -30,10 +31,25 @@ fn main() {
         .filter_module("typst_library::", log::LevelFilter::Warn)
         .init();
 
-    match opts.sub {
-        Some(Subcommands::Build(args)) => build(args),
-        Some(Subcommands::Serve(args)) => serve(args),
-        None => help_sub_command(),
+    let mut sub = if let Some(sub) = opts.sub {
+        sub
+    } else {
+        help_sub_command();
+    };
+
+    // Set default workspace to the book's root directory.
+    if let Some(compile_args) = match &mut sub {
+        Subcommands::Build(args) => Some(&mut args.compile),
+        Subcommands::Serve(args) => Some(&mut args.compile),
+    } {
+        if compile_args.workspace.is_empty() {
+            compile_args.workspace = compile_args.dir.clone();
+        }
+    }
+
+    match sub {
+        Subcommands::Build(args) => build(args),
+        Subcommands::Serve(args) => serve(args),
     };
 
     #[allow(unreachable_code)]

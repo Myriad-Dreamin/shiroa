@@ -2,10 +2,12 @@ use handlebars::Handlebars;
 use log::debug;
 use serde_json::json;
 use typst_ts_compiler::service::{CompileDriver, Compiler, DynamicLayoutCompiler};
+use typst_ts_core::path::PathClean;
 
 use crate::{
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper},
     theme,
+    utils::make_absolute,
 };
 
 pub struct Renderer {
@@ -152,7 +154,7 @@ impl Renderer {
         let source_dir = "github-pages/docs";
         let dest_dir = "github-pages/dist";
 
-        let source = std::path::Path::new(source_dir).join(&path);
+        let source = make_absolute(&std::path::Path::new(source_dir).join(&path)).clean();
         let dest = std::path::Path::new(dest_dir)
             .join(&path)
             .with_extension("");

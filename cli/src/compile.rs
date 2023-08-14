@@ -3,38 +3,15 @@ use std::path::Path;
 use typst_ts_compiler::{service::CompileDriver, TypstSystemWorld};
 use typst_ts_core::{config::CompileOpts, path::PathClean};
 
-use crate::{utils::UnwrapOrExit, CompileArgs};
+use crate::{
+    utils::{make_absolute, UnwrapOrExit},
+    CompileArgs,
+};
 
 pub fn create_driver(args: CompileArgs) -> CompileDriver {
-    let workspace_dir = Path::new(args.workspace.as_str()).clean();
-    // todo: toml config
-    let entry_file_path = Path::new("github-pages/docs/summary.typ").clean();
-    // let entry_file_path = Path::new(args.entry.as_str()).clean();
-
-    let workspace_dir = if workspace_dir.is_absolute() {
-        workspace_dir
-    } else {
-        let cwd = std::env::current_dir().unwrap_or_exit();
-        cwd.join(workspace_dir)
-    };
-
-    let entry_file_path = if entry_file_path.is_absolute() {
-        entry_file_path
-    } else {
-        let cwd = std::env::current_dir().unwrap_or_exit();
-        cwd.join(entry_file_path)
-    };
-
-    if !entry_file_path.starts_with(&workspace_dir) {
-        clap::Error::raw(
-            clap::error::ErrorKind::InvalidValue,
-            format!(
-                "entry file path must be in workspace directory: {workspace_dir}\n",
-                workspace_dir = workspace_dir.display()
-            ),
-        )
-        .exit()
-    }
+    let workspace_dir = make_absolute(Path::new(&args.workspace)).clean();
+    let root_dir = make_absolute(Path::new(&args.dir)).clean();
+    let summary_path = root_dir.join("summary.typ").clean();
 
     let world = TypstSystemWorld::new(CompileOpts {
         root_dir: workspace_dir.clone(),
@@ -46,6 +23,6 @@ pub fn create_driver(args: CompileArgs) -> CompileDriver {
 
     CompileDriver {
         world,
-        entry_file: entry_file_path.to_owned(),
+        entry_file: summary_path.to_owned(),
     }
 }

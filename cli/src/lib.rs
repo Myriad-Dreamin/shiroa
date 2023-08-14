@@ -33,16 +33,29 @@ pub enum Subcommands {
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
 pub struct CompileArgs {
-    /// Path to typst workspace.
-    #[clap(long, short, default_value = ".")]
+    /// Root directory for the book
+    /// (Defaults to the current directory when omitted)
+    #[clap(default_value = "")]
+    pub dir: String,
+
+    /// Root directory for the typst workspace, which is same as the `typst-cli`'s root.
+    /// (Defaults to the root directory for the book when omitted)
+    #[clap(long, short, default_value = "")]
     pub workspace: String,
 
     /// Output to directory, default in the same directory as the entry file.
+    /// Relative paths are interpreted relative to the book's root directory.
+    /// If omitted, typst-book uses build.build-dir from book.toml or defaults to `./dist`.
     #[clap(long, short, default_value = "")]
-    pub output: String,
+    pub dest_dir: String,
 
     /// Add additional directories to search for fonts
-    #[clap(long = "font-path", value_name = "DIR", action = ArgAction::Append)]
+    #[clap(
+        long = "font-path",
+        env = "TYPST_FONT_PATHS", 
+        value_name = "DIR",
+        action = ArgAction::Append,
+    )]
     pub font_paths: Vec<PathBuf>,
 }
 
