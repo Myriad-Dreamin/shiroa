@@ -3,12 +3,12 @@ use std::{collections::BTreeMap, path::Path, process::exit};
 use clap::{Args, Command, FromArgMatches};
 use serde_json::json;
 use typst_book_cli::{
-    render::create_driver,
+    render::TypstRenderer,
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper, QueryBookMetaJsonResults},
     utils::async_continue,
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
-use typst_ts_compiler::service::{Compiler, DynamicLayoutCompiler};
+use typst_ts_compiler::service::Compiler;
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -60,12 +60,12 @@ fn main() {
 }
 
 fn build(args: BuildArgs) -> ! {
-    let driver = create_driver(args.compile);
+    let mut driver = TypstRenderer::new(args.compile);
 
-    let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
-
-    let doc = driver.pure_compile().unwrap();
+    driver.set_entry_file(Path::new("summary.typ"));
+    let doc = driver.compiler.pure_compile().unwrap();
     let res = driver
+        .compiler
         .query("<typst-book-book-meta>".to_string(), &doc)
         .unwrap();
     let res = serde_json::to_value(&res).unwrap();
@@ -84,7 +84,7 @@ fn build(args: BuildArgs) -> ! {
 
     let book_meta = res.first().unwrap().value.clone();
     let mut renderer =
-        typst_book_cli::render::Renderer::new(book_config, driver, book_meta.clone());
+        typst_book_cli::render::Renderer::new(book_config, driver.compiler, book_meta.clone());
 
     pub fn convert_chapters(
         book_meta: &BookMetaWrapper,

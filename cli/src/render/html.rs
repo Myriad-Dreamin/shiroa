@@ -171,7 +171,7 @@ impl Renderer {
             .replace('\\', "/");
 
         self.driver.compiler.entry_file = source.clone();
-        self.driver.set_output_dir(dest);
+        self.driver.set_output(dest);
         self.driver.compile().unwrap();
 
         let dynamic_load_trampoline = self
