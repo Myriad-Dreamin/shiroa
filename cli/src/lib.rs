@@ -1,3 +1,4 @@
+pub mod project;
 pub mod render;
 pub mod serve;
 pub mod summary;
@@ -37,14 +38,16 @@ pub struct CompileArgs {
     #[clap(default_value = "")]
     pub dir: String,
 
-    /// Root directory for the typst workspace, which is same as the `typst-cli`'s root.
-    /// (Defaults to the root directory for the book when omitted)
+    /// Root directory for the typst workspace, which is same as the
+    /// `typst-cli`'s root. (Defaults to the root directory for the book
+    /// when omitted)
     #[clap(long, short, default_value = "")]
     pub workspace: String,
 
     /// Output to directory, default in the same directory as the entry file.
     /// Relative paths are interpreted relative to the book's root directory.
-    /// If omitted, typst-book uses build.build-dir from book.toml or defaults to `./dist`.
+    /// If omitted, typst-book uses build.build-dir from book.toml or defaults
+    /// to `./dist`.
     #[clap(long, short, default_value = "")]
     pub dest_dir: String,
 
