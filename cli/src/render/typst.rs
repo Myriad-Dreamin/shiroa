@@ -45,12 +45,13 @@ impl TypstRenderer {
         }
     }
 
-    pub fn set_entry_file(&mut self, path: &Path) {
+    pub fn setup_entry(&mut self, path: &Path) {
         if path.is_absolute() {
             panic!("entry file must be relative to the workspace");
         }
         self.compiler.compiler.entry_file = self.root_dir.join(path).clean();
         let output_path = self.dest_dir.join(path).with_extension("").clean();
+        std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
         self.compiler.set_output(output_path);
     }
 }

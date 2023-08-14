@@ -1,33 +1,16 @@
 use handlebars::Handlebars;
 use log::debug;
 use serde_json::json;
-use typst_ts_compiler::service::{CompileDriver, Compiler, DynamicLayoutCompiler};
-use typst_ts_core::path::PathClean;
 
-use crate::{
-    project::ProjectConfig,
-    summary::{BookMeta, BookMetaContent, BookMetaElem},
-    theme,
-    utils::make_absolute,
-};
+use crate::theme;
 
 pub struct HtmlRenderer {
     // html renderer
-    handlebars: Handlebars<'static>,
-
-    // typst compiler
-    driver: DynamicLayoutCompiler<CompileDriver>,
-
-    book_config: ProjectConfig,
-    book_meta: BookMeta,
+    pub handlebars: Handlebars<'static>,
 }
 
 impl HtmlRenderer {
-    pub fn new(
-        book_config: ProjectConfig,
-        driver: DynamicLayoutCompiler<CompileDriver>,
-        book_meta: BookMeta,
-    ) -> Self {
+    pub fn new() -> Self {
         let mut handlebars = Handlebars::new();
         // todo
         let theme = theme::Theme::new(std::path::Path::new("themes/typst-book"));
@@ -52,145 +35,10 @@ impl HtmlRenderer {
             }),
         );
 
-        Self {
-            handlebars,
-            driver,
-            book_config,
-            book_meta,
-        }
+        Self { handlebars }
     }
 
-    pub fn auto_order_section(&mut self) {
-        fn dfs_elem(elem: &mut BookMetaElem, order: &mut Vec<u64>) {
-            match elem {
-                BookMetaElem::Chapter {
-                    section, sub: subs, ..
-                } => {
-                    if section.is_none() {
-                        *order.last_mut().unwrap() += 1;
-                        *section = Some(format!("{}", order.last().unwrap()));
-                    }
-                    for sub in subs.iter_mut() {
-                        order.push(0);
-                        dfs_elem(sub, order);
-                        order.pop();
-                    }
-                }
-                BookMetaElem::Part { .. } | BookMetaElem::Separator {} => {}
-            }
-        }
-
-        let mut order = vec![0];
-        for elem in self.book_meta.content.iter_mut() {
-            dfs_elem(elem, &mut order);
-        }
-    }
-
-    pub fn convert_chapters(&self) -> Vec<BTreeMap<String, serde_json::Value>> {
-        let mut chapters = vec![];
-
-        fn dfs_elem(elem: &BookMetaElem, chapters: &mut Vec<BTreeMap<String, serde_json::Value>>) {
-            // Create the data to inject in the template
-            let mut chapter = BTreeMap::new();
-
-            match elem {
-                BookMetaElem::Part { title, .. } => {
-                    let BookMetaContent::PlainText { content: title } = title;
-
-                    chapter.insert("part".to_owned(), json!(title));
-                }
-                BookMetaElem::Chapter {
-                    title,
-                    section,
-                    link,
-                    sub: subs,
-                } => {
-                    let BookMetaContent::PlainText { content: title } = title;
-
-                    if let Some(ref section) = section {
-                        chapter.insert("section".to_owned(), json!(section));
-                    }
-
-                    chapter.insert(
-                        "has_sub_items".to_owned(),
-                        json!((!subs.is_empty()).to_string()),
-                    );
-
-                    chapter.insert("name".to_owned(), json!(title));
-                    if let Some(ref path) = link {
-                        chapter.insert("path".to_owned(), json!(path));
-                    }
-                }
-                BookMetaElem::Separator {} => {
-                    chapter.insert("spacer".to_owned(), json!("_spacer_"));
-                }
-            }
-
-            chapters.push(chapter);
-
-            if let BookMetaElem::Chapter { sub: subs, .. } = elem {
-                for child in subs.iter() {
-                    dfs_elem(child, chapters);
-                }
-            }
-        }
-
-        for item in self.book_meta.content.iter() {
-            dfs_elem(item, &mut chapters);
-        }
-
-        chapters
-    }
-
-    pub fn typst_render(
-        &mut self,
-        _ch: BTreeMap<String, serde_json::Value>,
-        path: String,
-    ) -> Result<String, String> {
-        // const base_dir = this.hexo.base_dir;
-
-        let source_dir = "github-pages/docs";
-        let dest_dir = "github-pages/dist";
-
-        let source = make_absolute(&std::path::Path::new(source_dir).join(&path)).clean();
-        let dest = std::path::Path::new(dest_dir)
-            .join(&path)
-            .with_extension("");
-
-        let dest_dir = dest.parent().unwrap();
-        std::fs::create_dir_all(dest_dir).unwrap();
-
-        let rel_data_path = std::path::Path::new("typst-book")
-            .join(&path)
-            .with_extension("")
-            .to_str()
-            .unwrap()
-            // windows
-            .replace('\\', "/");
-
-        self.driver.compiler.entry_file = source.clone();
-        self.driver.set_output(dest);
-        self.driver.compile().unwrap();
-
-        let dynamic_load_trampoline = self
-            .handlebars
-            .render(
-                "typst_load_trampoline",
-                &json!({
-                    "renderer_module" : "/typst-book/renderer/typst_ts_renderer_bg.wasm",
-                    "rel_data_path": rel_data_path,
-                }),
-            )
-            .unwrap();
-
-        Ok(dynamic_load_trampoline.to_owned())
-    }
-
-    pub fn html_render(&mut self, ch: BTreeMap<String, serde_json::Value>, path: String) -> String {
-        // todo: split to make_data
-        let mut data = serde_json::to_value(self.book_config.book.clone()).unwrap();
-        let data = data.as_object_mut().unwrap();
-
+    pub fn render_index(&mut self, mut data: DataDict, path: &str) -> String {
         // inject path (for current document)
         data.insert("path".to_owned(), json!(path));
 
@@ -217,15 +65,6 @@ impl HtmlRenderer {
         // todo: path_to_root
         data.insert("path_to_root".to_owned(), json!("/typst-book/"));
 
-        // inject chapters
-        let chapters = self.convert_chapters();
-        data.insert("chapters".to_owned(), json!(chapters));
-
-        data.insert(
-            "content".to_owned(),
-            serde_json::Value::String(self.typst_render(ch, path).unwrap()),
-        );
-
         self.handlebars.render("index", &data).unwrap()
     }
 }
@@ -249,6 +88,8 @@ pub(crate) fn bracket_escape(mut s: &str) -> String {
 }
 
 use handlebars::{Context, Helper, HelperDef, Output, RenderContext, RenderError};
+
+use super::DataDict;
 
 // Handlebars helper to construct TOC
 #[derive(Clone, Copy)]
@@ -459,4 +300,10 @@ fn write_li_open_tag(
     }
     li.push_str("\">");
     out.write(&li)
+}
+
+impl Default for HtmlRenderer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
