@@ -35,6 +35,7 @@
         radius: 4pt,
         fill: rgb(239, 241, 243),
         [
+          #set text(font: "Consolas")
           // set text(inner-color)
           #place(right, text(luma(110), it.lang))
           #it

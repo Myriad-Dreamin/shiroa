@@ -156,6 +156,10 @@ impl Renderer {
         let dest = std::path::Path::new(dest_dir)
             .join(&path)
             .with_extension("");
+
+        let dest_dir = dest.parent().unwrap();
+        std::fs::create_dir_all(dest_dir).unwrap();
+
         let rel_data_path = std::path::Path::new("typst-book")
             .join(&path)
             .with_extension("")

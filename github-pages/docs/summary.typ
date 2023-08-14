@@ -40,8 +40,8 @@
 #book-meta(
   summary: [
     = Introduction
-    - #chapter("installation.typ", section: "1.1")[Installation]
-    - #chapter("get-started.typ", section: "1.2")[Get Started]
+    - #chapter("guide/installation.typ", section: "1.1")[Installation]
+    - #chapter("guide/get-started.typ", section: "1.2")[Get Started]
       - #chapter(none, section: "1.2.1")[Drafting chapter]
   ]
 )
