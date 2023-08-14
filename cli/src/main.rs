@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::Path, process::exit};
 use clap::{Args, Command, FromArgMatches};
 use serde_json::json;
 use typst_book_cli::{
-    compile::create_driver,
+    render::create_driver,
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper, QueryBookMetaJsonResults},
     utils::async_continue,
     BuildArgs, Opts, ServeArgs, Subcommands,
@@ -40,7 +40,8 @@ fn main() {
     // Set default workspace to the book's root directory.
     if let Some(compile_args) = match &mut sub {
         Subcommands::Build(args) => Some(&mut args.compile),
-        Subcommands::Serve(args) => Some(&mut args.compile),
+        _ => None,
+        // Subcommands::Serve(args) => Some(&mut args.compile),
     } {
         if compile_args.workspace.is_empty() {
             compile_args.workspace = compile_args.dir.clone();

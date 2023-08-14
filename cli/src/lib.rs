@@ -1,4 +1,3 @@
-pub mod compile;
 pub mod render;
 pub mod serve;
 pub mod summary;
@@ -71,8 +70,8 @@ pub struct BuildArgs {
 #[clap(next_help_heading = "Compile options")]
 pub struct ServeArgs {
     /// arguments for compile setting.
-    #[clap(flatten)]
-    pub compile: CompileArgs,
+    // #[clap(flatten)]
+    // pub compile: CompileArgs,
 
     /// Listen address.
     #[clap(long, default_value = "127.0.0.1:25520")]
