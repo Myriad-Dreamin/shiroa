@@ -1,7 +1,7 @@
 use handlebars::Handlebars;
 use log::debug;
 use serde_json::json;
-use typst_ts_compiler::service::CompileDriver;
+use typst_ts_compiler::service::{CompileDriver, Compiler, DynamicLayoutCompiler};
 
 use crate::{
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper},
@@ -13,7 +13,7 @@ pub struct Renderer {
     handlebars: Handlebars<'static>,
 
     // typst compiler
-    driver: CompileDriver,
+    driver: DynamicLayoutCompiler<CompileDriver>,
 
     book_config: toml::Table,
     book_meta: BookMetaWrapper,
@@ -22,7 +22,7 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(
         book_config: toml::Table,
-        driver: CompileDriver,
+        driver: DynamicLayoutCompiler<CompileDriver>,
         book_meta: BookMetaWrapper,
     ) -> Self {
         let mut handlebars = Handlebars::new();
@@ -32,6 +32,12 @@ impl Renderer {
         debug!("Register the index handlebars template");
         handlebars
             .register_template_string("index", String::from_utf8(theme.index.clone()).unwrap())
+            .unwrap();
+        handlebars
+            .register_template_string(
+                "typst_load_trampoline",
+                String::from_utf8(theme.typst_load_trampoline.clone()).unwrap(),
+            )
             .unwrap();
 
         // todo: helpers
@@ -144,17 +150,36 @@ impl Renderer {
         // const base_dir = this.hexo.base_dir;
 
         let source_dir = "github-pages/docs";
-        // let dest_dir = "github-pages/dist";
+        let dest_dir = "github-pages/dist";
 
-        let source = std::path::Path::new(source_dir).join(path);
-        // let dest = std::path::Path::new(dest_dir).join(&path);
+        let source = std::path::Path::new(source_dir).join(&path);
+        let dest = std::path::Path::new(dest_dir)
+            .join(&path)
+            .with_extension("");
+        let rel_data_path = std::path::Path::new("typst-book")
+            .join(&path)
+            .with_extension("")
+            .to_str()
+            .unwrap()
+            // windows
+            .replace('\\', "/");
 
-        self.driver.entry_file = source.clone();
-        let doc = self.driver.compile().unwrap();
+        self.driver.compiler.entry_file = source.clone();
+        self.driver.set_output_dir(dest);
+        self.driver.compile().unwrap();
 
-        let svg = typst_ts_svg_exporter::render_html_svg(&doc);
+        let dynamic_load_trampoline = self
+            .handlebars
+            .render(
+                "typst_load_trampoline",
+                &json!({
+                    "renderer_module" : "/typst-book/renderer/typst_ts_renderer_bg.wasm",
+                    "rel_data_path": rel_data_path,
+                }),
+            )
+            .unwrap();
 
-        Ok(svg)
+        Ok(dynamic_load_trampoline.to_owned())
     }
 
     pub fn html_render(&mut self, ch: BTreeMap<String, serde_json::Value>, path: String) -> String {

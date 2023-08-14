@@ -11,6 +11,7 @@ use log::warn;
 #[derive(Default, Debug, PartialEq)]
 pub struct Theme {
     pub index: Vec<u8>,
+    pub typst_load_trampoline: Vec<u8>,
     // pub head: Vec<u8>,
     // pub redirect: Vec<u8>,
     // pub header: Vec<u8>,
@@ -43,6 +44,10 @@ impl Theme {
         {
             let files = vec![
                 (theme_dir.join("index.hbs"), &mut theme.index),
+                (
+                    theme_dir.join("typst-load-trampoline.hbs"),
+                    &mut theme.typst_load_trampoline,
+                ),
                 // (theme_dir.join("head.hbs"), &mut theme.head),
                 // (theme_dir.join("redirect.hbs"), &mut theme.redirect),
                 // (theme_dir.join("header.hbs"), &mut theme.header),

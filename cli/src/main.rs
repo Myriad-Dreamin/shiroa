@@ -8,6 +8,7 @@ use typst_book_cli::{
     utils::async_continue,
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
+use typst_ts_compiler::service::{Compiler, DynamicLayoutCompiler};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -42,9 +43,11 @@ fn main() {
 }
 
 fn build(args: BuildArgs) -> ! {
-    let mut driver = create_driver(args.compile);
+    let driver = create_driver(args.compile);
 
-    let doc = driver.compile().unwrap();
+    let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
+
+    let doc = driver.pure_compile().unwrap();
     let res = driver
         .query("<typst-book-book-meta>".to_string(), &doc)
         .unwrap();

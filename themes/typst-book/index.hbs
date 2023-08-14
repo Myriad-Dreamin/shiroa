@@ -1,59 +1,113 @@
 <!DOCTYPE HTML>
 <html lang="{{ language }}" class="sidebar-visible no-js {{ default_theme }}">
-    <head>
-        <!-- Book generated using mdBook -->
-        <meta charset="UTF-8">
-        <title>{{ title }}</title>
-        {{#if is_print }}
-        <meta name="robots" content="noindex" />
-        {{/if}}
-        {{#if base_url}}
-        <base href="{{ base_url }}">
-        {{/if}}
+
+<head>
+    <!-- Book generated using mdBook -->
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    {{#if is_print }}
+    <meta name="robots" content="noindex" />
+    {{/if}}
+    {{#if base_url}}
+    <base href="{{ base_url }}">
+    {{/if}}
 
 
-        <!-- Custom HTML head -->
-        {{> head}}
+    <!-- Custom HTML head -->
+    {{> head}}
 
-        <meta name="description" content="{{ description }}">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="{{ description }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff" />
 
-        {{#if favicon_svg}}
-        <link rel="icon" href="{{ path_to_root }}favicon.svg">
-        {{/if}}
-        {{#if favicon_png}}
-        <link rel="shortcut icon" href="{{ path_to_root }}favicon.png">
-        {{/if}}
-        <link rel="stylesheet" href="{{ path_to_root }}css/variables.css">
-        <link rel="stylesheet" href="{{ path_to_root }}css/general.css">
-        <link rel="stylesheet" href="{{ path_to_root }}css/chrome.css">
-        {{#if print_enable}}
-        <link rel="stylesheet" href="{{ path_to_root }}css/print.css" media="print">
-        {{/if}}
+    {{#if favicon_svg}}
+    <link rel="icon" href="{{ path_to_root }}favicon.svg">
+    {{/if}}
+    {{#if favicon_png}}
+    <link rel="shortcut icon" href="{{ path_to_root }}favicon.png">
+    {{/if}}
+    <link rel="stylesheet" href="{{ path_to_root }}css/variables.css">
+    <link rel="stylesheet" href="{{ path_to_root }}css/general.css">
+    <link rel="stylesheet" href="{{ path_to_root }}css/chrome.css">
+    {{#if print_enable}}
+    <link rel="stylesheet" href="{{ path_to_root }}css/print.css" media="print">
+    {{/if}}
 
-        <!-- Fonts -->
-        <link rel="stylesheet" href="{{ path_to_root }}FontAwesome/css/font-awesome.css">
-        {{#if copy_fonts}}
-        <link rel="stylesheet" href="{{ path_to_root }}fonts/fonts.css">
-        {{/if}}
+    <!-- Fonts -->
+    <link rel="stylesheet" href="{{ path_to_root }}FontAwesome/css/font-awesome.css">
+    {{#if copy_fonts}}
+    <link rel="stylesheet" href="{{ path_to_root }}fonts/fonts.css">
+    {{/if}}
 
-        <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="{{ path_to_root }}highlight.css">
-        <link rel="stylesheet" href="{{ path_to_root }}tomorrow-night.css">
-        <link rel="stylesheet" href="{{ path_to_root }}ayu-highlight.css">
+    <!-- Highlight.js Stylesheets -->
+    <link rel="stylesheet" href="{{ path_to_root }}highlight.css">
+    <link rel="stylesheet" href="{{ path_to_root }}tomorrow-night.css">
+    <link rel="stylesheet" href="{{ path_to_root }}ayu-highlight.css">
 
-        <!-- Custom theme stylesheets -->
-        {{#each additional_css}}
-        <link rel="stylesheet" href="{{ ../path_to_root }}{{ this }}">
-        {{/each}}
+    <!-- Custom theme stylesheets -->
+    {{#each additional_css}}
+    <link rel="stylesheet" href="{{ ../path_to_root }}{{ this }}">
+    {{/each}}
 
-        {{#if mathjax_support}}
-        <!-- MathJax -->
-        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        {{/if}}
-    </head>
-    <body>
+    <style>
+        .typst-app {
+            margin: 0;
+        }
+    </style>
+    <script>
+        /// https://segmentfault.com/a/1190000016574288
+        (function () {
+            var ie = !!(window.attachEvent && !window.opera);
+            var wk = /webkit\/(\d+)/i.test(navigator.userAgent) && RegExp.$1 < 525;
+            var fn = [];
+            var run = function () {
+                for (var i = 0; i < fn.length; i++) fn[i]();
+            };
+            var d = document;
+            d.ready = function (f) {
+                if (!ie && !wk && d.addEventListener) return d.addEventListener('DOMContentLoaded', f, false);
+                if (fn.push(f) > 1) return;
+                if (ie)
+                    (function () {
+                        try {
+                            d.documentElement.doScroll('left');
+                            run();
+                        } catch (err) {
+                            setTimeout(arguments.callee, 0);
+                        }
+                    })();
+                else if (wk)
+                    var t = setInterval(function () {
+                        if (/^(loaded|complete)$/.test(d.readyState)) clearInterval(t), run();
+                    }, 0);
+            };
+        })();
+
+        document.ready(() => {
+            let fromCtrlC = false;
+            let fromRightClick = false;
+            document.addEventListener(
+                'keydown',
+                evt => (fromCtrlC = evt.key.toUpperCase() == 'C' && evt.ctrlKey),
+            );
+            document.addEventListener('contextmenu', evt => (fromRightClick = true));
+            document.addEventListener('copy', evt => {
+                const originatorEvent = fromCtrlC ? 'CTRL-C' : fromRightClick ? 'right click' : 'toolbar menu';
+                console.log(`Copy event received from ${originatorEvent} within element`, evt.target);
+                fromCtrlC = false;
+                fromRightClick = false;
+
+                // evt.clipboardData.setData('text/plain', 'foo');
+                // evt.preventDefault(); // default behaviour is to copy any selected text
+            });
+        });
+    </script>
+
+    <script type="module" src="{{ path_to_root }}typst-main.js"></script>
+
+</head>
+
+<body>
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
@@ -80,7 +134,7 @@
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
             var theme;
-            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            try { theme = localStorage.getItem('mdbook-theme'); } catch (e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
             html.classList.remove('no-js')
@@ -94,7 +148,7 @@
             var html = document.querySelector('html');
             var sidebar = null;
             if (document.body.clientWidth >= 1080) {
-                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch (e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
@@ -113,7 +167,7 @@
         <!-- Track and set sidebar scroll position -->
         <script>
             var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
+            sidebarScrollbox.addEventListener('click', function (e) {
                 if (e.target.tagName === 'A') {
                     sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
                 }
@@ -139,10 +193,13 @@
                 <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents"
+                            aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
                         </button>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme"
+                            aria-label="Change theme" aria-haspopup="true" aria-expanded="false"
+                            aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
@@ -153,7 +210,9 @@
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
                         {{#if search_enabled}}
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)"
+                            aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S"
+                            aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                         {{/if}}
@@ -184,7 +243,8 @@
                 {{#if search_enabled}}
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..."
+                            aria-controls="searchresults-outer" aria-describedby="searchresults-header">
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -198,7 +258,7 @@
                 <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function (link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
@@ -211,15 +271,17 @@
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         {{!-- {{#previous}}
-                            <a rel="prev" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
-                            </a>
+                        <a rel="prev" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters previous"
+                            title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
                         {{/previous}}
 
                         {{#next}}
-                            <a rel="next" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
+                        <a rel="next" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters next"
+                            title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
                         {{/next}} --}}
 
                         <div style="clear: both"></div>
@@ -229,15 +291,17 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 {{!-- {{#previous}}
-                    <a rel="prev" href="{{ path_to_root }}{{link}}" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
-                    </a>
+                <a rel="prev" href="{{ path_to_root }}{{link}}" class="nav-chapters previous" title="Previous chapter"
+                    aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
                 {{/previous}}
 
                 {{#next}}
-                    <a rel="next" href="{{ path_to_root }}{{link}}" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
+                <a rel="next" href="{{ path_to_root }}{{link}}" class="nav-chapters next" title="Next chapter"
+                    aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
                 {{/next}} --}}
             </nav>
 
@@ -245,121 +309,122 @@
 
         <script src="{{ path_to_root }}svg_utils.js"></script>
         <script>
-          (function sidebar() {
-    var html = document.querySelector("html");
-    var sidebar = document.getElementById("sidebar");
-    var sidebarLinks = document.querySelectorAll('#sidebar a');
-    var sidebarToggleButton = document.getElementById("sidebar-toggle");
-    var sidebarResizeHandle = document.getElementById("sidebar-resize-handle");
-    var firstContact = null;
+            (function sidebar() {
+                var html = document.querySelector("html");
+                var sidebar = document.getElementById("sidebar");
+                var sidebarLinks = document.querySelectorAll('#sidebar a');
+                var sidebarToggleButton = document.getElementById("sidebar-toggle");
+                var sidebarResizeHandle = document.getElementById("sidebar-resize-handle");
+                var firstContact = null;
 
-    function showSidebar() {
-        html.classList.remove('sidebar-hidden')
-        html.classList.add('sidebar-visible');
-        Array.from(sidebarLinks).forEach(function (link) {
-            link.setAttribute('tabIndex', 0);
-        });
-        sidebarToggleButton.setAttribute('aria-expanded', true);
-        sidebar.setAttribute('aria-hidden', false);
-        try { localStorage.setItem('mdbook-sidebar', 'visible'); } catch (e) { }
-    }
+                function showSidebar() {
+                    html.classList.remove('sidebar-hidden')
+                    html.classList.add('sidebar-visible');
+                    Array.from(sidebarLinks).forEach(function (link) {
+                        link.setAttribute('tabIndex', 0);
+                    });
+                    sidebarToggleButton.setAttribute('aria-expanded', true);
+                    sidebar.setAttribute('aria-hidden', false);
+                    try { localStorage.setItem('mdbook-sidebar', 'visible'); } catch (e) { }
+                }
 
 
-    var sidebarAnchorToggles = document.querySelectorAll('#sidebar a.toggle');
+                var sidebarAnchorToggles = document.querySelectorAll('#sidebar a.toggle');
 
-    function toggleSection(ev) {
-        ev.currentTarget.parentElement.classList.toggle('expanded');
-    }
+                function toggleSection(ev) {
+                    ev.currentTarget.parentElement.classList.toggle('expanded');
+                }
 
-    Array.from(sidebarAnchorToggles).forEach(function (el) {
-        el.addEventListener('click', toggleSection);
-    });
+                Array.from(sidebarAnchorToggles).forEach(function (el) {
+                    el.addEventListener('click', toggleSection);
+                });
 
-    function hideSidebar() {
-        html.classList.remove('sidebar-visible')
-        html.classList.add('sidebar-hidden');
-        Array.from(sidebarLinks).forEach(function (link) {
-            link.setAttribute('tabIndex', -1);
-        });
-        sidebarToggleButton.setAttribute('aria-expanded', false);
-        sidebar.setAttribute('aria-hidden', true);
-        try { localStorage.setItem('mdbook-sidebar', 'hidden'); } catch (e) { }
-    }
+                function hideSidebar() {
+                    html.classList.remove('sidebar-visible')
+                    html.classList.add('sidebar-hidden');
+                    Array.from(sidebarLinks).forEach(function (link) {
+                        link.setAttribute('tabIndex', -1);
+                    });
+                    sidebarToggleButton.setAttribute('aria-expanded', false);
+                    sidebar.setAttribute('aria-hidden', true);
+                    try { localStorage.setItem('mdbook-sidebar', 'hidden'); } catch (e) { }
+                }
 
-    // Toggle sidebar
-    sidebarToggleButton.addEventListener('click', function sidebarToggle() {
-        if (html.classList.contains("sidebar-hidden")) {
-            var current_width = parseInt(
-                document.documentElement.style.getPropertyValue('--sidebar-width'), 10);
-            if (current_width < 150) {
-                document.documentElement.style.setProperty('--sidebar-width', '150px');
-            }
-            showSidebar();
-        } else if (html.classList.contains("sidebar-visible")) {
-            hideSidebar();
-        } else {
-            if (getComputedStyle(sidebar)['transform'] === 'none') {
-                hideSidebar();
-            } else {
-                showSidebar();
-            }
-        }
-    });
+                // Toggle sidebar
+                sidebarToggleButton.addEventListener('click', function sidebarToggle() {
+                    if (html.classList.contains("sidebar-hidden")) {
+                        var current_width = parseInt(
+                            document.documentElement.style.getPropertyValue('--sidebar-width'), 10);
+                        if (current_width < 150) {
+                            document.documentElement.style.setProperty('--sidebar-width', '150px');
+                        }
+                        showSidebar();
+                    } else if (html.classList.contains("sidebar-visible")) {
+                        hideSidebar();
+                    } else {
+                        if (getComputedStyle(sidebar)['transform'] === 'none') {
+                            hideSidebar();
+                        } else {
+                            showSidebar();
+                        }
+                    }
+                });
 
-    sidebarResizeHandle.addEventListener('mousedown', initResize, false);
+                sidebarResizeHandle.addEventListener('mousedown', initResize, false);
 
-    function initResize(e) {
-        window.addEventListener('mousemove', resize, false);
-        window.addEventListener('mouseup', stopResize, false);
-        html.classList.add('sidebar-resizing');
-    }
-    function resize(e) {
-        var pos = (e.clientX - sidebar.offsetLeft);
-        if (pos < 20) {
-            hideSidebar();
-        } else {
-            if (html.classList.contains("sidebar-hidden")) {
-                showSidebar();
-            }
-            pos = Math.min(pos, window.innerWidth - 100);
-            document.documentElement.style.setProperty('--sidebar-width', pos + 'px');
-        }
-    }
-    //on mouseup remove windows functions mousemove & mouseup
-    function stopResize(e) {
-        html.classList.remove('sidebar-resizing');
-        window.removeEventListener('mousemove', resize, false);
-        window.removeEventListener('mouseup', stopResize, false);
-    }
+                function initResize(e) {
+                    window.addEventListener('mousemove', resize, false);
+                    window.addEventListener('mouseup', stopResize, false);
+                    html.classList.add('sidebar-resizing');
+                }
+                function resize(e) {
+                    var pos = (e.clientX - sidebar.offsetLeft);
+                    if (pos < 20) {
+                        hideSidebar();
+                    } else {
+                        if (html.classList.contains("sidebar-hidden")) {
+                            showSidebar();
+                        }
+                        pos = Math.min(pos, window.innerWidth - 100);
+                        document.documentElement.style.setProperty('--sidebar-width', pos + 'px');
+                    }
+                }
+                //on mouseup remove windows functions mousemove & mouseup
+                function stopResize(e) {
+                    html.classList.remove('sidebar-resizing');
+                    window.removeEventListener('mousemove', resize, false);
+                    window.removeEventListener('mouseup', stopResize, false);
+                }
 
-    document.addEventListener('touchstart', function (e) {
-        firstContact = {
-            x: e.touches[0].clientX,
-            time: Date.now()
-        };
-    }, { passive: true });
+                document.addEventListener('touchstart', function (e) {
+                    firstContact = {
+                        x: e.touches[0].clientX,
+                        time: Date.now()
+                    };
+                }, { passive: true });
 
-    document.addEventListener('touchmove', function (e) {
-        if (!firstContact)
-            return;
+                document.addEventListener('touchmove', function (e) {
+                    if (!firstContact)
+                        return;
 
-        var curX = e.touches[0].clientX;
-        var xDiff = curX - firstContact.x,
-            tDiff = Date.now() - firstContact.time;
+                    var curX = e.touches[0].clientX;
+                    var xDiff = curX - firstContact.x,
+                        tDiff = Date.now() - firstContact.time;
 
-        if (tDiff < 250 && Math.abs(xDiff) >= 150) {
-            if (xDiff >= 0 && firstContact.x < Math.min(document.body.clientWidth * 0.25, 300))
-                showSidebar();
-            else if (xDiff < 0 && curX < 300)
-                hideSidebar();
+                    if (tDiff < 250 && Math.abs(xDiff) >= 150) {
+                        if (xDiff >= 0 && firstContact.x < Math.min(document.body.clientWidth * 0.25, 300))
+                            showSidebar();
+                        else if (xDiff < 0 && curX < 300)
+                            hideSidebar();
 
-            firstContact = null;
-        }
-    }, { passive: true });
-})();
+                        firstContact = null;
+                    }
+                }, { passive: true });
+            })();
 
         </script>
 
     </div>
-    </body>
+</body>
+
 </html>

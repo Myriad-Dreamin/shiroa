@@ -1,0 +1,47 @@
+<script>
+    let appContainer = document.currentScript && document.currentScript.parentElement;
+    document.ready(() => {
+        let plugin = window.TypstRenderModule.createTypstSvgRenderer();
+        console.log(plugin);
+        plugin
+            .init({
+                getModule: () =>
+                    '{{ renderer_module }}',
+            })
+            .then(async () => {
+                const artifactData = await fetch(
+                    '/{{ rel_data_path }}.multi.sir.bin',
+                )
+                    .then(response => response.arrayBuffer())
+                    .then(buffer => new Uint8Array(buffer));
+
+                const t0 = performance.now();
+
+                const svgModule = await plugin.createModule(artifactData);
+                let t1 = performance.now();
+
+                console.log(`init took ${t1 - t0} milliseconds`);
+                const appElem = document.createElement('div');
+                appElem.class = 'typst-app';
+                if (appContainer) {
+                    appContainer.appendChild(appElem);
+                }
+
+                const runRender = async () => {
+                    t1 = performance.now();
+                    await plugin.renderSvg(svgModule, appElem);
+
+                    const t2 = performance.now();
+                    console.log(
+                        `render took ${t2 - t1} milliseconds. total took ${t2 - t0} milliseconds.`,
+                    );
+                };
+
+                let base = runRender();
+
+                window.onresize = () => {
+                    base = base.then(runRender());
+                };
+            });
+    });
+</script>

@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use typst_ts_compiler::{service::CompileDriver, TypstSystemWorld};
-use typst_ts_core::{config::CompileOpts, exporter_builtins::GroupExporter, path::PathClean};
+use typst_ts_core::{config::CompileOpts, path::PathClean};
 
 use crate::{utils::UnwrapOrExit, CompileArgs};
 
@@ -47,6 +47,5 @@ pub fn create_driver(args: CompileArgs) -> CompileDriver {
     CompileDriver {
         world,
         entry_file: entry_file_path.to_owned(),
-        exporter: GroupExporter::new(vec![]),
     }
 }
