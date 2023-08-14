@@ -2,23 +2,23 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{render::TypstRenderer, CompileArgs};
+use crate::{render::TypstRenderer, summary::BookMetaWrapper, CompileArgs};
 
 /// General information about your book.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct BookConfig {
     /// The title of the book
-    title: String,
+    pub title: String,
     /// The author(s) of the book
-    authors: Vec<String>,
+    pub authors: Vec<String>,
     /// A description for the book, which is added as meta information in the
     /// html <head> of each page
-    description: String,
+    pub description: String,
     /// The github repository for the book
-    repository: String,
+    pub repository: String,
     /// The main language of the book, which is used as a language attribute
     /// <html lang="en"> for example.
-    language: String,
+    pub language: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -27,22 +27,24 @@ pub struct BuildConfig {
     /// the book's root directory. This can overridden with the --dest-dir CLI
     /// option.
     #[serde(rename = "dest-dir")]
-    dest_dir: String,
+    pub dest_dir: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct ProjectConfig {
-    book: BookConfig,
-    build: BuildConfig,
+    pub book: BookConfig,
+    pub build: BuildConfig,
 }
 
 pub struct Project {
     pub tr: TypstRenderer,
+    pub conf: ProjectConfig,
+    pub book_meta: Option<BookMetaWrapper>,
 }
 
 impl Project {
     pub fn new(mut args: CompileArgs) -> Self {
-        let book_config: ProjectConfig = toml::from_str(
+        let conf: ProjectConfig = toml::from_str(
             std::fs::read_to_string(Path::new(&args.dir).join("book.toml"))
                 .unwrap()
                 .as_str(),
@@ -54,7 +56,7 @@ impl Project {
         }
 
         if args.dest_dir.is_empty() {
-            args.dest_dir = book_config.build.dest_dir;
+            args.dest_dir = conf.build.dest_dir.clone();
         }
 
         if args.dest_dir.is_empty() {
@@ -63,10 +65,14 @@ impl Project {
 
         let tr = TypstRenderer::new(args);
 
-        Self { tr }
+        Self {
+            tr,
+            conf,
+            book_meta: None,
+        }
     }
 
-    pub fn typst_renderer(self) -> TypstRenderer {
-        self.tr
+    pub fn typst_renderer(&self) -> &TypstRenderer {
+        &self.tr
     }
 }

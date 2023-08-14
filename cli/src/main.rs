@@ -50,7 +50,11 @@ fn main() {
 
 fn build(args: BuildArgs) -> ! {
     let proj = Project::new(args.compile);
-    let mut driver = proj.typst_renderer();
+    let Project {
+        tr: mut driver,
+        conf: book_config,
+        ..
+    } = proj;
 
     driver.set_entry_file(Path::new("summary.typ"));
     let doc = driver.compiler.pure_compile().unwrap();
@@ -64,13 +68,6 @@ fn build(args: BuildArgs) -> ! {
     println!("metadata: {:?}", res);
 
     assert!(res.len() == 1);
-
-    let book_config = toml::from_str(
-        std::fs::read_to_string("github-pages/docs/book.toml")
-            .unwrap()
-            .as_str(),
-    )
-    .unwrap();
 
     let book_meta = res.first().unwrap().value.clone();
     let mut renderer =
@@ -137,7 +134,7 @@ fn build(args: BuildArgs) -> ! {
         chapters
     }
 
-    std::fs::create_dir_all("github-pages/dist/").unwrap();
+    std::fs::create_dir_all(&driver.dest_dir).unwrap();
 
     let chapters = convert_chapters(&book_meta);
 
@@ -146,7 +143,7 @@ fn build(args: BuildArgs) -> ! {
     for ch in chapters {
         if let Some(path) = ch.get("path") {
             let raw_path: String = serde_json::from_value(path.clone()).unwrap();
-            let path = format!("github-pages/dist/{}", raw_path);
+            let path = &driver.dest_dir.join(&raw_path);
             let path = Path::new(&path);
 
             let content = renderer.html_render(ch, raw_path);
@@ -154,7 +151,7 @@ fn build(args: BuildArgs) -> ! {
             std::fs::create_dir_all(path.parent().unwrap()).unwrap();
             std::fs::write(path.with_extension("html"), &content).unwrap();
             if !write_index {
-                std::fs::write("github-pages/dist/index.html", content).unwrap();
+                std::fs::write(&driver.dest_dir.join("index.html"), content).unwrap();
                 write_index = true;
             }
         }

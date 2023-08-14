@@ -5,6 +5,7 @@ use typst_ts_compiler::service::{CompileDriver, Compiler, DynamicLayoutCompiler}
 use typst_ts_core::path::PathClean;
 
 use crate::{
+    project::ProjectConfig,
     summary::{BookMetaContent, BookMetaElement, BookMetaWrapper},
     theme,
     utils::make_absolute,
@@ -17,13 +18,13 @@ pub struct HtmlRenderer {
     // typst compiler
     driver: DynamicLayoutCompiler<CompileDriver>,
 
-    book_config: toml::Table,
+    book_config: ProjectConfig,
     book_meta: BookMetaWrapper,
 }
 
 impl HtmlRenderer {
     pub fn new(
-        book_config: toml::Table,
+        book_config: ProjectConfig,
         driver: DynamicLayoutCompiler<CompileDriver>,
         book_meta: BookMetaWrapper,
     ) -> Self {
@@ -190,7 +191,7 @@ impl HtmlRenderer {
 
     pub fn html_render(&mut self, ch: BTreeMap<String, serde_json::Value>, path: String) -> String {
         // todo: split to make_data
-        let mut data = serde_json::to_value(self.book_config["book"].clone()).unwrap();
+        let mut data = serde_json::to_value(self.book_config.book.clone()).unwrap();
         let data = data.as_object_mut().unwrap();
 
         // inject path (for current document)
@@ -314,10 +315,11 @@ impl HelperDef for RenderToc {
         out.write("<ol class=\"chapter\">")?;
 
         let mut current_level = 1;
-        // The "index" page, which has this attribute set, is supposed to alias the first chapter in
-        // the book, i.e. the first link. There seems to be no easy way to determine which chapter
-        // the "index" is aliasing from within the renderer, so this is used instead to force the
-        // first link to be active. See further below.
+        // The "index" page, which has this attribute set, is supposed to alias the
+        // first chapter in the book, i.e. the first link. There seems to be no
+        // easy way to determine which chapter the "index" is aliasing from
+        // within the renderer, so this is used instead to force the first link
+        // to be active. See further below.
         let mut is_first_chapter = ctx.data().get("is_index").is_some();
 
         for item in chapters {
