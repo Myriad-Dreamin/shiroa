@@ -1,8 +1,9 @@
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
+use typst_ts_compiler::service::Compiler;
 
-use crate::{render::TypstRenderer, summary::BookMetaWrapper, CompileArgs};
+use crate::{render::TypstRenderer, summary::BookMeta, CompileArgs};
 
 /// General information about your book.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -39,7 +40,7 @@ pub struct ProjectConfig {
 pub struct Project {
     pub tr: TypstRenderer,
     pub conf: ProjectConfig,
-    pub book_meta: Option<BookMetaWrapper>,
+    pub book_meta: Option<BookMeta>,
 }
 
 impl Project {
@@ -74,5 +75,34 @@ impl Project {
 
     pub fn typst_renderer(&self) -> &TypstRenderer {
         &self.tr
+    }
+
+    pub fn summarize(&mut self) {
+        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+        struct QueryItem {
+            pub value: BookMeta,
+        }
+
+        type Json = Vec<QueryItem>;
+
+        self.tr.set_entry_file(Path::new("summary.typ"));
+        let doc = self.tr.compiler.pure_compile().unwrap();
+        let res = self
+            .tr
+            .compiler
+            .query("<typst-book-book-meta>".to_string(), &doc)
+            .unwrap();
+
+        // convert to native struct
+        let res = serde_json::to_value(&res).unwrap();
+        let res: Json = serde_json::from_value(res).unwrap();
+
+        println!("metadata: {:?}", res);
+
+        assert!(res.len() == 1);
+
+        let book_meta = res.first().unwrap().value.clone();
+
+        self.book_meta = Some(book_meta);
     }
 }

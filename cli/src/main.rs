@@ -4,11 +4,10 @@ use clap::{Args, Command, FromArgMatches};
 use serde_json::json;
 use typst_book_cli::{
     project::Project,
-    summary::{BookMetaContent, BookMetaElement, BookMetaWrapper, QueryBookMetaJsonResults},
+    summary::{BookMeta, BookMetaContent, BookMetaElem},
     utils::async_continue,
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
-use typst_ts_compiler::service::Compiler;
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -49,49 +48,32 @@ fn main() {
 }
 
 fn build(args: BuildArgs) -> ! {
-    let proj = Project::new(args.compile);
+    let mut proj = Project::new(args.compile);
+    proj.summarize();
+
+    let book_meta = proj.book_meta.unwrap();
     let Project {
-        tr: mut driver,
+        tr: driver,
         conf: book_config,
         ..
     } = proj;
-
-    driver.set_entry_file(Path::new("summary.typ"));
-    let doc = driver.compiler.pure_compile().unwrap();
-    let res = driver
-        .compiler
-        .query("<typst-book-book-meta>".to_string(), &doc)
-        .unwrap();
-    let res = serde_json::to_value(&res).unwrap();
-    let res: QueryBookMetaJsonResults = serde_json::from_value(res).unwrap();
-
-    println!("metadata: {:?}", res);
-
-    assert!(res.len() == 1);
-
-    let book_meta = res.first().unwrap().value.clone();
     let mut renderer =
         typst_book_cli::render::HtmlRenderer::new(book_config, driver.compiler, book_meta.clone());
 
-    pub fn convert_chapters(
-        book_meta: &BookMetaWrapper,
-    ) -> Vec<BTreeMap<String, serde_json::Value>> {
+    pub fn convert_chapters(book_meta: &BookMeta) -> Vec<BTreeMap<String, serde_json::Value>> {
         let mut chapters = vec![];
 
-        fn dfs_elem(
-            elem: &BookMetaElement,
-            chapters: &mut Vec<BTreeMap<String, serde_json::Value>>,
-        ) {
+        fn dfs_elem(elem: &BookMetaElem, chapters: &mut Vec<BTreeMap<String, serde_json::Value>>) {
             // Create the data to inject in the template
             let mut chapter = BTreeMap::new();
 
             match elem {
-                BookMetaElement::Part { title, .. } => {
+                BookMetaElem::Part { title, .. } => {
                     let BookMetaContent::PlainText { content: title } = title;
 
                     chapter.insert("part".to_owned(), json!(title));
                 }
-                BookMetaElement::Chapter {
+                BookMetaElem::Chapter {
                     title,
                     section,
                     link,
@@ -113,14 +95,14 @@ fn build(args: BuildArgs) -> ! {
                         chapter.insert("path".to_owned(), json!(path));
                     }
                 }
-                BookMetaElement::Separator {} => {
+                BookMetaElem::Separator {} => {
                     chapter.insert("spacer".to_owned(), json!("_spacer_"));
                 }
             }
 
             chapters.push(chapter);
 
-            if let BookMetaElement::Chapter { sub: subs, .. } = elem {
+            if let BookMetaElem::Chapter { sub: subs, .. } = elem {
                 for child in subs.iter() {
                     dfs_elem(child, chapters);
                 }

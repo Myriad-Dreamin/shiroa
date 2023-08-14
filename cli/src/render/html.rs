@@ -6,7 +6,7 @@ use typst_ts_core::path::PathClean;
 
 use crate::{
     project::ProjectConfig,
-    summary::{BookMetaContent, BookMetaElement, BookMetaWrapper},
+    summary::{BookMeta, BookMetaContent, BookMetaElem},
     theme,
     utils::make_absolute,
 };
@@ -19,14 +19,14 @@ pub struct HtmlRenderer {
     driver: DynamicLayoutCompiler<CompileDriver>,
 
     book_config: ProjectConfig,
-    book_meta: BookMetaWrapper,
+    book_meta: BookMeta,
 }
 
 impl HtmlRenderer {
     pub fn new(
         book_config: ProjectConfig,
         driver: DynamicLayoutCompiler<CompileDriver>,
-        book_meta: BookMetaWrapper,
+        book_meta: BookMeta,
     ) -> Self {
         let mut handlebars = Handlebars::new();
         // todo
@@ -61,9 +61,9 @@ impl HtmlRenderer {
     }
 
     pub fn auto_order_section(&mut self) {
-        fn dfs_elem(elem: &mut BookMetaElement, order: &mut Vec<u64>) {
+        fn dfs_elem(elem: &mut BookMetaElem, order: &mut Vec<u64>) {
             match elem {
-                BookMetaElement::Chapter {
+                BookMetaElem::Chapter {
                     section, sub: subs, ..
                 } => {
                     if section.is_none() {
@@ -76,7 +76,7 @@ impl HtmlRenderer {
                         order.pop();
                     }
                 }
-                BookMetaElement::Part { .. } | BookMetaElement::Separator {} => {}
+                BookMetaElem::Part { .. } | BookMetaElem::Separator {} => {}
             }
         }
 
@@ -89,20 +89,17 @@ impl HtmlRenderer {
     pub fn convert_chapters(&self) -> Vec<BTreeMap<String, serde_json::Value>> {
         let mut chapters = vec![];
 
-        fn dfs_elem(
-            elem: &BookMetaElement,
-            chapters: &mut Vec<BTreeMap<String, serde_json::Value>>,
-        ) {
+        fn dfs_elem(elem: &BookMetaElem, chapters: &mut Vec<BTreeMap<String, serde_json::Value>>) {
             // Create the data to inject in the template
             let mut chapter = BTreeMap::new();
 
             match elem {
-                BookMetaElement::Part { title, .. } => {
+                BookMetaElem::Part { title, .. } => {
                     let BookMetaContent::PlainText { content: title } = title;
 
                     chapter.insert("part".to_owned(), json!(title));
                 }
-                BookMetaElement::Chapter {
+                BookMetaElem::Chapter {
                     title,
                     section,
                     link,
@@ -124,14 +121,14 @@ impl HtmlRenderer {
                         chapter.insert("path".to_owned(), json!(path));
                     }
                 }
-                BookMetaElement::Separator {} => {
+                BookMetaElem::Separator {} => {
                     chapter.insert("spacer".to_owned(), json!("_spacer_"));
                 }
             }
 
             chapters.push(chapter);
 
-            if let BookMetaElement::Chapter { sub: subs, .. } = elem {
+            if let BookMetaElem::Chapter { sub: subs, .. } = elem {
                 for child in subs.iter() {
                     dfs_elem(child, chapters);
                 }
