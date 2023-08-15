@@ -162,7 +162,7 @@ impl Project {
             }
         }
 
-        for item in self.book_meta.as_ref().unwrap().content.iter() {
+        for item in self.book_meta.as_ref().unwrap().summary.iter() {
             dfs_elem(item, &mut chapters);
         }
 

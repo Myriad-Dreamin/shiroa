@@ -24,7 +24,9 @@ pub enum BookMetaElem {
     Separator {},
 }
 
+/// Book metadata in summary.typ
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct BookMeta {
-    pub content: Vec<BookMetaElem>,
+    /// A list of all the content in the book
+    pub summary: Vec<BookMetaElem>,
 }
