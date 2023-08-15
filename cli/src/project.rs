@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use typst_ts_compiler::service::Compiler;
+use typst_ts_compiler::service::{Compiler, DiagObserver};
 
 use crate::{
     render::{DataDict, HtmlRenderer, TypstRenderer},
@@ -179,7 +179,10 @@ impl Project {
 
         self.tr.setup_entry(Path::new(path));
 
-        self.tr.compiler.compile().unwrap();
+        self.tr
+            .compiler
+            .with_compile_diag::<true, _>(|c| c.compile())
+            .unwrap();
 
         let dynamic_load_trampoline = self
             .hr
