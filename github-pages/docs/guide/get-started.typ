@@ -51,9 +51,9 @@ A very basic `book.toml` can be as simple as this:
 title = "My First Book"
 ```
 
-=== `SUMMARY.md`
+=== `SUMMARY.typ`
 
-The next major part of a book is the summary file located at `src/SUMMARY.md`.
+The next major part of a book is the summary file located at `src/SUMMARY.typ`.
 This file contains a list of all the chapters in the book.
 Before a chapter can be viewed, it must be added to this list.
 
@@ -66,10 +66,10 @@ Here's a basic summary file with a few chapters:
     - #chapter(none, section: "1.2.1")[Drafting chapter]
 ```
 
-Try opening up `src/SUMMARY.md` in your editor and adding a few chapters.
+Try opening up `src/SUMMARY.typ` in your editor and adding a few chapters.
 If any of the chapter files do not exist, `typst-book` will automatically create them for you.
 
-For more details on other formatting options for the summary file, check out the [Summary chapter](../format/summary.md).
+For more details on other formatting options for the summary file, check out the [Summary chapter](../format/summary.typ).
 
 === Source files
 
@@ -107,4 +107,4 @@ typst-book build
 This will generate a directory named `book` which contains the HTML content of your book.
 You can then place this directory on any web server to host it.
 
-// For more information about publishing and deploying, check out the [Continuous Integration chapter](../continuous-integration.md) for more.
+// For more information about publishing and deploying, check out the [Continuous Integration chapter](../continuous-integration.typ) for more.
