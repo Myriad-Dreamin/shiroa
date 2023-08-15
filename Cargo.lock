@@ -3514,6 +3514,7 @@ checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
 [[package]]
 name = "typst"
 version = "0.7.0"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?branch=typst.ts#706d64f9ab77073a31e39653b1ed5bbbbaf204ea"
 dependencies = [
  "bitflags 2.4.0",
  "bytemuck",
@@ -3580,6 +3581,7 @@ dependencies = [
 [[package]]
 name = "typst-library"
 version = "0.7.0"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?branch=typst.ts#706d64f9ab77073a31e39653b1ed5bbbbaf204ea"
 dependencies = [
  "az",
  "chinese-number",
@@ -3618,6 +3620,7 @@ dependencies = [
 [[package]]
 name = "typst-macros"
 version = "0.7.0"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?branch=typst.ts#706d64f9ab77073a31e39653b1ed5bbbbaf204ea"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -3628,6 +3631,7 @@ dependencies = [
 [[package]]
 name = "typst-syntax"
 version = "0.7.0"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?branch=typst.ts#706d64f9ab77073a31e39653b1ed5bbbbaf204ea"
 dependencies = [
  "comemo",
  "ecow",
@@ -3643,6 +3647,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-compiler"
 version = "0.3.1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=507b090266048f254b6493fbc18656fe894baa3a#507b090266048f254b6493fbc18656fe894baa3a"
 dependencies = [
  "append-only-vec",
  "base64 0.21.2",
@@ -3679,6 +3684,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-core"
 version = "0.3.1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=507b090266048f254b6493fbc18656fe894baa3a#507b090266048f254b6493fbc18656fe894baa3a"
 dependencies = [
  "base64 0.21.2",
  "base64-serde",
@@ -3710,6 +3716,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-svg-exporter"
 version = "0.3.1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=507b090266048f254b6493fbc18656fe894baa3a#507b090266048f254b6493fbc18656fe894baa3a"
 dependencies = [
  "base64 0.21.2",
  "comemo",
