@@ -2,7 +2,9 @@ use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
 use typst_book_cli::{
-    project::Project, utils::async_continue, BuildArgs, Opts, ServeArgs, Subcommands,
+    project::Project,
+    utils::{async_continue, copy_dir_all},
+    BuildArgs, Opts, ServeArgs, Subcommands,
 };
 use warp::Filter;
 
@@ -49,6 +51,13 @@ fn build(args: BuildArgs) -> ! {
     proj.summarize();
 
     let mut write_index = false;
+
+    copy_dir_all("themes/mdbook/css", proj.dest_dir.join("css")).unwrap();
+    copy_dir_all(
+        "themes/mdbook/fontAwesome",
+        proj.dest_dir.join("fontAwesome"),
+    )
+    .unwrap();
 
     // copy files
     std::fs::create_dir_all(&proj.dest_dir.join("renderer")).unwrap();
