@@ -24,14 +24,13 @@ pub struct Theme {
     // pub favicon_png: Option<Vec<u8>>,
     // pub favicon_svg: Option<Vec<u8>>,
     // pub js: Vec<u8>,
-    // pub tomorrow_night_css: Vec<u8>,
-    // pub ayu_highlight_css: Vec<u8>,
     // pub clipboard_js: Vec<u8>,
 }
 
 impl Theme {
     /// Creates a `Theme` from the given `theme_dir`.
-    /// If a file is found in the theme dir, it will override the default version.
+    /// If a file is found in the theme dir, it will override the default
+    /// version.
     pub fn new(theme_dir: &Path) -> Self {
         let mut theme = Self::default();
 
@@ -59,17 +58,7 @@ impl Theme {
                 //     theme_dir.join("css/variables.css"),
                 //     &mut theme.variables_css,
                 // ),
-                // (theme_dir.join("highlight.js"), &mut theme.highlight_js),
                 // (theme_dir.join("clipboard.min.js"), &mut theme.clipboard_js),
-                // (theme_dir.join("highlight.css"), &mut theme.highlight_css),
-                // (
-                //     theme_dir.join("tomorrow-night.css"),
-                //     &mut theme.tomorrow_night_css,
-                // ),
-                // (
-                //     theme_dir.join("ayu-highlight.css"),
-                //     &mut theme.ayu_highlight_css,
-                // ),
             ];
 
             let load_with_warn = |filename: &Path, dest: &mut Vec<u8>| {

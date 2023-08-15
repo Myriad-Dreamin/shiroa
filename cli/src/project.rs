@@ -170,8 +170,7 @@ impl Project {
     }
 
     pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> Result<String, String> {
-        let rel_data_path = std::path::Path::new("typst-book")
-            .join(path)
+        let rel_data_path = std::path::Path::new(path)
             .with_extension("")
             .to_str()
             .unwrap()
@@ -188,7 +187,7 @@ impl Project {
             .render(
                 "typst_load_trampoline",
                 &json!({
-                    "renderer_module" : "/typst-book/renderer/typst_ts_renderer_bg.wasm",
+                    "renderer_module" : "/renderer/typst_ts_renderer_bg.wasm",
                     "rel_data_path": rel_data_path,
                 }),
             )

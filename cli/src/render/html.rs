@@ -63,7 +63,7 @@ impl HtmlRenderer {
 
         // inject path_to_root
         // todo: path_to_root
-        data.insert("path_to_root".to_owned(), json!("/typst-book/"));
+        data.insert("path_to_root".to_owned(), json!("/"));
 
         self.handlebars.render("index", &data).unwrap()
     }

@@ -1,9 +1,10 @@
-use std::{path::Path, process::exit};
+use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
 use typst_book_cli::{
     project::Project, utils::async_continue, BuildArgs, Opts, ServeArgs, Subcommands,
 };
+use warp::Filter;
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -49,6 +50,25 @@ fn build(args: BuildArgs) -> ! {
 
     let mut write_index = false;
 
+    // copy files
+    std::fs::create_dir_all(&proj.dest_dir.join("renderer")).unwrap();
+    std::fs::copy(
+        "frontend/node_modules/@myriaddreamin/typst-ts-renderer/typst_ts_renderer_bg.wasm",
+        proj.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
+    )
+    .unwrap();
+    std::fs::copy(
+        "frontend/node_modules/@myriaddreamin/typst.ts/dist/main.js",
+        proj.dest_dir.join("typst-main.js"),
+    )
+    .unwrap();
+    std::fs::copy(
+        "frontend/src/svg_utils.cjs",
+        proj.dest_dir.join("svg_utils.js"),
+    )
+    .unwrap();
+    std::fs::copy("frontend/dist/main.js", proj.dest_dir.join("typst-book.js")).unwrap();
+
     for ch in proj.iter_chapters() {
         if let Some(path) = ch.get("path") {
             let raw_path: String = serde_json::from_value(path.clone()).unwrap();
@@ -70,8 +90,27 @@ fn build(args: BuildArgs) -> ! {
 }
 
 fn serve(args: ServeArgs) -> ! {
+    pub async fn serve_inner(args: ServeArgs) {
+        use warp::http::Method;
+
+        let proj = Project::new(args.compile);
+
+        let http_addr: SocketAddr = args.addr.clone().parse().unwrap();
+
+        let cors =
+            warp::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE, Method::HEAD]);
+
+        let routes = warp::fs::dir(proj.dest_dir)
+            .with(cors)
+            .with(warp::compression::gzip());
+
+        let server = warp::serve(routes);
+
+        server.run(http_addr).await
+    }
+
     async_continue(async {
-        typst_book_cli::serve::serve(args).await;
+        serve_inner(args).await;
         exit(0)
     })
 }
