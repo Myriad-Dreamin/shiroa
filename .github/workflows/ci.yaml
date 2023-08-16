@@ -37,6 +37,6 @@ jobs:
           cargo build --workspace
       - name: Build Book
         run: |
-          cargo run --bin typst-book -- build -w . github-pages/docs
+          cargo run --bin typst-book -- build --path-to-root /typst-book/ -w . github-pages/docs
       - name: Test
         run: cargo test --workspace --no-fail-fast
