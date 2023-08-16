@@ -14,12 +14,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install Artifact Cache
         uses: Swatinem/rust-cache@v2
-      - name: Fmt check
-        run: cargo fmt --check --all
-      - name: Clippy check
-        run: cargo clippy --workspace --all-targets
-      - name: Documentation check
-        run: cargo doc --workspace --no-deps
       - name: Install Yarn
         uses: borales/actions-yarn@v4
         with:
@@ -31,6 +25,12 @@ jobs:
         with:
           cmd: build
           dir: 'frontend'
+      - name: Fmt check
+        run: cargo fmt --check --all
+      - name: Clippy check
+        run: cargo clippy --workspace --all-targets
+      - name: Documentation check
+        run: cargo doc --workspace --no-deps
       - name: Build
         run: |
           cargo build --workspace
