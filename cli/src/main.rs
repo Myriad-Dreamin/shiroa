@@ -54,9 +54,13 @@ fn build(args: BuildArgs) -> ! {
     let mut write_index = false;
 
     std::fs::create_dir_all(&proj.dest_dir).unwrap();
-    copy_dir_embedded(include_dir!("themes/mdbook/css"), proj.dest_dir.join("css")).unwrap();
     copy_dir_embedded(
-        include_dir!("themes/mdbook/fontAwesome"),
+        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/css"),
+        proj.dest_dir.join("css"),
+    )
+    .unwrap();
+    copy_dir_embedded(
+        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/fontAwesome"),
         proj.dest_dir.join("fontAwesome"),
     )
     .unwrap();
