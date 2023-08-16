@@ -1,2 +1,2 @@
 * text=auto
-*.typ linguist-language=typescript
+*.typ linguist-language=rust
