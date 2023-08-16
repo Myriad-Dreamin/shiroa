@@ -1,0 +1,62 @@
+name: typst_ts::release::gh_pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ['main']
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build-gh-pages:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Set Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install Artifact Cache
+        uses: Swatinem/rust-cache@v2
+      - name: Build JavaScript packages (Install)
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+          dir: 'frontend'
+      - name: Build JavaScript packages (Compile)
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build
+          dir: 'frontend'
+      - name: Build Book
+        run: |
+          cargo run --bin typst-book -- build -w . .\github-pages\docs\
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # Upload `/github-pages` sub directory
+          path: './github-pages/dist'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
