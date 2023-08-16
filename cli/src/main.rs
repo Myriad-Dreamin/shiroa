@@ -59,8 +59,13 @@ fn build(args: BuildArgs) -> ! {
     )
     .unwrap();
     copy_dir_embedded(
-        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome"),
-        proj.dest_dir.join("FontAwesome"),
+        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/css"),
+        proj.dest_dir.join("FontAwesome/css"),
+    )
+    .unwrap();
+    copy_dir_embedded(
+        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/fonts"),
+        proj.dest_dir.join("FontAwesome/fonts"),
     )
     .unwrap();
 
