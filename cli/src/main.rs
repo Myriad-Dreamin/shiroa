@@ -60,8 +60,8 @@ fn build(args: BuildArgs) -> ! {
     )
     .unwrap();
     copy_dir_embedded(
-        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/fontAwesome"),
-        proj.dest_dir.join("fontAwesome"),
+        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome"),
+        proj.dest_dir.join("FontAwesome"),
     )
     .unwrap();
 
