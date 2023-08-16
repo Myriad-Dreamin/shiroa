@@ -1,0 +1,41 @@
+name: typst_book::ci
+on: [push, pull_request]
+
+env:
+  RUSTFLAGS: '-Dwarnings'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Repo
+        uses: actions/checkout@v3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Artifact Cache
+        uses: Swatinem/rust-cache@v2
+      - name: Fmt check
+        run: cargo fmt --check --all
+      - name: Clippy check
+        run: cargo clippy --workspace --all-targets
+      - name: Documentation check
+        run: cargo doc --workspace --no-deps
+      - name: Install Yarn
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
+      - name: Build JavaScript packages
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build
+          dir: 'frontend'
+      - name: Build
+        run: |
+          cargo build --workspace
+      - name: Build Book
+        run: |
+          cargo run --bin typst-book -- serve -w . .\github-pages\docs\
+      - name: Test
+        run: cargo test --workspace --no-fail-fast
