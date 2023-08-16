@@ -1,9 +1,0 @@
-[book]
-title = "typst-book"
-description = "typst-book Documentation"
-repository = "https://github.com/Myriad-Dreamin/typst-book"
-authors = ["Myriad-Dreamin", "7mile"]
-language = "en"
-
-[build]
-dest-dir = "../dist"

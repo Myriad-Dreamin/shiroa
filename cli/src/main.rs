@@ -48,7 +48,7 @@ fn main() {
 
 fn build(args: BuildArgs) -> ! {
     let mut proj = Project::new(args.compile);
-    proj.summarize();
+    proj.compile_meta();
 
     let mut write_index = false;
 

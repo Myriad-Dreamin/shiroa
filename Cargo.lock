@@ -3570,7 +3570,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "toml",
  "typst-ts-compiler",
  "typst-ts-core",
  "typst-ts-svg-exporter",

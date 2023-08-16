@@ -5,112 +5,96 @@ use serde_json::json;
 use typst_ts_compiler::service::{Compiler, DiagObserver};
 
 use crate::{
+    meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
     render::{DataDict, HtmlRenderer, TypstRenderer},
-    summary::{BookMeta, BookMetaContent, BookMetaElem},
     CompileArgs,
 };
-
-/// General information about your book.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct BookConfig {
-    /// The title of the book
-    pub title: String,
-    /// The author(s) of the book
-    pub authors: Vec<String>,
-    /// A description for the book, which is added as meta information in the
-    /// html <head> of each page
-    pub description: String,
-    /// The github repository for the book
-    pub repository: String,
-    /// The main language of the book, which is used as a language attribute
-    /// <html lang="en"> for example.
-    pub language: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct BuildConfig {
-    /// The directory to put the rendered book in. By default this is book/ in
-    /// the book's root directory. This can overridden with the --dest-dir CLI
-    /// option.
-    #[serde(rename = "dest-dir")]
-    pub dest_dir: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct ProjectConfig {
-    pub book: BookConfig,
-    pub build: BuildConfig,
-}
 
 pub struct Project {
     pub tr: TypstRenderer,
     pub hr: HtmlRenderer,
-    pub conf: ProjectConfig,
     pub book_meta: Option<BookMeta>,
+    pub build_meta: Option<BuildMeta>,
 
     pub dest_dir: PathBuf,
 }
 
 impl Project {
     pub fn new(mut args: CompileArgs) -> Self {
-        let conf: ProjectConfig = toml::from_str(
-            std::fs::read_to_string(Path::new(&args.dir).join("book.toml"))
-                .unwrap()
-                .as_str(),
-        )
-        .unwrap();
+        let mut final_dest_dir = args.dest_dir.clone();
 
         if args.workspace.is_empty() {
             args.workspace = args.dir.clone();
         }
 
-        if args.dest_dir.is_empty() {
-            args.dest_dir = conf.build.dest_dir.clone();
-        }
-
-        if args.dest_dir.is_empty() {
-            args.dest_dir = "dist".to_owned();
-        }
-
         let tr = TypstRenderer::new(args);
         let hr = HtmlRenderer::new();
 
-        Self {
+        let mut proj = Self {
             dest_dir: tr.dest_dir.clone(),
             tr,
             hr,
-            conf,
             book_meta: None,
+            build_meta: None,
+        };
+
+        proj.compile_meta();
+
+        if final_dest_dir.is_empty() {
+            if let Some(dest_dir) = proj.build_meta.as_ref().map(|b| b.dest_dir.clone()) {
+                final_dest_dir = dest_dir;
+            }
         }
+
+        if final_dest_dir.is_empty() {
+            final_dest_dir = "dist".to_owned();
+        }
+
+        proj.tr.fix_dest_dir(Path::new(&final_dest_dir));
+        proj.dest_dir = proj.tr.dest_dir.clone();
+
+        proj
     }
 
-    pub fn summarize(&mut self) {
+    pub fn compile_meta(&mut self) {
         #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-        struct QueryItem {
-            pub value: BookMeta,
+        struct QueryItem<T> {
+            pub value: T,
         }
 
-        type Json = Vec<QueryItem>;
+        type Json<T> = Vec<QueryItem<T>>;
 
-        self.tr.setup_entry(Path::new("summary.typ"));
+        self.tr.setup_entry(Path::new("book.typ"));
         let doc = self.tr.compiler.pure_compile().unwrap();
-        let res = self
-            .tr
-            .compiler
-            .query("<typst-book-book-meta>".to_string(), &doc)
-            .unwrap();
 
-        // convert to native struct
-        let res = serde_json::to_value(&res).unwrap();
-        let res: Json = serde_json::from_value(res).unwrap();
+        {
+            let res = self
+                .tr
+                .compiler
+                .query("<typst-book-book-meta>".to_string(), &doc)
+                .unwrap();
+            let res = serde_json::to_value(&res).unwrap();
+            let res: Json<BookMeta> = serde_json::from_value(res).unwrap();
+            assert!(res.len() == 1);
+            let book_meta = res.first().unwrap().value.clone();
+            self.book_meta = Some(book_meta);
+        }
 
-        println!("metadata: {:?}", res);
+        {
+            let res = self
+                .tr
+                .compiler
+                .query("<typst-book-build-meta>".to_string(), &doc)
+                .unwrap();
+            let res = serde_json::to_value(&res).unwrap();
+            let res: Json<BuildMeta> = serde_json::from_value(res).unwrap();
+            assert!(res.len() <= 1);
 
-        assert!(res.len() == 1);
-
-        let book_meta = res.first().unwrap().value.clone();
-
-        self.book_meta = Some(book_meta);
+            if let Some(res) = res.first() {
+                let build_meta = res.value.clone();
+                self.build_meta = Some(build_meta);
+            }
+        }
     }
 
     pub fn iter_chapters(&self) -> Vec<DataDict> {
@@ -200,7 +184,7 @@ impl Project {
     }
 
     pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> String {
-        let data = serde_json::to_value(self.conf.book.clone()).unwrap();
+        let data = serde_json::to_value(self.book_meta.clone()).unwrap();
         let mut data: DataDict = serde_json::from_value(data).unwrap();
 
         // inject chapters

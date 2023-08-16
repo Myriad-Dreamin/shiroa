@@ -45,6 +45,11 @@ impl TypstRenderer {
         }
     }
 
+    pub fn fix_dest_dir(&mut self, path: &Path) {
+        let dest_dir = make_absolute_from(path, || self.root_dir.clone()).clean();
+        self.dest_dir = dest_dir;
+    }
+
     pub fn setup_entry(&mut self, path: &Path) {
         if path.is_absolute() {
             panic!("entry file must be relative to the workspace");

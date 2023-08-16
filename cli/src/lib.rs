@@ -1,6 +1,6 @@
+pub mod meta;
 pub mod project;
 pub mod render;
-pub mod summary;
 pub mod theme;
 pub mod utils;
 
