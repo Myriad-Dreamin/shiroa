@@ -12,19 +12,6 @@ use log::warn;
 pub struct Theme {
     pub index: Vec<u8>,
     pub typst_load_trampoline: Vec<u8>,
-    // pub head: Vec<u8>,
-    // pub redirect: Vec<u8>,
-    // pub header: Vec<u8>,
-    // pub chrome_css: Vec<u8>,
-    // pub general_css: Vec<u8>,
-    // pub print_css: Vec<u8>,
-    // pub variables_css: Vec<u8>,
-    // pub fonts_css: Option<Vec<u8>>,
-    // pub font_files: Vec<PathBuf>,
-    // pub favicon_png: Option<Vec<u8>>,
-    // pub favicon_svg: Option<Vec<u8>>,
-    // pub js: Vec<u8>,
-    // pub clipboard_js: Vec<u8>,
 }
 
 impl Theme {
@@ -47,18 +34,6 @@ impl Theme {
                     theme_dir.join("typst-load-trampoline.hbs"),
                     &mut theme.typst_load_trampoline,
                 ),
-                // (theme_dir.join("head.hbs"), &mut theme.head),
-                // (theme_dir.join("redirect.hbs"), &mut theme.redirect),
-                // (theme_dir.join("header.hbs"), &mut theme.header),
-                // (theme_dir.join("book.js"), &mut theme.js),
-                // (theme_dir.join("css/chrome.css"), &mut theme.chrome_css),
-                // (theme_dir.join("css/general.css"), &mut theme.general_css),
-                // (theme_dir.join("css/print.css"), &mut theme.print_css),
-                // (
-                //     theme_dir.join("css/variables.css"),
-                //     &mut theme.variables_css,
-                // ),
-                // (theme_dir.join("clipboard.min.js"), &mut theme.clipboard_js),
             ];
 
             let load_with_warn = |filename: &Path, dest: &mut Vec<u8>| {
