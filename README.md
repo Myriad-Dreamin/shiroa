@@ -44,7 +44,7 @@ typst-book currently requires at least Rust version 1.71.
 Once you have installed Rust, the following command can be used to build and install typst-book:
 
 ```sh
-cargo install --git https://github.com/Myriad-Dreamin/typst-book.git typst-book
+cargo install --git https://github.com/Myriad-Dreamin/typst-book.git
 ```
 
 To uninstall, run the command `cargo uninstall typst-book`.
