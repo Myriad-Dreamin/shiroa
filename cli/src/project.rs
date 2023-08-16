@@ -7,8 +7,10 @@ use typst_ts_compiler::service::{Compiler, DiagObserver};
 use crate::{
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
     render::{DataDict, HtmlRenderer, TypstRenderer},
+    utils::release_packages,
     CompileArgs,
 };
+use include_dir::include_dir;
 
 pub struct Project {
     pub tr: TypstRenderer,
@@ -37,6 +39,16 @@ impl Project {
             book_meta: None,
             build_meta: None,
         };
+
+        release_packages(
+            proj.tr.compiler.world_mut(),
+            include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/book"),
+        );
+
+        release_packages(
+            proj.tr.compiler.world_mut(),
+            include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/variables"),
+        );
 
         proj.compile_meta();
 
