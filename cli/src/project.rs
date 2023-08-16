@@ -19,11 +19,13 @@ pub struct Project {
     pub build_meta: Option<BuildMeta>,
 
     pub dest_dir: PathBuf,
+    pub path_to_root: String,
 }
 
 impl Project {
     pub fn new(mut args: CompileArgs) -> Self {
         let mut final_dest_dir = args.dest_dir.clone();
+        let path_to_root = args.path_to_root.clone();
 
         if args.workspace.is_empty() {
             args.workspace = args.dir.clone();
@@ -38,6 +40,7 @@ impl Project {
             hr,
             book_meta: None,
             build_meta: None,
+            path_to_root,
         };
 
         release_packages(
@@ -207,6 +210,9 @@ impl Project {
             "content".to_owned(),
             serde_json::Value::String(self.compile_chapter(chapter_data, path).unwrap()),
         );
+
+        // inject path_to_root
+        data.insert("path_to_root".to_owned(), json!(self.path_to_root));
 
         self.hr.render_index(data, path)
     }

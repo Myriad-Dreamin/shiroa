@@ -61,10 +61,6 @@ impl HtmlRenderer {
         }
         // data.insert("git_repository_url".to_owned(), data["repository"].clone());
 
-        // inject path_to_root
-        // todo: path_to_root
-        data.insert("path_to_root".to_owned(), json!("/"));
-
         self.handlebars.render("index", &data).unwrap()
     }
 }
