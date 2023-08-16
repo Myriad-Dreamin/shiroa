@@ -1,5 +1,5 @@
 [workspace.package]
-description = "Typst Book."
+description = "A simple tool for creating modern online books in pure typst."
 authors = ["typst-book Developers"]
 version = "0.1.0"
 edition = "2021"

@@ -1,5 +1,5 @@
 
-#import "/contrib/typst/book.typ": *
+#import "@preview/book:0.1.0": *
 
 #show: book
 
