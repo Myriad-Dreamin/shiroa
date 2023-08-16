@@ -12,8 +12,8 @@ pub struct HtmlRenderer {
 impl HtmlRenderer {
     pub fn new() -> Self {
         let mut handlebars = Handlebars::new();
-        // todo
-        let theme = theme::Theme::new(std::path::Path::new("themes/mdbook"));
+        // todo std::path::Path::new("themes/mdbook")
+        let theme = theme::Theme::default();
 
         debug!("Register the index handlebars template");
         handlebars

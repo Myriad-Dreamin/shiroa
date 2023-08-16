@@ -64,3 +64,13 @@ pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<
     }
     Ok(())
 }
+
+/// https://stackoverflow.com/questions/26958489/how-to-copy-a-folder-recursively-in-rust
+pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> io::Result<()> {
+    for entry in src.files() {
+        let t = dst.as_ref().join(entry.path());
+        fs::create_dir_all(t.parent().unwrap())?;
+        fs::write(t, entry.contents())?;
+    }
+    Ok(())
+}

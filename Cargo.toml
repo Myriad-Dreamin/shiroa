@@ -55,6 +55,7 @@ log = "0.4.17"
 
 # misc
 vergen = { version = "7.5.1", features = ["build", "cargo", "git", "rustc"] }
+include_dir = "0.7.3"
 
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }

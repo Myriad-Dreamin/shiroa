@@ -8,10 +8,20 @@ use log::warn;
 ///
 /// You should only ever use the static variables directly if you want to
 /// override the user's theme with the defaults.
-#[derive(Default, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Theme {
     pub index: Vec<u8>,
     pub typst_load_trampoline: Vec<u8>,
+}
+
+impl Default for Theme {
+    fn default() -> Self {
+        Self {
+            index: include_bytes!("../../themes/mdbook/index.hbs").to_vec(),
+            typst_load_trampoline: include_bytes!("../../themes/mdbook/typst-load-trampoline.hbs")
+                .to_vec(),
+        }
+    }
 }
 
 impl Theme {

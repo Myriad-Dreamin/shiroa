@@ -1,9 +1,10 @@
 use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
+use include_dir::include_dir;
 use typst_book_cli::{
     project::Project,
-    utils::{async_continue, copy_dir_all},
+    utils::{async_continue, copy_dir_embedded},
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
 use warp::Filter;
@@ -52,12 +53,21 @@ fn build(args: BuildArgs) -> ! {
 
     let mut write_index = false;
 
-    copy_dir_all("themes/mdbook/css", proj.dest_dir.join("css")).unwrap();
-    copy_dir_all(
-        "themes/mdbook/fontAwesome",
+    std::fs::create_dir_all(&proj.dest_dir).unwrap();
+    copy_dir_embedded(include_dir!("themes/mdbook/css"), proj.dest_dir.join("css")).unwrap();
+    copy_dir_embedded(
+        include_dir!("themes/mdbook/fontAwesome"),
         proj.dest_dir.join("fontAwesome"),
     )
     .unwrap();
+
+    // todo use themes in filesystem
+    // copy_dir_all("themes/mdbook/css", proj.dest_dir.join("css")).unwrap();
+    // copy_dir_all(
+    //     "themes/mdbook/fontAwesome",
+    //     proj.dest_dir.join("fontAwesome"),
+    // )
+    // .unwrap();
 
     // copy files
     std::fs::create_dir_all(&proj.dest_dir.join("renderer")).unwrap();
