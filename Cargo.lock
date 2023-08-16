@@ -3557,6 +3557,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "typst-book-build"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
+
+[[package]]
 name = "typst-book-cli"
 version = "0.1.0"
 dependencies = [

@@ -11,7 +11,7 @@ repository = "https://github.com/Myriad-Dreamin/typst-book"
 
 [workspace]
 resolver = "2"
-members = ["cli"]
+members = ["cli", "tools/build-from-source"]
 
 [profile.release]
 opt-level = 3

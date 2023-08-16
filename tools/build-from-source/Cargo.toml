@@ -1,0 +1,12 @@
+[package]
+name = "typst-book-build"
+description = "Build typst-book from source."
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
