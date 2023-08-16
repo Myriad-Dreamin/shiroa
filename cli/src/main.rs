@@ -61,22 +61,28 @@ fn build(args: BuildArgs) -> ! {
 
     // copy files
     std::fs::create_dir_all(&proj.dest_dir.join("renderer")).unwrap();
-    std::fs::copy(
-        "frontend/node_modules/@myriaddreamin/typst-ts-renderer/typst_ts_renderer_bg.wasm",
+    std::fs::write(
         proj.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
+        include_bytes!(
+            "../../frontend/node_modules/@myriaddreamin/typst-ts-renderer/typst_ts_renderer_bg.wasm"
+        ),
     )
     .unwrap();
-    std::fs::copy(
-        "frontend/node_modules/@myriaddreamin/typst.ts/dist/main.js",
+    std::fs::write(
         proj.dest_dir.join("typst-main.js"),
+        include_bytes!("../../frontend/node_modules/@myriaddreamin/typst.ts/dist/main.js"),
     )
     .unwrap();
-    std::fs::copy(
-        "frontend/src/svg_utils.cjs",
+    std::fs::write(
         proj.dest_dir.join("svg_utils.js"),
+        include_bytes!("../../frontend/src/svg_utils.cjs"),
     )
     .unwrap();
-    std::fs::copy("frontend/dist/main.js", proj.dest_dir.join("typst-book.js")).unwrap();
+    std::fs::write(
+        proj.dest_dir.join("typst-book.js"),
+        include_bytes!("../../frontend/dist/main.js"),
+    )
+    .unwrap();
 
     for ch in proj.iter_chapters() {
         if let Some(path) = ch.get("path") {
