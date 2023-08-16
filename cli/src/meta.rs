@@ -35,12 +35,12 @@ pub struct BookMeta {
     /// The author(s) of the book
     pub authors: Vec<String>,
     /// A description for the book, which is added as meta information in the
-    /// html <head> of each page
+    /// html `<head>` of each page
     pub description: String,
     /// The github repository for the book
     pub repository: String,
     /// The main language of the book, which is used as a language attribute
-    /// <html lang="en"> for example.
+    /// `<html lang="en">` for example.
     pub language: String,
     /// Content summary of the book
     pub summary: Vec<BookMetaElem>,
