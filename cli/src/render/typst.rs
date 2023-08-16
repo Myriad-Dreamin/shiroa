@@ -7,6 +7,7 @@ use typst_ts_compiler::{
 use typst_ts_core::{config::CompileOpts, path::PathClean};
 
 use crate::{
+    font::EMBEDDED_FONT,
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
@@ -26,7 +27,7 @@ impl TypstRenderer {
         let world = TypstSystemWorld::new(CompileOpts {
             root_dir: workspace_dir.clone(),
             font_paths: args.font_paths.clone(),
-            //  with_embedded_fonts: EMBEDDED_FONT.to_owned(),
+            with_embedded_fonts: EMBEDDED_FONT.to_owned(),
             ..CompileOpts::default()
         })
         .unwrap_or_exit();

@@ -1,3 +1,4 @@
+pub mod font;
 pub mod meta;
 pub mod project;
 pub mod render;

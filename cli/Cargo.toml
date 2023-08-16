@@ -54,3 +54,7 @@ typst-ts-svg-exporter.workspace = true
 [build-dependencies]
 anyhow.workspace = true
 vergen.workspace = true
+
+[features]
+embedded-fonts = []
+default = ["embedded-fonts"]
