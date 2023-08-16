@@ -10,7 +10,7 @@
             })
             .then(async () => {
                 const artifactData = await fetch(
-                    '/{{ rel_data_path }}.multi.sir.bin',
+                    '{{ rel_data_path }}.multi.sir.bin',
                 )
                     .then(response => response.arrayBuffer())
                     .then(buffer => new Uint8Array(buffer));
