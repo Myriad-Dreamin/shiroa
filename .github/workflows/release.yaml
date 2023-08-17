@@ -117,12 +117,12 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: typst-book-${{ env.target }}
-          path: target/${{ matrix.rust-target }}/release-stripped/typst-book-*
+          path: target/${{ matrix.rust-target }}/release-stripped/typst-book*
           if-no-files-found: error
       - uses: actions/upload-artifact@v3
         with:
           name: typst-book-${{ env.target }}-relwithdebuginfo
-          path: target/${{ matrix.rust-target }}/release/typst-book-*
+          path: target/${{ matrix.rust-target }}/release/typst-book*
           if-no-files-found: error
 
   build_linux_riscv64:
@@ -167,12 +167,12 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: typst-book-${{ env.target }}
-          path: target/${{ matrix.rust-target }}/release-stripped/typst-book-*
+          path: target/${{ matrix.rust-target }}/release-stripped/typst-book*
           if-no-files-found: error
       - uses: actions/upload-artifact@v3
         with:
           name: typst-book-${{ env.target }}-relwithdebuginfo
-          path: target/${{ matrix.rust-target }}/release/typst-book-*
+          path: target/${{ matrix.rust-target }}/release/typst-book*
           if-no-files-found: error
 
   build_alpine:
@@ -220,12 +220,12 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: typst-book-${{ env.target }}
-          path: target/${{ env.RUST_TARGET }}/release-stripped/typst-book-*
+          path: target/${{ env.RUST_TARGET }}/release-stripped/typst-book*
           if-no-files-found: error
       - uses: actions/upload-artifact@v3
         with:
           name: typst-book-${{ env.target }}-relwithdebuginfo
-          path: target/${{ env.RUST_TARGET }}/release/typst-book-*
+          path: target/${{ env.RUST_TARGET }}/release/typst-book*
           if-no-files-found: error
 
   release:
@@ -255,25 +255,25 @@ jobs:
             rm -f artifacts/$src/*.pdb
             
             mkdir -p release/$name/bin
-            cp artifacts/$src-relwithdebuginfo/typst-book-* "release/$name/bin/"
+            cp artifacts/$src-relwithdebuginfo/typst-book* "release/$name/bin/"
             cp -r CHANGELOG release/$name/
             cp -r docs release/$name/
             cp README.md \
               LICENSE \
               CHANGELOG.md \
               release/$name/
-            chmod +x release/$name/bin/typst-book-*
+            chmod +x release/$name/bin/typst-book*
             tar czvf gh-release/$name-relwithdebuginfo.tar.gz -C release $name
             
             mkdir -p release-stripped/$name/bin
-            cp artifacts/$src/typst-book-* "release-stripped/$name/bin/"
+            cp artifacts/$src/typst-book* "release-stripped/$name/bin/"
             cp -r CHANGELOG release-stripped/$name/
             cp -r docs release-stripped/$name/
             cp README.md \
               LICENSE \
               CHANGELOG.md \
               release-stripped/$name/
-            chmod +x release-stripped/$name/bin/typst-book-*
+            chmod +x release-stripped/$name/bin/typst-book*
             tar czvf gh-release/$name.tar.gz -C release-stripped $name
           }
           pack_release win32-x64     x86_64-pc-windows-msvc
