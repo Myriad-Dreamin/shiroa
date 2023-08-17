@@ -34,9 +34,9 @@ jobs:
         run: cargo doc --workspace --no-deps
       - name: Build
         run: |
-          cargo build --workspace
+          cargo build --release --workspace
       - name: Build Book
         run: |
-          cargo run --bin typst-book -- build --path-to-root /typst-book/ -w . github-pages/docs
+          cargo run --release --bin typst-book -- build --path-to-root /typst-book/ -w . github-pages/docs
       - name: Test
         run: cargo test --workspace --no-fail-fast
