@@ -19,7 +19,7 @@
     width: width,
   )
 
-  set page(margin: (top: 20pt, bottom: 0.5em, rest: 0)) if target == "web";
+  set page(margin: (top: 20pt, bottom: 0.5em, rest: 0pt)) if target == "web";
 
   set text(font: songti, size: 16pt, fill: style_color, lang: "en")
 
