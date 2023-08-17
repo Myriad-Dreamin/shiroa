@@ -14,9 +14,7 @@ resolver = "2"
 members = ["cli", "tools/build-from-source"]
 
 [profile.release]
-opt-level = 3
 debug = true
-lto = "thin"
 
 [profile.release-stripped]
 inherits = "release"
