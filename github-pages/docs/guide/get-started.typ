@@ -22,14 +22,15 @@ After answering the questions, you can change the current directory into the new
 cd my-first-book
 ```
 
-There are several ways to render a book, but one of the easiest methods is to use the `serve` command, which will build your book and start a local webserver:
+There are several ways to render a book, but one of the easiest methods is to use the `build` and `serve` command, which will build your book and start a local webserver:
 
 ```sh
-typst-book serve --open
+typst-book build
+typst-book serve
 ```
 
-The `--open` option will open your default web browser to view your new book.
-You can leave the server running even while you edit the content of the book, and `typst-book` will automatically rebuild the output *and* automatically refresh your web browser.
+// The `--open` option will open your default web browser to view your new book.
+// You can leave the server running even while you edit the content of the book, and `typst-book` will automatically rebuild the output *and* automatically refresh your web browser.
 
 Check out the `typst-book help` for more information about other `typst-book` commands and CLI options.
 
@@ -37,39 +38,39 @@ Check out the `typst-book help` for more information about other `typst-book` co
 
 A book is built from several files which define the settings and layout of the book.
 
-=== `book.toml`
+=== `book.typ`
 
-In the root of your book, there is a `book.toml` file which contains settings for describing how to build your book.
-This is written in the #link("https://toml.io/")[TOML markup language].
-The default settings are usually good enough to get you started.
-When you are interested in exploring more features and options that mdBook provides, check out the #link("https://rust-lang.github.io/mdBook/format/configuration/index.html")[Configuration chapter] for more details.
+If you are familiar with `mdbook`, the `book.typ` file is similar to the `book.toml` with `summary.md` file.
 
-A very basic `book.toml` can be as simple as this:
-
-```toml
-[book]
-title = "My First Book"
-```
-
-=== `SUMMARY.typ`
-
-The next major part of a book is the summary file located at `src/SUMMARY.typ`.
+The book source file is the main file located at `src/book.typ`.
 This file contains a list of all the chapters in the book.
 Before a chapter can be viewed, it must be added to this list.
 
 Here's a basic summary file with a few chapters:
 
 ```typ
-= Introduction
-- #chapter("guide/installation.typ", section: "1.1")[Installation]
-- #chapter("guide/get-started.typ", section: "1.2")[Get Started]
-    - #chapter(none, section: "1.2.1")[Drafting chapter]
+#import "@preview/book:0.1.0": *
+#show: book
+
+#book-meta( // put metadata of your book like book.toml of mdbook
+  title: "typst-book",
+  description: "typst-book Documentation",
+  repository: "https://github.com/Myriad-Dreamin/typst-book",
+  authors: ("Myriad-Dreamin", "7mile"),
+  language: "en",
+  summary: [ // this field works like summary.md of mdbook
+    = Introduction
+    - #chapter("guide/installation.typ", section: "1.1")[Installation]
+    - #chapter("guide/get-started.typ", section: "1.2")[Get Started]
+      - #chapter(none, section: "1.2.1")[Drafting chapter]
+  ]
+)
 ```
 
-Try opening up `src/SUMMARY.typ` in your editor and adding a few chapters.
-If any of the chapter files do not exist, `typst-book` will automatically create them for you.
+Try opening up `src/book.typ` in your editor and adding a few chapters.
+// If any of the chapter files do not exist, `typst-book` will automatically create them for you.
 
-For more details on other formatting options for the summary file, check out the [Summary chapter](../format/summary.typ).
+// For more details on other formatting options for the summary file, check out the [Summary chapter](../format/summary.typ).
 
 === Source files
 
@@ -86,10 +87,10 @@ Fill out your content here.
 The precise layout of the files is up to you.
 The organization of the files will correspond to the HTML files generated, so keep in mind that the file layout is part of the URL of each chapter.
 
-While the `typst-book serve` command is running, you can open any of the chapter files and start editing them.
-Each time you save the file, `typst-book` will rebuild the book and refresh your web browser.
+// While the `typst-book serve` command is running, you can open any of the chapter files and start editing them.
+// Each time you save the file, `typst-book` will rebuild the book and refresh your web browser.
 
-Check out the #link("https://rust-lang.github.io/mdBook/format/markdown.html")[Typst chapter] for more information on formatting the content of your chapters.
+// Check out the #link("https://rust-lang.github.io/mdBook/format/markdown.html")[Typst chapter] for more information on formatting the content of your chapters.
 
 All other files in the `src` directory will be included in the output.
 So if you have images or other static files, just include them somewhere in the `src` directory.

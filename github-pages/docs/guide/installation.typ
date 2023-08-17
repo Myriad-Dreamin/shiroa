@@ -20,16 +20,19 @@ To make it easier to run, put the path to the binary into your `PATH`.
 
 == Build from source using Rust
 
-To build the `typst-book` executable from source, you will first need to install Rust and Cargo.
-Follow the instructions on the #link("https://www.rust-lang.org/tools/install")[Rust installation page].
+To build the `typst-book` executable from source, you will first need to install Yarn, Rust, and Cargo.
+Follow the instructions on the #link("https://classic.yarnpkg.com/en/docs/install")[Yarn installation page] and #link("https://www.rust-lang.org/tools/install")[Rust installation page].
 typst-book currently requires at least Rust version 1.71.
 
-Once you have installed Rust, the following command can be used to build and install typst-book:
+Since typst-book building depends on `yarn`, you cannot directly use `cargo install` to pull and build it. The build command is:
 
 ```sh
-cargo install --git https://github.com/Myriad-Dreamin/typst-book.git
+git clone https://github.com/Myriad-Dreamin/typst-book.git
+cargo run --bin typst-book-build
+# optional: install it globally
+cargo install --path ./cli
 ```
 
-To uninstall, run the command `cargo uninstall typst-book`.
+With global installation, to uninstall, run the command `cargo uninstall typst-book`.
 
 Again, make sure to add the Cargo bin directory to your `PATH`.
