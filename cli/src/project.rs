@@ -84,7 +84,11 @@ impl Project {
         type Json<T> = Vec<QueryItem<T>>;
 
         self.tr.setup_entry(Path::new("book.typ"));
-        let doc = self.tr.compiler.pure_compile().unwrap();
+        let doc = self
+            .tr
+            .compiler
+            .with_compile_diag::<false, _>(|c| c.pure_compile())
+            .unwrap();
 
         {
             let res = self
