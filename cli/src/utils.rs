@@ -3,6 +3,7 @@ use std::{fs, io};
 
 use tokio::runtime::Builder;
 use typst_ts_compiler::TypstSystemWorld;
+use typst_ts_core::error::prelude::*;
 
 pub fn async_continue<F: std::future::Future<Output = ()>>(f: F) -> ! {
     Builder::new_multi_thread()
@@ -66,11 +67,19 @@ pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<
     Ok(())
 }
 
-pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> io::Result<()> {
+pub fn create_dirs<P: AsRef<Path>>(path: P) -> ZResult<()> {
+    fs::create_dir_all(path.as_ref()).map_err(error_once_map!("create_dirs"))
+}
+
+pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> ZResult<()> {
+    fs::write(path.as_ref(), contents.as_ref()).map_err(error_once_map!("write_file"))
+}
+
+pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> ZResult<()> {
     for entry in src.files() {
         let t = dst.as_ref().join(entry.path());
-        fs::create_dir_all(t.parent().unwrap())?;
-        fs::write(t, entry.contents())?;
+        create_dirs(t.parent().unwrap())?;
+        write_file(t, entry.contents())?;
     }
     Ok(())
 }
