@@ -138,7 +138,7 @@ impl Project {
                     let BookMetaContent::PlainText { content: title } = title;
 
                     if let Some(ref section) = section {
-                        chapter.insert("section".to_owned(), json!(section));
+                        chapter.insert("section".to_owned(), json!(section.to_owned() + "."));
                     }
 
                     chapter.insert(
