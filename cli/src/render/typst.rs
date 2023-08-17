@@ -4,7 +4,7 @@ use typst_ts_compiler::{
     service::{CompileDriver, DynamicLayoutCompiler},
     TypstSystemWorld,
 };
-use typst_ts_core::{config::CompileOpts, path::PathClean};
+use typst_ts_core::{config::CompileOpts, path::PathClean, TypstAbs};
 
 use crate::{
     font::EMBEDDED_FONT,
@@ -37,7 +37,8 @@ impl TypstRenderer {
             entry_file: Default::default(),
         };
 
-        let driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
+        let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
+        driver.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).to_vec());
 
         Self {
             compiler: driver,
