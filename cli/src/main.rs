@@ -8,7 +8,7 @@ use typst_book_cli::{
     utils::{async_continue, copy_dir_embedded, create_dirs, write_file, UnwrapOrExit},
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
-use warp::Filter;
+use warp::{http::Method, Filter};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -29,15 +29,12 @@ fn main() {
         .filter_module("typst_library::", log::LevelFilter::Warn)
         .init();
 
-    let sub = if let Some(sub) = opts.sub {
-        sub
-    } else {
-        help_sub_command();
-    };
-
-    match sub {
-        Subcommands::Build(args) => build(args).unwrap_or_exit(),
-        Subcommands::Serve(args) => async_continue(async { serve(args).await.unwrap_or_exit() }),
+    match opts.sub {
+        Some(Subcommands::Build(args)) => build(args).unwrap_or_exit(),
+        Some(Subcommands::Serve(args)) => {
+            async_continue(async { serve(args).await.unwrap_or_exit() })
+        }
+        None => help_sub_command(),
     };
 
     #[allow(unreachable_code)]
@@ -47,7 +44,7 @@ fn main() {
 }
 
 fn build(args: BuildArgs) -> ZResult<()> {
-    let mut proj = Project::new(args.compile);
+    let mut proj = Project::new(args.compile)?;
 
     let mut write_index = false;
 
@@ -96,13 +93,12 @@ fn build(args: BuildArgs) -> ZResult<()> {
 
     for ch in proj.iter_chapters() {
         if let Some(path) = ch.get("path") {
-            let raw_path: String = serde_json::from_value(path.clone()).map_err(|err| {
-                error_once_map!("retrieve path in book.toml", value: path)(err.to_string())
-            })?;
+            let raw_path: String = serde_json::from_value(path.clone())
+                .map_err(error_once_map_string!("retrieve path in book.toml", value: path))?;
             let path = &proj.dest_dir.join(&raw_path);
             let path = Path::new(&path);
 
-            let content = proj.render_chapter(ch, &raw_path);
+            let content = proj.render_chapter(ch, &raw_path)?;
 
             create_dirs(path.parent().unwrap())?;
             write_file(path.with_extension("html"), &content)?;
@@ -117,9 +113,7 @@ fn build(args: BuildArgs) -> ZResult<()> {
 }
 
 pub async fn serve(args: ServeArgs) -> ZResult<()> {
-    use warp::http::Method;
-
-    let proj = Project::new(args.compile);
+    let proj = Project::new(args.compile)?;
 
     let http_addr: SocketAddr = args
         .addr
