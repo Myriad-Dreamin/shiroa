@@ -21,7 +21,7 @@
 
   set page(margin: (top: 20pt, rest: 0pt)) if target == "web";
 
-  set text(font: songti, size: 12pt, fill: style_color, lang: "en")
+  set text(font: songti, size: 16pt, fill: style_color, lang: "en")
 
   // math setting
   show math.equation: set text(weight: 400)
