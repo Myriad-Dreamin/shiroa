@@ -259,7 +259,7 @@ jobs:
             mkdir -p release/$name/bin
             cp artifacts/$src-relwithdebuginfo/typst-book* "release/$name/bin/"
             cp -r CHANGELOG release/$name/
-            cp -r docs release/$name/
+            cp -r github-pages/docs release/$name/
             cp README.md \
               LICENSE \
               CHANGELOG.md \
@@ -270,7 +270,7 @@ jobs:
             mkdir -p release-stripped/$name/bin
             cp artifacts/$src/typst-book* "release-stripped/$name/bin/"
             cp -r CHANGELOG release-stripped/$name/
-            cp -r docs release-stripped/$name/
+            cp -r github-pages/docs release-stripped/$name/
             cp README.md \
               LICENSE \
               CHANGELOG.md \
