@@ -27,6 +27,10 @@ impl Project {
         let mut final_dest_dir = args.dest_dir.clone();
         let path_to_root = args.path_to_root.clone();
 
+        if !path_to_root.ends_with('/') {
+            args.path_to_root.push('/');
+        }
+
         if args.workspace.is_empty() {
             args.workspace = args.dir.clone();
         }
@@ -169,7 +173,7 @@ impl Project {
     }
 
     pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> Result<String, String> {
-        let renderer_module = format!("{}/renderer/typst_ts_renderer_bg.wasm", self.path_to_root);
+        let renderer_module = format!("{}renderer/typst_ts_renderer_bg.wasm", self.path_to_root);
         let rel_data_path = std::path::Path::new(&self.path_to_root)
             .join(path)
             .with_extension("")
