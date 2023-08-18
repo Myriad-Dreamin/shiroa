@@ -1,6 +1,6 @@
-#let heiti = ("Times New Roman", "Source Han Sans SC", "Source Han Sans TC", "New Computer Modern", "New Computer Modern Math")
-#let songti = ("Times New Roman", "Source Han Serif SC", "Source Han Serif TC", "New Computer Modern", "New Computer Modern Math")
-#let zhongsong = ("Times New Roman","STZhongsong", "SimSun", "New Computer Modern")
+#let heiti = ("Charter", "Times New Roman", "Source Han Sans SC", "Source Han Sans TC", "New Computer Modern", "New Computer Modern Math")
+#let songti = ("Charter", "Times New Roman", "Source Han Serif SC", "Source Han Serif TC", "New Computer Modern", "New Computer Modern Math")
+#let zhongsong = ("Charter", "Times New Roman","STZhongsong", "SimSun", "New Computer Modern")
 
 #import "@preview/typst-ts-variables:0.1.0": page-width, target
 
@@ -19,15 +19,28 @@
     width: width,
   )
 
-  set page(margin: (top: 20pt, bottom: 0.5em, rest: 0pt)) if target == "web";
+  set page(margin: (top: 20pt, left: 20pt, bottom: 0.5em, rest: 0pt)) if target == "web";
 
   set text(font: songti, size: 16pt, fill: style_color, lang: "en")
+
+  show heading : set text(weight: "regular")
+
+  show heading : it => locate(loc => {
+    place(left, dx: -20pt, [
+      #set text(fill: rgb("#20609f"))
+      #link(loc)[\#]
+    ])
+    it
+  })
+
+  show link : set text(fill: rgb("#20609f"))
 
   // math setting
   show math.equation: set text(weight: 400)
 
   // code block setting
   show raw: it => {
+    set text(font: "BlexMono Nerd Font Mono")
     if it.block {
       rect(
         width: 100%,
