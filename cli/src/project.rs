@@ -5,6 +5,7 @@ use serde_json::json;
 use typst_ts_compiler::service::{Compiler, DiagObserver};
 
 use crate::{
+    error::prelude::*,
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
     render::{DataDict, HtmlRenderer, TypstRenderer},
     utils::release_packages,
@@ -23,7 +24,7 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new(mut args: CompileArgs) -> Self {
+    pub fn new(mut args: CompileArgs) -> ZResult<Self> {
         let mut final_dest_dir = args.dest_dir.clone();
         let path_to_root = args.path_to_root.clone();
 
@@ -57,7 +58,7 @@ impl Project {
             include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/variables"),
         );
 
-        proj.compile_meta();
+        proj.compile_meta()?;
 
         if final_dest_dir.is_empty() {
             if let Some(dest_dir) = proj.build_meta.as_ref().map(|b| b.dest_dir.clone()) {
@@ -72,10 +73,10 @@ impl Project {
         proj.tr.fix_dest_dir(Path::new(&final_dest_dir));
         proj.dest_dir = proj.tr.dest_dir.clone();
 
-        proj
+        Ok(proj)
     }
 
-    pub fn compile_meta(&mut self) {
+    pub fn compile_meta(&mut self) -> ZResult<()> {
         #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
         struct QueryItem<T> {
             pub value: T,
@@ -84,18 +85,34 @@ impl Project {
         type Json<T> = Vec<QueryItem<T>>;
 
         self.tr.setup_entry(Path::new("book.typ"));
-        let doc = self.tr.compiler.pure_compile().unwrap();
+        let doc = self
+            .tr
+            .compiler
+            .with_compile_diag::<false, _>(|c| c.pure_compile())
+            .ok_or_else(|| error_once!("compile_meta"))?;
 
         {
             let res = self
                 .tr
                 .compiler
-                .query("<typst-book-book-meta>".to_string(), &doc)
-                .unwrap();
-            let res = serde_json::to_value(&res).unwrap();
-            let res: Json<BookMeta> = serde_json::from_value(res).unwrap();
-            assert!(res.len() == 1);
-            let book_meta = res.first().unwrap().value.clone();
+                .with_compile_diag::<false, _>(|c| {
+                    c.query("<typst-book-book-meta>".to_string(), &doc)
+                })
+                .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
+            let res =
+                serde_json::to_value(&res).map_err(map_string_err("convert_to<BookMeeta>"))?;
+            let res: Json<BookMeta> =
+                serde_json::from_value(res).map_err(map_string_err("convert_to<BookMeeta>"))?;
+
+            if res.len() > 1 {
+                return Err(error_once!("multiple book meta in book.toml"));
+            }
+
+            let book_meta = res
+                .first()
+                .ok_or_else(|| error_once!("no book meta in book.toml"))?;
+
+            let book_meta = book_meta.value.clone();
             self.book_meta = Some(book_meta);
         }
 
@@ -103,17 +120,26 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .query("<typst-book-build-meta>".to_string(), &doc)
-                .unwrap();
-            let res = serde_json::to_value(&res).unwrap();
-            let res: Json<BuildMeta> = serde_json::from_value(res).unwrap();
-            assert!(res.len() <= 1);
+                .with_compile_diag::<false, _>(|c| {
+                    c.query("<typst-book-build-meta>".to_string(), &doc)
+                })
+                .ok_or_else(|| error_once!("retrieve build meta from book.toml"))?;
+            let res =
+                serde_json::to_value(&res).map_err(map_string_err("convert_to<BuildMeta>"))?;
+            let res: Json<BuildMeta> =
+                serde_json::from_value(res).map_err(map_string_err("convert_to<BuildMeta>"))?;
+
+            if res.len() > 1 {
+                return Err(error_once!("multiple build meta in book.toml"));
+            }
 
             if let Some(res) = res.first() {
                 let build_meta = res.value.clone();
                 self.build_meta = Some(build_meta);
             }
         }
+
+        Ok(())
     }
 
     pub fn iter_chapters(&self) -> Vec<DataDict> {
@@ -172,13 +198,13 @@ impl Project {
         chapters
     }
 
-    pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> Result<String, String> {
+    pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> ZResult<String> {
         let renderer_module = format!("{}renderer/typst_ts_renderer_bg.wasm", self.path_to_root);
         let rel_data_path = std::path::Path::new(&self.path_to_root)
             .join(path)
             .with_extension("")
             .to_str()
-            .unwrap()
+            .ok_or_else(|| error_once!("path_to_root is not a valid utf-8 string"))?
             // windows
             .replace('\\', "/");
 
@@ -187,7 +213,7 @@ impl Project {
         self.tr
             .compiler
             .with_compile_diag::<true, _>(|c| c.compile())
-            .unwrap();
+            .ok_or_else(|| error_once!("compile_chapter"))?;
 
         let dynamic_load_trampoline = self
             .hr
@@ -199,14 +225,18 @@ impl Project {
                     "rel_data_path": rel_data_path,
                 }),
             )
-            .unwrap();
+            .map_err(map_string_err(
+                "render typst_load_trampoline for compile_chapter",
+            ))?;
 
         Ok(dynamic_load_trampoline.to_owned())
     }
 
-    pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> String {
-        let data = serde_json::to_value(self.book_meta.clone()).unwrap();
-        let mut data: DataDict = serde_json::from_value(data).unwrap();
+    pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> ZResult<String> {
+        let data = serde_json::to_value(self.book_meta.clone())
+            .map_err(map_string_err("render_chapter,convert_to<BookMeeta>"))?;
+        let mut data: DataDict = serde_json::from_value(data)
+            .map_err(map_string_err("render_chapter,convert_to<BookMeeta>"))?;
 
         // inject chapters
         data.insert("chapters".to_owned(), json!(self.iter_chapters()));
@@ -214,13 +244,13 @@ impl Project {
         // inject content
         data.insert(
             "content".to_owned(),
-            serde_json::Value::String(self.compile_chapter(chapter_data, path).unwrap()),
+            serde_json::Value::String(self.compile_chapter(chapter_data, path)?),
         );
 
         // inject path_to_root
         data.insert("path_to_root".to_owned(), json!(self.path_to_root));
 
-        self.hr.render_index(data, path)
+        Ok(self.hr.render_index(data, path))
     }
 
     // pub fn auto_order_section(&mut self) {

@@ -3,11 +3,12 @@ use std::{net::SocketAddr, path::Path, process::exit};
 use clap::{Args, Command, FromArgMatches};
 use include_dir::include_dir;
 use typst_book_cli::{
+    error::prelude::*,
     project::Project,
-    utils::{async_continue, copy_dir_embedded},
+    utils::{async_continue, copy_dir_embedded, create_dirs, write_file, UnwrapOrExit},
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
-use warp::Filter;
+use warp::{http::Method, Filter};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -15,14 +16,12 @@ fn get_cli(sub_command_required: bool) -> Command {
 }
 
 fn help_sub_command() -> ! {
-    Opts::from_arg_matches(&get_cli(true).get_matches()).unwrap();
-    exit(0)
+    Opts::from_arg_matches(&get_cli(true).get_matches()).unwrap_or_exit();
+    exit(0);
 }
 
 fn main() {
-    let opts = Opts::from_arg_matches(&get_cli(false).get_matches())
-        .map_err(|err| err.exit())
-        .unwrap();
+    let opts = Opts::from_arg_matches(&get_cli(false).get_matches()).unwrap_or_exit();
 
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
@@ -30,15 +29,12 @@ fn main() {
         .filter_module("typst_library::", log::LevelFilter::Warn)
         .init();
 
-    let sub = if let Some(sub) = opts.sub {
-        sub
-    } else {
-        help_sub_command();
-    };
-
-    match sub {
-        Subcommands::Build(args) => build(args),
-        Subcommands::Serve(args) => serve(args),
+    match opts.sub {
+        Some(Subcommands::Build(args)) => build(args).unwrap_or_exit(),
+        Some(Subcommands::Serve(args)) => {
+            async_continue(async { serve(args).await.unwrap_or_exit() })
+        }
+        None => help_sub_command(),
     };
 
     #[allow(unreachable_code)]
@@ -47,27 +43,24 @@ fn main() {
     }
 }
 
-fn build(args: BuildArgs) -> ! {
-    let mut proj = Project::new(args.compile);
+fn build(args: BuildArgs) -> ZResult<()> {
+    let mut proj = Project::new(args.compile)?;
 
     let mut write_index = false;
 
-    std::fs::create_dir_all(&proj.dest_dir).unwrap();
+    create_dirs(&proj.dest_dir)?;
     copy_dir_embedded(
         include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/css"),
         proj.dest_dir.join("css"),
-    )
-    .unwrap();
+    )?;
     copy_dir_embedded(
         include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/css"),
         proj.dest_dir.join("FontAwesome/css"),
-    )
-    .unwrap();
+    )?;
     copy_dir_embedded(
         include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/fonts"),
         proj.dest_dir.join("FontAwesome/fonts"),
-    )
-    .unwrap();
+    )?;
 
     // todo use themes in filesystem
     // copy_dir_all("themes/mdbook/css", proj.dest_dir.join("css")).unwrap();
@@ -78,42 +71,39 @@ fn build(args: BuildArgs) -> ! {
     // .unwrap();
 
     // copy files
-    std::fs::create_dir_all(&proj.dest_dir.join("renderer")).unwrap();
-    std::fs::write(
+    create_dirs(&proj.dest_dir.join("renderer"))?;
+    write_file(
         proj.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
         include_bytes!(
             "../../frontend/node_modules/@myriaddreamin/typst-ts-renderer/typst_ts_renderer_bg.wasm"
         ),
-    )
-    .unwrap();
-    std::fs::write(
+    )?;
+    write_file(
         proj.dest_dir.join("typst-main.js"),
         include_bytes!("../../frontend/node_modules/@myriaddreamin/typst.ts/dist/main.js"),
-    )
-    .unwrap();
-    std::fs::write(
+    )?;
+    write_file(
         proj.dest_dir.join("svg_utils.js"),
         include_bytes!("../../frontend/src/svg_utils.cjs"),
-    )
-    .unwrap();
-    std::fs::write(
+    )?;
+    write_file(
         proj.dest_dir.join("typst-book.js"),
         include_bytes!("../../frontend/dist/main.js"),
-    )
-    .unwrap();
+    )?;
 
     for ch in proj.iter_chapters() {
         if let Some(path) = ch.get("path") {
-            let raw_path: String = serde_json::from_value(path.clone()).unwrap();
+            let raw_path: String = serde_json::from_value(path.clone())
+                .map_err(error_once_map_string!("retrieve path in book.toml", value: path))?;
             let path = &proj.dest_dir.join(&raw_path);
             let path = Path::new(&path);
 
-            let content = proj.render_chapter(ch, &raw_path);
+            let content = proj.render_chapter(ch, &raw_path)?;
 
-            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-            std::fs::write(path.with_extension("html"), &content).unwrap();
+            create_dirs(path.parent().unwrap())?;
+            write_file(path.with_extension("html"), &content)?;
             if !write_index {
-                std::fs::write(&proj.dest_dir.join("index.html"), content).unwrap();
+                write_file(&proj.dest_dir.join("index.html"), content)?;
                 write_index = true;
             }
         }
@@ -122,28 +112,25 @@ fn build(args: BuildArgs) -> ! {
     exit(0)
 }
 
-fn serve(args: ServeArgs) -> ! {
-    pub async fn serve_inner(args: ServeArgs) {
-        use warp::http::Method;
+pub async fn serve(args: ServeArgs) -> ZResult<()> {
+    let proj = Project::new(args.compile)?;
 
-        let proj = Project::new(args.compile);
+    let http_addr: SocketAddr = args
+        .addr
+        .clone()
+        .parse()
+        .map_err(map_string_err("ParseServeAddr"))?;
 
-        let http_addr: SocketAddr = args.addr.clone().parse().unwrap();
-
+    let server = warp::serve({
         let cors =
             warp::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE, Method::HEAD]);
 
-        let routes = warp::fs::dir(proj.dest_dir)
+        warp::fs::dir(proj.dest_dir)
             .with(cors)
-            .with(warp::compression::gzip());
+            .with(warp::compression::gzip())
+    });
 
-        let server = warp::serve(routes);
+    server.run(http_addr).await;
 
-        server.run(http_addr).await
-    }
-
-    async_continue(async {
-        serve_inner(args).await;
-        exit(0)
-    })
+    exit(0);
 }
