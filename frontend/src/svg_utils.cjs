@@ -162,6 +162,23 @@ window.typstProcessSvg = function (docRoot) {
       elem = elem.parentElement;
     }
   });
+
+  if (window.location.hash) {
+    console.log('hash', window.location.hash);
+
+    // parse location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
+    const hash = window.location.hash;
+    const hashParts = hash.split('-');
+    if (hashParts.length === 2 && hashParts[0] === '#loc') {
+      const locParts = hashParts[1].split('x');
+      if (locParts.length === 3) {
+        const page = Number.parseInt(locParts[0]);
+        const x = Number.parseFloat(locParts[1]);
+        const y = Number.parseFloat(locParts[2]);
+        window.handleTypstLocation(docRoot, page, x, y);
+      }
+    }
+  }
 };
 
 window.layoutText = function (svg) {
@@ -205,12 +222,13 @@ window.handleTypstLocation = function (elem, page, x, y) {
       nthPage++;
     }
     if (nthPage == page) {
-      const page = children[i];
-      const dataWidth = page.getAttribute('data-page-width');
-      const dataHeight = page.getAttribute('data-page-height');
-      const rect = page.getBoundingClientRect();
-      const xOffsetInner = Math.max(0, x / dataWidth - 0.05) * rect.width;
-      const yOffsetInner = Math.max(0, y / dataHeight - 0.05) * rect.height;
+      const pageElem = children[i];
+      const dataWidth = pageElem.getAttribute('data-page-width');
+      const dataHeight = pageElem.getAttribute('data-page-height');
+      const rect = pageElem.getBoundingClientRect();
+      // const xOffsetInner = Math.max(0, x / dataWidth - 0.05) * rect.width;
+      const xOffsetInner = (x / dataWidth) * rect.width;
+      const yOffsetInner = Math.max(0, y / dataHeight - 0.1) * rect.height;
       const xOffsetInnerFix = (x / dataWidth) * rect.width - xOffsetInner;
       const yOffsetInnerFix = (y / dataHeight) * rect.height - yOffsetInner;
 
@@ -222,9 +240,19 @@ window.handleTypstLocation = function (elem, page, x, y) {
       const left = xOffset + xOffsetInnerFix;
       const top = yOffset + yOffsetInnerFix;
 
-      window.scrollTo(xOffset, yOffset);
+      const vw = window.innerWidth || 0;
+      window.scrollTo(xOffset, yOffset - 0.1 * vw);
 
-      triggerRipple(docRoot, left, top, 'typst-jump-ripple', 'typst-jump-ripple-effect .4s linear');
+      triggerRipple(
+        docRoot,
+        left + 25, // centralize the ripple
+        top - 25,
+        'typst-jump-ripple',
+        'typst-jump-ripple-effect .4s linear',
+      );
+
+      // todo: multiple documents
+      location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
       return;
     }
   }
