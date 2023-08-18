@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Download font assets
         run: |
-          curl https://github.com/Myriad-Dreamin/typst-book/releases/download/v0.0.0-nightly5/charter-font-assets.tar.gz | tar -xz -C assets/fonts
+          curl -L https://github.com/Myriad-Dreamin/typst-book/releases/download/v0.0.0-nightly5/charter-font-assets.tar.gz | tar -xvz -C assets/fonts
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Set Node.js 18.x
