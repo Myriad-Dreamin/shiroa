@@ -38,7 +38,7 @@ impl TypstRenderer {
         };
 
         let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
-        driver.set_extension("multi.sir.in".to_owned());
+        driver.set_extension("multi.sir.bin".to_owned());
         driver.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).to_vec());
 
         Self {
