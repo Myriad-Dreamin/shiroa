@@ -40,7 +40,7 @@
 
   // code block setting
   show raw: it => {
-    set text(font: "BlexMono Nerd Font")
+    set text(font: "BlexMono Nerd Font Mono")
     if it.block {
       rect(
         width: 100%,
