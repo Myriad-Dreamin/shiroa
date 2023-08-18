@@ -59,9 +59,9 @@ include_dir = "0.7.3"
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
 typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
-typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "2b105adfedb2be7c7e37306e0e7ad97cb9f2685d", package = "typst-ts-svg-exporter" }
-typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "2b105adfedb2be7c7e37306e0e7ad97cb9f2685d", package = "typst-ts-core" }
-typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "2b105adfedb2be7c7e37306e0e7ad97cb9f2685d", package = "typst-ts-compiler" }
+typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "5a23095a44e0ac3456dd10ae5c239cfc70059a5f", package = "typst-ts-svg-exporter" }
+typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "5a23095a44e0ac3456dd10ae5c239cfc70059a5f", package = "typst-ts-core" }
+typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "5a23095a44e0ac3456dd10ae5c239cfc70059a5f", package = "typst-ts-compiler" }
 
 # typst = { path = "../typst/crates/typst" }
 # typst-library = { path = "../typst/crates/typst-library" }
