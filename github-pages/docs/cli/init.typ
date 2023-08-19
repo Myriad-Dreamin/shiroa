@@ -1,6 +1,6 @@
 #import "/contrib/typst/gh-pages.typ": project
 
-#show: project.with(title: "CLI Init command")
+#show: project.with(title: "CLI Init Command")
 
 = The init command
 

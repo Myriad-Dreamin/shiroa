@@ -17,11 +17,10 @@
     = Reference Guide
     - #chapter("cli/main.typ", section: "3")[Command Line Tool]
       - #chapter("cli/init.typ", section: "3.1")[init]
-      - #chapter(none, section: "3.2")[build]
-      - #chapter(none, section: "3.3")[watch]
-      - #chapter(none, section: "3.4")[serve]
-      - #chapter(none, section: "3.5")[clean]
-      - #chapter(none, section: "3.6")[completions]
+      - #chapter("cli/build.typ", section: "3.2")[build]
+      - #chapter("cli/serve.typ", section: "3.3")[serve]
+      - #chapter("cli/clean.typ", section: "3.4")[clean]
+      - #chapter("cli/completions.typ", section: "3.5")[completions]
     - #chapter(none, section: "4")[Format]
       // todo: bracket causes error
       - #chapter(none, section: "4.1")[book.typ]

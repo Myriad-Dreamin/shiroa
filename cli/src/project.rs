@@ -28,6 +28,10 @@ impl Project {
         let mut final_dest_dir = args.dest_dir.clone();
         let path_to_root = args.path_to_root.clone();
 
+        if !path_to_root.starts_with('/') {
+            args.path_to_root = "/".to_owned() + &args.path_to_root;
+        }
+
         if !path_to_root.ends_with('/') {
             args.path_to_root.push('/');
         }
