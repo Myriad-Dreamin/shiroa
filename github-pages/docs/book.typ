@@ -15,8 +15,8 @@
     - #chapter("guide/installation.typ", section: "1")[Installation]
     - #chapter("guide/get-started.typ", section: "2")[Get Started]
     = Reference Guide
-    - #chapter(none, section: "3")[Command Line Tool]
-      - #chapter(none, section: "3.1")[init]
+    - #chapter("cli/main.typ", section: "3")[Command Line Tool]
+      - #chapter("cli/init.typ", section: "3.1")[init]
       - #chapter(none, section: "3.2")[build]
       - #chapter(none, section: "3.3")[watch]
       - #chapter(none, section: "3.4")[serve]
