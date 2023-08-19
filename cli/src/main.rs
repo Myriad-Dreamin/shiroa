@@ -1,11 +1,10 @@
-use std::{net::SocketAddr, path::Path, process::exit};
+use std::{net::SocketAddr, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
-use include_dir::include_dir;
 use typst_book_cli::{
     error::prelude::*,
     project::Project,
-    utils::{async_continue, copy_dir_embedded, create_dirs, write_file, UnwrapOrExit},
+    utils::{async_continue, UnwrapOrExit},
     BuildArgs, Opts, ServeArgs, Subcommands,
 };
 use warp::{http::Method, Filter};
@@ -45,75 +44,18 @@ fn main() {
 
 fn build(args: BuildArgs) -> ZResult<()> {
     let mut proj = Project::new(args.compile)?;
-
-    let mut write_index = false;
-
-    create_dirs(&proj.dest_dir)?;
-    copy_dir_embedded(
-        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/css"),
-        proj.dest_dir.join("css"),
-    )?;
-    copy_dir_embedded(
-        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/css"),
-        proj.dest_dir.join("FontAwesome/css"),
-    )?;
-    copy_dir_embedded(
-        include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/fonts"),
-        proj.dest_dir.join("FontAwesome/fonts"),
-    )?;
-
-    // todo use themes in filesystem
-    // copy_dir_all("themes/mdbook/css", proj.dest_dir.join("css")).unwrap();
-    // copy_dir_all(
-    //     "themes/mdbook/fontAwesome",
-    //     proj.dest_dir.join("fontAwesome"),
-    // )
-    // .unwrap();
-
-    // copy files
-    create_dirs(&proj.dest_dir.join("renderer"))?;
-    write_file(
-        proj.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
-        include_bytes!(
-            "../../frontend/node_modules/@myriaddreamin/typst-ts-renderer/typst_ts_renderer_bg.wasm"
-        ),
-    )?;
-    write_file(
-        proj.dest_dir.join("typst-main.js"),
-        include_bytes!("../../frontend/node_modules/@myriaddreamin/typst.ts/dist/main.js"),
-    )?;
-    write_file(
-        proj.dest_dir.join("svg_utils.js"),
-        include_bytes!("../../frontend/src/svg_utils.cjs"),
-    )?;
-    write_file(
-        proj.dest_dir.join("typst-book.js"),
-        include_bytes!("../../frontend/dist/main.js"),
-    )?;
-
-    for ch in proj.iter_chapters() {
-        if let Some(path) = ch.get("path") {
-            let raw_path: String = serde_json::from_value(path.clone())
-                .map_err(error_once_map_string!("retrieve path in book.toml", value: path))?;
-            let path = &proj.dest_dir.join(&raw_path);
-            let path = Path::new(&path);
-
-            let content = proj.render_chapter(ch, &raw_path)?;
-
-            create_dirs(path.parent().unwrap())?;
-            write_file(path.with_extension("html"), &content)?;
-            if !write_index {
-                write_file(&proj.dest_dir.join("index.html"), content)?;
-                write_index = true;
-            }
-        }
-    }
+    proj.build()?;
 
     exit(0)
 }
 
 pub async fn serve(args: ServeArgs) -> ZResult<()> {
-    let proj = Project::new(args.compile)?;
+    let mut proj = Project::new(args.compile)?;
+
+    // Build the book if it hasn't been built yet
+    if !args.no_build {
+        proj.build()?;
+    }
 
     let http_addr: SocketAddr = args
         .addr

@@ -81,6 +81,10 @@ pub struct ServeArgs {
     #[clap(flatten)]
     pub compile: CompileArgs,
 
+    /// Do not build the book before serving.
+    #[clap(long)]
+    pub no_build: bool,
+
     /// Listen address.
     #[clap(long, default_value = "127.0.0.1:25520")]
     pub addr: String,

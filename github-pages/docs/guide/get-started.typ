@@ -22,10 +22,9 @@ After answering the questions, you can change the current directory into the new
 cd my-first-book
 ```
 
-There are several ways to render a book, but one of the easiest methods is to use the `build` and `serve` command, which will build your book and start a local webserver:
+There are several ways to render a book, but one of the easiest methods is to use the `serve` command, which will build your book and start a local webserver:
 
 ```sh
-typst-book build
 typst-book serve
 ```
 
