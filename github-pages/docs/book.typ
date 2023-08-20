@@ -27,6 +27,8 @@
         - #chapter(none, section: "4.1.1")[book meta]
           - #chapter(none, section: "4.1.1.1")[Draft chapter]
           // - #chapter(none, section: "4.1.1.2")[chapter with - markers]
+          // - #chapter(none, "= Introduction", section: "4.1.1.2")
+          // - #chapter(none, section: "4.1.1.2")[#text("= Introduction")]
         - #chapter(none, section: "4.1.2")[build meta]
       - #chapter(none, section: "4.2")[Theme]
       - #chapter(none, section: "4.3")[Typst Support]

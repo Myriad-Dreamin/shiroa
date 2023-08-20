@@ -58,7 +58,12 @@
     )) <typst-book-build-meta>
 ]
 
-#let _store-content(ct) = if ct.func() == text {
+#let _store-content(ct) = if type(ct) == "string" {
+  (
+    kind: "plain-text",
+    content: ct,
+  )
+} else if ct.func() == text {
   (
     kind: "plain-text",
     content: ct.text,
