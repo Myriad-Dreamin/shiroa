@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind")]
 pub enum BookMetaContent {
+    #[serde(rename = "raw")]
+    Raw { content: serde_json::Value },
     #[serde(rename = "plain-text")]
     PlainText { content: String },
 }

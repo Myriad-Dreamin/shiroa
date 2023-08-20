@@ -1,5 +1,7 @@
+use core::fmt;
 use std::path::{Path, PathBuf};
 
+use log::warn;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use typst_ts_compiler::service::{Compiler, DiagObserver};
@@ -12,6 +14,34 @@ use crate::{
     CompileArgs,
 };
 use include_dir::include_dir;
+
+/// Typst content kind embedded in metadata nodes
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "func")]
+enum JsonContent {
+    #[serde(rename = "sequence")]
+    Sequence { children: Vec<JsonContent> },
+    #[serde(rename = "space")]
+    Space {},
+    #[serde(rename = "text")]
+    Text { text: String },
+}
+
+impl fmt::Display for JsonContent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Sequence { children } => {
+                for ch in children {
+                    ch.fmt(f)?
+                }
+            }
+            Self::Space {} => f.write_str(" ")?,
+            Self::Text { text } => f.write_str(text)?,
+        }
+
+        Ok(())
+    }
+}
 
 pub struct Project {
     pub tr: TypstRenderer,
@@ -213,57 +243,71 @@ impl Project {
         Ok(())
     }
 
-    pub fn iter_chapters(&self) -> Vec<DataDict> {
-        let mut chapters = vec![];
-
-        fn dfs_elem(elem: &BookMetaElem, chapters: &mut Vec<DataDict>) {
-            // Create the data to inject in the template
-            let mut chapter = DataDict::default();
-
-            match elem {
-                BookMetaElem::Part { title, .. } => {
-                    let BookMetaContent::PlainText { content: title } = title;
-
-                    chapter.insert("part".to_owned(), json!(title));
+    pub fn evaluate_content(&self, title: &BookMetaContent) -> String {
+        match title {
+            BookMetaContent::PlainText { content } => content.clone(),
+            BookMetaContent::Raw { content } => {
+                if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
+                    return format!("{}", c);
                 }
-                BookMetaElem::Chapter {
-                    title,
-                    section,
-                    link,
-                    sub: subs,
-                } => {
-                    let BookMetaContent::PlainText { content: title } = title;
 
-                    if let Some(ref section) = section {
-                        chapter.insert("section".to_owned(), json!(section.to_owned() + "."));
-                    }
+                warn!("unevaluated {content:#?}");
+                "unevaluated title".to_owned()
+            }
+        }
+    }
 
-                    chapter.insert(
-                        "has_sub_items".to_owned(),
-                        json!((!subs.is_empty()).to_string()),
-                    );
+    fn iter_chapters_dfs(&self, elem: &BookMetaElem, chapters: &mut Vec<DataDict>) {
+        // Create the data to inject in the template
+        let mut chapter = DataDict::default();
 
-                    chapter.insert("name".to_owned(), json!(title));
-                    if let Some(ref path) = link {
-                        chapter.insert("path".to_owned(), json!(path));
-                    }
+        match elem {
+            BookMetaElem::Part { title, .. } => {
+                let title = self.evaluate_content(title);
+
+                chapter.insert("part".to_owned(), json!(title));
+            }
+            BookMetaElem::Chapter {
+                title,
+                section,
+                link,
+                sub: subs,
+            } => {
+                let title = self.evaluate_content(title);
+
+                if let Some(ref section) = section {
+                    chapter.insert("section".to_owned(), json!(section.to_owned() + "."));
                 }
-                BookMetaElem::Separator {} => {
-                    chapter.insert("spacer".to_owned(), json!("_spacer_"));
+
+                chapter.insert(
+                    "has_sub_items".to_owned(),
+                    json!((!subs.is_empty()).to_string()),
+                );
+
+                chapter.insert("name".to_owned(), json!(title));
+                if let Some(ref path) = link {
+                    chapter.insert("path".to_owned(), json!(path));
                 }
             }
-
-            chapters.push(chapter);
-
-            if let BookMetaElem::Chapter { sub: subs, .. } = elem {
-                for child in subs.iter() {
-                    dfs_elem(child, chapters);
-                }
+            BookMetaElem::Separator {} => {
+                chapter.insert("spacer".to_owned(), json!("_spacer_"));
             }
         }
 
+        chapters.push(chapter);
+
+        if let BookMetaElem::Chapter { sub: subs, .. } = elem {
+            for child in subs.iter() {
+                self.iter_chapters_dfs(child, chapters);
+            }
+        }
+    }
+
+    pub fn iter_chapters(&self) -> Vec<DataDict> {
+        let mut chapters = vec![];
+
         for item in self.book_meta.as_ref().unwrap().summary.iter() {
-            dfs_elem(item, &mut chapters);
+            self.iter_chapters_dfs(item, &mut chapters);
         }
 
         chapters

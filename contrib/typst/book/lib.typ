@@ -58,6 +58,18 @@
     )) <typst-book-build-meta>
 ]
 
+#let _store-content(ct) = if ct.func() == text {
+  (
+    kind: "plain-text",
+    content: ct.text,
+  )
+} else {
+  (
+    kind: "raw",
+    content: ct,
+  )
+}
+
 /// Represents a chapter in the book
 /// link: path relative (from summary.typ) to the chapter
 /// title: title of the chapter
@@ -72,10 +84,7 @@
     kind: "chapter",
     link: link,
     section: section,
-    title: (
-      kind: "plain-text",
-      content: title.text,
-    ),
+    title: _store-content(title),
 ))
 
 /// Represents a prefix/suffix chapter in the book
@@ -117,10 +126,7 @@
     return (
         kind: "part",
         level: elem.level,
-        title: (
-          kind: "plain-text",
-          content: elem.body.text,
-        ),
+        title:  _store-content(elem.body),
     )
   }
 
