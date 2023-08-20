@@ -10,6 +10,8 @@
   }
 })
 
+#let book-meta-state = state("book-meta", none)
+
 /// helper function to get (and print/use) the final book metadata
 #let get-book-meta() = _labeled-meta(<typst-book-book-meta>)
 
@@ -164,12 +166,13 @@
 /// #show book
 /// ```
 #let book(content) = {
-  set page(width: 300pt, margin: (left: 10pt, right: 10pt, rest: 0pt))
+  // set page(width: 300pt, margin: (left: 10pt, right: 10pt, rest: 0pt))
 
   locate(loc => {
     let data = query(<typst-book-raw-book-meta>, loc).at(0)
     let meta = _convert-summary(data)
 
+    book-meta-state.update(meta)
     [
       #metadata(meta) <typst-book-book-meta>
     ]
@@ -181,4 +184,47 @@
   // #sidebar-gen(converted)
 // #get-book-meta()
   content
+}
+
+#let external-book(spec: none) = {
+  place(hide[
+    #spec
+  ])
+}
+
+#let visit-summary(x, visit) = {
+  if x.at("kind") == "chapter" {
+    let v = none
+
+    let link = x.at("link")
+    if link != none {
+      let chapter-content = visit.at("inc")(link)
+
+      if chapter-content.children.len() > 0 {
+        let t = chapter-content.children.at(0)
+        if t.func() == [].func() and t.children.len() == 0 {
+          chapter-content = chapter-content.children.slice(1).sum()
+        }
+      }
+
+      if "children" in chapter-content.fields() and chapter-content.children.len() > 0 {
+        let t = chapter-content.children.at(0)
+        if t.func() == parbreak {
+          chapter-content = chapter-content.children.slice(1).sum()
+        }
+      }
+
+      visit.at("chapter")(chapter-content)
+    }
+
+    if "sub" in x {
+      x.sub.map(it => visit-summary(it, visit)).sum()
+    }
+
+  } else if x.at("kind") == "part" {
+    // todo: more than plain text
+    visit.at("part")(x.at("title").at("content"))
+  } else {
+    // repr(x)
+  }
 }

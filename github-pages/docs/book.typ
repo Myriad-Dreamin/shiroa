@@ -1,5 +1,5 @@
 
-#import "@preview/book:0.1.0": *
+#import "@preview/book:0.2.0": *
 
 #show: book
 

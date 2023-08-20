@@ -26,39 +26,44 @@
 #let project(title: "Typst Book", authors: (), body) = {
 
   // set basic document metadata
-  set document(author: authors, title: title)
+  set document(author: authors, title: title) if target != "pdf"
 
   // set web/pdf page properties
   set page(
     numbering: none, 
     number-align: center,
     width: page-width,
+  )
+
+  // remove margins for web target
+  set page(
+    margin: (
+      // reserved beautiful top margin
+      top: 20pt,
+      // reserved for our heading style.
+      // If you apply a different heading style, you may remove it.
+      left: 20pt,
+      // Typst is setting the page's bottom to the baseline of the last line of text. So bad :(.
+      bottom: 0.5em,
+      // remove rest margins.
+      rest: 0pt,
+    ),
     // for a website, we don't need pagination.
     height: auto,
-  )
-  // remove margins for web target
-  set page(margin: (
-    // reserved beautiful top margin
-    top: 20pt,
-    // reserved for our heading style.
-    // If you apply a different heading style, you may remove it.
-    left: 20pt,
-    // Typst is setting the page's bottom to the baseline of the last line of text. So bad :(.
-    bottom: 0.5em,
-    // remove rest margins.
-    rest: 0pt,
-  )) if target.starts-with("web");
+  ) if target.starts-with("web");
 
   // set text style
   set text(font: main-font, size: 16pt, fill: main-color, lang: "en")
 
   // render a dash to hint headings instead of bolding it.
-  show heading : set text(weight: "regular")
+  show heading : set text(weight: "regular") if target.starts-with("web")
   show heading : it => locate(loc => {
-    place(left, dx: -20pt, [
-      #set text(fill: dash-color)
-      #link(loc)[\#]
-    ])
+    if target.starts-with("web") {
+      place(left, dx: -20pt, [
+        #set text(fill: dash-color)
+        #link(loc)[\#]
+      ])
+    }
     it
   })
 
@@ -93,3 +98,5 @@
 
   body
 }
+
+#let part-style = heading
