@@ -3,26 +3,36 @@
 
 #let page-project = project
 
-#let project(title: "", authors: (), inc: it => include it, content) = [
-  #set document(author: authors, title: title)
+#let _resolve-inclusion-state = state("_resolve-inclusion", none)
+
+#let resolve-inclusion(inc) = _resolve-inclusion-state.update(it => inc)
+
+#let project(title: "", authors: (), spec: "", content) = {
+  set document(author: authors, title: title)
 
   // inherit from gh-pages
-  #show: page-project
+  show: page-project
 
-  #if title != "" {
+  if title != "" {
     heading(title)
   }
 
-  #locate(loc => {
-    let x = book-meta-state.final(loc)
-    // type(x.summary.map(t))
+  locate(loc => {
+
+    let inc = _resolve-inclusion-state.final(loc)
+    external-book(spec: inc(spec))
+
+    let mt = book-meta-state.final(loc)
     let styles = (
       inc: inc,
       part: part-style,
       chapter: it => it,
     )
-    x.summary.map(it => visit-summary(it, styles)).sum()
+
+    if mt != none {
+      mt.summary.map(it => visit-summary(it, styles)).sum()
+    }
   })
 
-  #content
-]
+  content
+}

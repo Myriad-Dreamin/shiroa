@@ -1,8 +1,7 @@
 #import "@preview/book:0.2.0": *
 #import "/contrib/typst/gh-ebook.typ": *
 
-#show: project.with(title: "Typst book", authors: ("Myriad-Dreamin", "7mile"), inc: it => include it)
+#show: project.with(title: "Typst book", authors: ("Myriad-Dreamin", "7mile"), spec: "book.typ")
 
-#external-book(
-  spec: include "book.typ"
-)
+// set a resolver for inclusion
+#resolve-inclusion(it => include it)
