@@ -34,6 +34,22 @@ With global installation, to uninstall, run the command `cargo uninstall typst-b
 
 Again, make sure to add the Cargo bin directory to your `PATH`.
 
+### Get started
+
+See the [Get-started](https://myriad-dreamin.github.io/typst-book/guide/get-started.html) online documentation.
+
+### Setup for writing your book
+
+We don't provide a watch command, but `typst-book` is designated to embracing all of the approaches to writing typst documents. It's feasible to preview your documents by following approaches (like previewing normal documents):
+
+- (Waiting for ready) once supporting local packages, you can write the book via [Official Web App](https://typst.app)
+
+- via VSCod(e,ium), see [Typst LSP](https://marketplace.visualstudio.com/items?itemName=nvarner.typst-lsp) and [Typst Preview](https://marketplace.visualstudio.com/items?itemName=mgt19937.typst-preview).
+
+- via other editors. For example of neovim, see [typst.vim](https://github.com/kaarmu/typst.vim/issues) and [Typst Preview](https://github.com/Enter-tainer/typst-preview#use-without-vscode).
+
+- via `typst-cli watch`, See [typst-cli watch](https://github.com/typst/typst#usage).
+
 ### Acknowledgement
 
 - The [mdbook theme](./themes/mdbook/) is borrowed from [mdBook](https://github.com/rust-lang/mdBook/tree/master/src/theme) project.
