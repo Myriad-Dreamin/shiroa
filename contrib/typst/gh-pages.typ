@@ -76,7 +76,7 @@
   // code block setting
   show raw: it => {
     set text(font: code-font)
-    if it.block {
+    if "block" in it.fields() and it.block {
       rect(
         width: 100%,
         inset: (x: 4pt, y: 5pt),

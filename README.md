@@ -13,7 +13,7 @@ This project is still in progress, we should finish following features to achiev
 - [x] finish the `github-pages/docs/guide/installation.typ`
 - [x] finish the `github-pages/docs/guide/get-started.typ`
 - [x] finish the `github-pages/docs/cli` chapters
-- [ ] finish the `github-pages/docs/format` chapters
+- [x] finish the `github-pages/docs/format` chapters
 - [ ] `typst-book init`
 - [x] lock typst.ts version
 - [x] github continuous integration

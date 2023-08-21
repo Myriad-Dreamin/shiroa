@@ -89,7 +89,7 @@ The organization of the files will correspond to the HTML files generated, so ke
 // While the `typst-book serve` command is running, you can open any of the chapter files and start editing them.
 // Each time you save the file, `typst-book` will rebuild the book and refresh your web browser.
 
-// Check out the #link("https://rust-lang.github.io/mdBook/format/markdown.html")[Typst chapter] for more information on formatting the content of your chapters.
+// Check out the #link("https://rust-lang.github.io/myriad-dreamin/typst-book/format/typst.html")[Typst chapter] for more information on formatting the content of your chapters.
 
 All other files in the `src` directory will be included in the output.
 So if you have images or other static files, just include them somewhere in the `src` directory.
