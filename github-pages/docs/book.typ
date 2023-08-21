@@ -46,3 +46,7 @@
 )
 
 #get-book-meta()
+
+// re-export page template
+#import "/contrib/typst/gh-pages.typ": project
+#let book-page = project

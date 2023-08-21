@@ -1,7 +1,7 @@
 #import "@preview/book:0.2.1": *
 #import "/contrib/typst/gh-pages.typ": project, part-style
 
-#let page-project = project
+#let _page-project = project
 
 #let _resolve-inclusion-state = state("_resolve-inclusion", none)
 
@@ -11,7 +11,7 @@
   set document(author: authors, title: title)
 
   // inherit from gh-pages
-  show: page-project
+  show: _page-project
 
   if title != "" {
     heading(title)

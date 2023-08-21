@@ -1,6 +1,6 @@
-#import "/contrib/typst/gh-pages.typ": project
+#import "/github-pages/docs/book.typ": book-page
 
-#show: project.with(title: "Introduction")
+#show: book-page.with(title: "Introduction")
 
 = Introduction
 
