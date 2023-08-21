@@ -10,15 +10,16 @@ This project is still in progress, we should finish following features to achiev
 - [x] embeded `typst-book` packages in `typst-book` binary
 - [x] embeded theme data in `typst-book` binary
 - [x] auto register `typst-book` packages
-- [ ] more documentations
-- [ ] finish the `github-pages/docs/guide/installation.typ`
-- [ ] finish the `github-pages/docs/guide/get-started.typ`
+- [x] finish the `github-pages/docs/guide/installation.typ`
+- [x] finish the `github-pages/docs/guide/get-started.typ`
+- [x] finish the `github-pages/docs/cli` chapters
+- [ ] finish the `github-pages/docs/format` chapters
 - [ ] `typst-book init`
-- [ ] lock typst.ts version
+- [x] lock typst.ts version
 - [x] github continuous integration
-- [ ] github release action
+- [x] github release action
 - [x] check `cargo install`
-- [ ] check release binary
+- [x] check release binary
 
 But you can still have a try.
 
