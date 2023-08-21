@@ -18,7 +18,7 @@ To make it easier to run, put the path to the binary into your `PATH`.
 ### Build from source using Rust
 
 To build the `typst-book` executable from source, you will first need to install Yarn, Rust, and Cargo.
-Follow the instructions on the [Yarn installation page]("https://classic.yarnpkg.com/en/docs/install") and [Rust installation page]("https://www.rust-lang.org/tools/install").
+Follow the instructions on the [Yarn installation page](https://classic.yarnpkg.com/en/docs/install) and [Rust installation page](https://www.rust-lang.org/tools/install).
 typst-book currently requires at least Rust version 1.71.
 
 Since typst-book building depends on `yarn`, you cannot directly use `cargo install` to pull and build it. The build command is:
