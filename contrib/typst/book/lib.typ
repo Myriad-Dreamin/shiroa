@@ -178,6 +178,7 @@
 /// ```
 #let book(content) = {
   // set page(width: 300pt, margin: (left: 10pt, right: 10pt, rest: 0pt))
+  [#metadata(toml("typst.toml")) <typst-book-internal-package-meta>]
 
   locate(loc => {
     let data = query(<typst-book-raw-book-meta>, loc).at(0)

@@ -11,7 +11,7 @@ We have not provided an init command, but it is rather simple to write a `book.t
 Your `book.typ` should at least provides a `book-meta`, as #link("https://myriad-dreamin.github.io/typst-book/guide/get-started.html")[Get Started] shown.
 
 ```typ
-#import "@preview/book:0.2.0": *
+#import "@preview/book:0.2.1": *
 #show: book
 
 #book-meta(

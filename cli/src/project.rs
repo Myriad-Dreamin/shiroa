@@ -125,6 +125,42 @@ impl Project {
             .with_compile_diag::<false, _>(|c| c.pure_compile())
             .ok_or_else(|| error_once!("compile_meta"))?;
 
+        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+        pub enum InternalPackageMeta {
+            /// The version of the package used by users
+            #[serde(rename = "package")]
+            Package { version: String },
+        }
+
+        {
+            let res = self
+                .tr
+                .compiler
+                .with_compile_diag::<false, _>(|c| {
+                    c.query("<typst-book-internal-package-meta>".to_string(), &doc)
+                })
+                .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
+            let res = serde_json::to_value(&res)
+                .map_err(map_string_err("convert_to<InternalPackageMeta>"))?;
+            let res: Json<InternalPackageMeta> = serde_json::from_value(res)
+                .map_err(map_string_err("convert_to<InternalPackageMeta>"))?;
+
+            if res.len() > 1 {
+                return Err(error_once!("multiple internal-package meta in book.toml"));
+            }
+
+            let package_meta = res
+                .first()
+                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/book:0.2.1; or do you forget the show rule `#show: book`?)"))?;
+
+            let InternalPackageMeta::Package { version } = &package_meta.value;
+            if version != "0.2.1" {
+                return Err(error_once!(
+                    "outdated book package, please import @preview/book:0.2.1", importing_version: version,
+                ));
+            }
+        }
+
         {
             let res = self
                 .tr
@@ -133,10 +169,9 @@ impl Project {
                     c.query("<typst-book-book-meta>".to_string(), &doc)
                 })
                 .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
-            let res =
-                serde_json::to_value(&res).map_err(map_string_err("convert_to<BookMeeta>"))?;
+            let res = serde_json::to_value(&res).map_err(map_string_err("convert_to<BookMeta>"))?;
             let res: Json<BookMeta> =
-                serde_json::from_value(res).map_err(map_string_err("convert_to<BookMeeta>"))?;
+                serde_json::from_value(res).map_err(map_string_err("convert_to<BookMeta>"))?;
 
             if res.len() > 1 {
                 return Err(error_once!("multiple book meta in book.toml"));
@@ -349,9 +384,9 @@ impl Project {
 
     pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> ZResult<String> {
         let data = serde_json::to_value(self.book_meta.clone())
-            .map_err(map_string_err("render_chapter,convert_to<BookMeeta>"))?;
+            .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
         let mut data: DataDict = serde_json::from_value(data)
-            .map_err(map_string_err("render_chapter,convert_to<BookMeeta>"))?;
+            .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
 
         // inject chapters
         data.insert("chapters".to_owned(), json!(self.iter_chapters()));
