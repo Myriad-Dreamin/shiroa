@@ -1,12 +1,13 @@
-use std::{net::SocketAddr, process::exit};
+use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
 use typst_book_cli::{
     error::prelude::*,
     project::Project,
-    utils::{async_continue, UnwrapOrExit},
-    BuildArgs, Opts, ServeArgs, Subcommands,
+    utils::{async_continue, create_dirs, make_absolute, write_file, UnwrapOrExit},
+    BuildArgs, InitArgs, Opts, ServeArgs, Subcommands,
 };
+use typst_ts_core::path::{unix_slash, PathClean};
 use warp::{http::Method, Filter};
 
 fn get_cli(sub_command_required: bool) -> Command {
@@ -29,6 +30,9 @@ fn main() {
         .init();
 
     match opts.sub {
+        Some(Subcommands::Init(args)) => {
+            async_continue(async { init(args).await.unwrap_or_exit() })
+        }
         Some(Subcommands::Build(args)) => build(args).unwrap_or_exit(),
         Some(Subcommands::Serve(args)) => {
             async_continue(async { serve(args).await.unwrap_or_exit() })
@@ -40,6 +44,121 @@ fn main() {
     {
         unreachable!("The subcommand must exit the process.");
     }
+}
+
+async fn init(args: InitArgs) -> ZResult<()> {
+    let dir = make_absolute(Path::new(&args.compile.dir)).clean();
+
+    if dir.exists() {
+        clap::Error::raw(
+            clap::error::ErrorKind::ValueValidation,
+            format!("the init directory has already existed: {dir:?}"),
+        )
+        .exit()
+    }
+
+    let wd = if args.compile.workspace.is_empty() {
+        dir.clone()
+    } else {
+        make_absolute(Path::new(&args.compile.workspace)).clean()
+    };
+    let rel = pathdiff::diff_paths(&dir, &wd).unwrap();
+
+    if rel.starts_with("..") {
+        clap::Error::raw(
+            clap::error::ErrorKind::ValueValidation,
+            format!("bad workspace, which is sub-directory of book.typ's root: {dir:?} / {wd:?} -> {rel:?}"),
+        )
+        .exit()
+    }
+
+    let workspace_to_root = Path::new("/").join(rel);
+
+    let page_template = unix_slash(&workspace_to_root.join("templates/page.typ"));
+    let ebook_template = unix_slash(&workspace_to_root.join("templates/ebook.typ"));
+    let book_typ = unix_slash(&workspace_to_root.join("book.typ"));
+
+    let build_meta = if args.compile.dest_dir.is_empty() {
+        String::default()
+    } else {
+        format!(
+            r##"#build-meta(
+  dest-dir: "{}",
+)"##,
+            args.compile.dest_dir
+        )
+    };
+
+    create_dirs(&dir)?;
+    create_dirs(dir.join("templates"))?;
+
+    write_file(
+        dir.join("book.typ"),
+        format!(
+            r##"
+#import "@preview/book:0.2.1": *
+
+#show: book
+
+#book-meta(
+  title: "typst-book",
+  summary: [
+    #prefix-chapter("sample-page.typ")[Hello, typst]
+  ]
+)
+
+{build_meta}
+
+// re-export page template
+#import "{page_template}": project
+#let book-page = project
+"##
+        ),
+    )?;
+    write_file(
+        dir.join("sample-page.typ"),
+        format!(
+            r##"#import "{book_typ}": book-page
+
+#show: book-page.with(title: "Hello, typst")
+
+= Hello, typst
+
+Sample page
+"##
+        ),
+    )?;
+    write_file(
+        dir.join("ebook.typ"),
+        format!(
+            r##"#import "@preview/book:0.2.1": *
+
+#import "{ebook_template}"
+
+#show: ebook.project.with(title: "typst-book", spec: "book.typ")
+
+// set a resolver for inclusion
+#ebook.resolve-inclusion(it => include it)
+"##
+        ),
+    )?;
+    write_file(
+        dir.join("templates/page.typ"),
+        include_bytes!("../../contrib/typst/gh-pages.typ"),
+    )?;
+    write_file(
+        dir.join("templates/ebook.typ"),
+        std::str::from_utf8(include_bytes!("../../contrib/typst/gh-ebook.typ").as_slice())
+            .unwrap()
+            .replace("/contrib/typst/gh-pages.typ", &page_template),
+    )?;
+
+    serve(ServeArgs {
+        compile: args.compile,
+        addr: "127.0.0.1:25520".to_owned(),
+        ..Default::default()
+    })
+    .await
 }
 
 fn build(args: BuildArgs) -> ZResult<()> {

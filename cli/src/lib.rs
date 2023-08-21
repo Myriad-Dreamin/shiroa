@@ -25,6 +25,8 @@ pub struct Opts {
 )]
 #[allow(clippy::large_enum_variant)]
 pub enum Subcommands {
+    #[clap(about = "init book.")]
+    Init(InitArgs),
     #[clap(about = "build book.")]
     Build(BuildArgs),
     #[clap(about = "serve book.")]
@@ -64,6 +66,14 @@ pub struct CompileArgs {
         action = ArgAction::Append,
     )]
     pub font_paths: Vec<PathBuf>,
+}
+
+#[derive(Default, Debug, Clone, Parser)]
+#[clap(next_help_heading = "Init options")]
+pub struct InitArgs {
+    /// arguments for compile setting.
+    #[clap(flatten)]
+    pub compile: CompileArgs,
 }
 
 #[derive(Default, Debug, Clone, Parser)]

@@ -2,27 +2,6 @@
 
 A simple tool for creating modern online books in pure typst.
 
-## Warning: work in progress
-
-This project is still in progress, we should finish following features to achieve an early release:
-
-- [x] embeded fonts in `typst-book` binary
-- [x] embeded `typst-book` packages in `typst-book` binary
-- [x] embeded theme data in `typst-book` binary
-- [x] auto register `typst-book` packages
-- [x] finish the `github-pages/docs/guide/installation.typ`
-- [x] finish the `github-pages/docs/guide/get-started.typ`
-- [x] finish the `github-pages/docs/cli` chapters
-- [x] finish the `github-pages/docs/format` chapters
-- [ ] `typst-book init`
-- [x] lock typst.ts version
-- [x] github continuous integration
-- [x] github release action
-- [x] check `cargo install`
-- [x] check release binary
-
-But you can still have a try.
-
 ## Installation (typst-book CLI)
 
 There are multiple ways to install the typst-book CLI tool.
