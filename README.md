@@ -33,3 +33,9 @@ cargo install --path ./cli
 With global installation, to uninstall, run the command `cargo uninstall typst-book`.
 
 Again, make sure to add the Cargo bin directory to your `PATH`.
+
+### Acknowledgement
+
+- The [mdbook theme](./themes/mdbook/) is borrowed from [mdBook](https://github.com/rust-lang/mdBook/tree/master/src/theme) project.
+
+- Compile the document with awesome [Typst](https://github.com/typst/typst).
