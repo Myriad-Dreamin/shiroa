@@ -2,7 +2,19 @@
 // and multiple targets.
 #import "@preview/typst-ts-variables:0.1.0": page-width, target
 
-#let main-color = rgb("#000")
+#let is-web-target = target.starts-with("web")
+#let is-pdf-target = target.starts-with("pdf")
+
+#let is-dark-theme = target.starts-with("web-dark")
+#let is-light-theme = not is-dark-theme
+// target.starts-with("web-light")
+
+#let main-color = if is-dark-theme {
+    rgb("#fff")
+  } else {
+    rgb("#000")
+  }
+
 
 #let dash-color = rgb("#20609f")
 
@@ -26,7 +38,7 @@
 #let project(title: "Typst Book", authors: (), body) = {
 
   // set basic document metadata
-  set document(author: authors, title: title) if target != "pdf"
+  set document(author: authors, title: title) if not is-pdf-target
 
   // set web/pdf page properties
   set page(
@@ -50,15 +62,15 @@
     ),
     // for a website, we don't need pagination.
     height: auto,
-  ) if target.starts-with("web");
+  ) if is-web-target;
 
   // set text style
   set text(font: main-font, size: 16pt, fill: main-color, lang: "en")
 
   // render a dash to hint headings instead of bolding it.
-  show heading : set text(weight: "regular") if target.starts-with("web")
+  show heading : set text(weight: "regular") if is-web-target
   show heading : it => locate(loc => {
-    if target.starts-with("web") {
+    if is-web-target {
       place(left, dx: -20pt, [
         #set text(fill: dash-color)
         #link(loc)[\#]
