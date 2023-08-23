@@ -2,7 +2,7 @@
     let appContainer = document.currentScript && document.currentScript.parentElement;
     window.typstRenderModuleReady.then(async (plugin) => {
         // todo: preload artifact
-        const getTheme = () => window.isTypstLightTheme(window.getTypstTheme()) ? 'light' : 'dark';
+        const getTheme = () => window.getTypstTheme();
         let currTheme = getTheme();
         let svgModule = undefined;
 
@@ -13,10 +13,6 @@
         }
 
         async function reloadArtifact(theme) {
-            if (theme !== 'light' && theme !== 'dark') {
-                console.error(`unknown typst theme: ${theme}, use light theme`);
-                theme = 'light';
-            }
 
             // free anyway
             if (svgModule) {

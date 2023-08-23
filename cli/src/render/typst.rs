@@ -14,6 +14,8 @@ use typst_ts_core::{
     artifact_ir::doc::TypstDocument, config::CompileOpts, path::PathClean, TypstAbs,
 };
 
+const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
+
 pub struct TypstRenderer {
     pub compiler: DynamicLayoutCompiler<CompileDriver>,
     pub root_dir: PathBuf,
@@ -91,15 +93,12 @@ impl TypstRenderer {
     pub fn compile_page(&mut self, path: &Path) -> ZResult<()> {
         self.setup_entry(path);
 
-        self.set_theme_target("light");
-        self.compiler
-            .with_compile_diag::<true, _>(Compiler::compile)
-            .ok_or_else(|| error_once!("compile_light_theme"))?;
-
-        self.set_theme_target("dark");
-        self.compiler
-            .with_compile_diag::<true, _>(Compiler::compile)
-            .ok_or_else(|| error_once!("compile_dark_theme"))?;
+        for theme in THEME_LIST {
+            self.set_theme_target(theme);
+            self.compiler
+                .with_compile_diag::<true, _>(Compiler::compile)
+                .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
+        }
 
         Ok(())
     }
