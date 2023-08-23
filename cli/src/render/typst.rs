@@ -1,16 +1,20 @@
 use std::path::{Path, PathBuf};
 
-use typst_ts_compiler::{
-    service::{CompileDriver, DynamicLayoutCompiler},
-    TypstSystemWorld,
-};
-use typst_ts_core::{config::CompileOpts, path::PathClean, TypstAbs};
-
 use crate::{
+    error::prelude::*,
     font::EMBEDDED_FONT,
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
+use typst_ts_compiler::{
+    service::{CompileDriver, Compiler, DiagObserver, DynamicLayoutCompiler},
+    TypstSystemWorld,
+};
+use typst_ts_core::{
+    artifact_ir::doc::TypstDocument, config::CompileOpts, path::PathClean, TypstAbs,
+};
+
+const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
 
 pub struct TypstRenderer {
     pub compiler: DynamicLayoutCompiler<CompileDriver>,
@@ -53,7 +57,21 @@ impl TypstRenderer {
         self.dest_dir = dest_dir;
     }
 
-    pub fn setup_entry(&mut self, path: &Path) {
+    fn set_theme_target(&mut self, theme: &str) {
+        self.compiler.set_target(if theme.is_empty() {
+            "web".to_owned()
+        } else {
+            format!("web-{theme}")
+        });
+
+        self.compiler.set_extension(if theme.is_empty() {
+            "multi.sir.in".to_owned()
+        } else {
+            format!("{theme}.multi.sir.in")
+        });
+    }
+
+    fn setup_entry(&mut self, path: &Path) {
         if path.is_absolute() {
             panic!("entry file must be relative to the workspace");
         }
@@ -61,5 +79,27 @@ impl TypstRenderer {
         let output_path = self.dest_dir.join(path).with_extension("").clean();
         std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
         self.compiler.set_output(output_path);
+    }
+
+    pub fn compile_book(&mut self, path: &Path) -> ZResult<TypstDocument> {
+        self.setup_entry(path);
+        self.set_theme_target("");
+
+        self.compiler
+            .with_compile_diag::<true, _>(Compiler::pure_compile)
+            .ok_or_else(|| error_once!("compile book.typ"))
+    }
+
+    pub fn compile_page(&mut self, path: &Path) -> ZResult<()> {
+        self.setup_entry(path);
+
+        for theme in THEME_LIST {
+            self.set_theme_target(theme);
+            self.compiler
+                .with_compile_diag::<true, _>(Compiler::compile)
+                .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
+        }
+
+        Ok(())
     }
 }

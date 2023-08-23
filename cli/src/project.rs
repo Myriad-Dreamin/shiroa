@@ -118,12 +118,7 @@ impl Project {
 
         type Json<T> = Vec<QueryItem<T>>;
 
-        self.tr.setup_entry(Path::new("book.typ"));
-        let doc = self
-            .tr
-            .compiler
-            .with_compile_diag::<false, _>(|c| c.pure_compile())
-            .ok_or_else(|| error_once!("compile_meta"))?;
+        let doc = self.tr.compile_book(Path::new("book.typ"))?;
 
         #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
         pub enum InternalPackageMeta {
@@ -256,6 +251,10 @@ impl Project {
             self.dest_dir.join("typst-book.js"),
             include_bytes!("../../frontend/dist/main.js"),
         )?;
+        write_file(
+            self.dest_dir.join("index.js"),
+            include_bytes!("../../themes/mdbook/index.js"),
+        )?;
 
         for ch in self.iter_chapters() {
             if let Some(path) = ch.get("path") {
@@ -349,7 +348,6 @@ impl Project {
     }
 
     pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> ZResult<String> {
-        let renderer_module = format!("{}renderer/typst_ts_renderer_bg.wasm", self.path_to_root);
         let rel_data_path = std::path::Path::new(&self.path_to_root)
             .join(path)
             .with_extension("")
@@ -358,12 +356,7 @@ impl Project {
             // windows
             .replace('\\', "/");
 
-        self.tr.setup_entry(Path::new(path));
-
-        self.tr
-            .compiler
-            .with_compile_diag::<true, _>(|c| c.compile())
-            .ok_or_else(|| error_once!("compile_chapter"))?;
+        self.tr.compile_page(Path::new(path))?;
 
         let dynamic_load_trampoline = self
             .hr
@@ -371,7 +364,6 @@ impl Project {
             .render(
                 "typst_load_trampoline",
                 &json!({
-                    "renderer_module" : renderer_module,
                     "rel_data_path": rel_data_path,
                 }),
             )
@@ -390,6 +382,9 @@ impl Project {
 
         // inject chapters
         data.insert("chapters".to_owned(), json!(self.iter_chapters()));
+
+        let renderer_module = format!("{}renderer/typst_ts_renderer_bg.wasm", self.path_to_root);
+        data.insert("renderer_module".to_owned(), json!(renderer_module));
 
         // inject content
         data.insert(

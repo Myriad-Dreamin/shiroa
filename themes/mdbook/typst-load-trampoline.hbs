@@ -1,47 +1,75 @@
 <script>
     let appContainer = document.currentScript && document.currentScript.parentElement;
-    document.ready(() => {
-        let plugin = window.TypstRenderModule.createTypstSvgRenderer();
-        console.log(plugin);
-        plugin
-            .init({
-                getModule: () =>
-                    '{{ renderer_module }}',
-            })
-            .then(async () => {
-                const artifactData = await fetch(
-                    '{{ rel_data_path }}.multi.sir.in',
-                )
-                    .then(response => response.arrayBuffer())
-                    .then(buffer => new Uint8Array(buffer));
+    window.typstRenderModuleReady.then(async (plugin) => {
+        // todo: preload artifact
+        const getTheme = () => window.getTypstTheme();
+        let currTheme = getTheme();
+        let svgModule = undefined;
 
-                const t0 = performance.now();
+        const appElem = document.createElement('div');
+        appElem.class = 'typst-app';
+        if (appContainer) {
+            appContainer.appendChild(appElem);
+        }
 
-                const svgModule = await plugin.createModule(artifactData);
-                let t1 = performance.now();
+        async function reloadArtifact(theme) {
 
-                console.log(`init took ${t1 - t0} milliseconds`);
-                const appElem = document.createElement('div');
-                appElem.class = 'typst-app';
-                if (appContainer) {
-                    appContainer.appendChild(appElem);
+            // free anyway
+            if (svgModule) {
+                try {
+                    svgModule.free();
+                } catch (e) { }
+            }
+
+            appElem.innerHTML = '';
+            // todo: don't modify this attribute here, instead hide detail in typst.ts
+            appElem.removeAttribute('data-applyed-width');
+
+            const t0 = performance.now();
+            const artifactData = await fetch(
+                `{{ rel_data_path }}.${theme}.multi.sir.in`,
+            )
+                .then(response => response.arrayBuffer())
+                .then(buffer => new Uint8Array(buffer));
+            const t1 = performance.now();
+            svgModule = await plugin.createModule(artifactData);
+            const t2 = performance.now();
+
+            console.log(`theme = ${theme}, load artifact took ${t2 - t1} milliseconds, parse artifact took ${t2 - t1} milliseconds`);
+        }
+
+        reloadArtifact(currTheme).then(() => {
+            const runRender = async () => {
+                const t1 = performance.now();
+                console.log('hold', svgModule, currTheme);
+                await plugin.renderSvg(svgModule, appElem);
+
+                const t2 = performance.now();
+                console.log(
+                    `render took ${t2 - t1} milliseconds.`,
+                );
+            };
+
+            let base = runRender();
+
+            window.typstRerender = () => {
+                base = base.then(runRender());
+            };
+
+            window.typstChangeTheme = () => {
+                const nextTheme = getTheme();
+                if (nextTheme === currTheme) {
+                    return;
                 }
+                currTheme = nextTheme;
 
-                const runRender = async () => {
-                    t1 = performance.now();
-                    await plugin.renderSvg(svgModule, appElem);
+                base = base.then(reloadArtifact(currTheme).then(window.typstRerender));
+            };
 
-                    const t2 = performance.now();
-                    console.log(
-                        `render took ${t2 - t1} milliseconds. total took ${t2 - t0} milliseconds.`,
-                    );
-                };
+            window.onresize = window.typstRerender;
 
-                let base = runRender();
-
-                window.onresize = () => {
-                    base = base.then(runRender());
-                };
-            });
+            // trigger again to regard user changed theme during first reloading
+            window.typstChangeTheme(getTheme());
+        })
     });
 </script>
