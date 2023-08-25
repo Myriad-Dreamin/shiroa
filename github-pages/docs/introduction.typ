@@ -18,11 +18,12 @@
   - SEO optimization
   - Faster font loading
   - Reducing the size of theme bundle files and compiled svg artifacts
-  - Dark theme
+  - Add prev/next buttons
 - Writer experience:
   - Cross-link support
   - Multimedia html elements
   - Book specific helper functions
+  - Customize Favicon
 - Developer experience:
   - Continous CI testing for `typst-book`
 
