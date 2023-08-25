@@ -44,7 +44,7 @@ impl HtmlRenderer {
 
         data.insert("fold_enable".to_owned(), json!(false));
         data.insert("fold_level".to_owned(), json!(0u64));
-        data.insert("preferred_dark_theme".to_owned(), json!("dark"));
+        data.insert("preferred_dark_theme".to_owned(), json!("ayu"));
         data.insert("default_theme".to_owned(), json!("light"));
         data.insert("book_title".to_owned(), data["title"].clone());
         if let Some(repo) = data.get("repository") {
