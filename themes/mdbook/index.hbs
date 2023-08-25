@@ -98,25 +98,25 @@
         });
     </script>
 
-    <script id="typst-main-js" type="module" src="{{ path_to_root }}typst-main.js"></script>
+    <script id="typst-book-js" type="module" src="{{ path_to_root }}typst-book.js"></script>
     <script>
+        window.typstRerender = () => { };
         window.typstChangeTheme = () => { };
 
-        var typstMainJsLoaded = new Promise((resolve, reject) => {
-            document.getElementById('typst-main-js').addEventListener('load', resolve);
-            document.getElementById('typst-main-js').addEventListener('error', reject);
+        var typstBookJsLoaded = new Promise((resolve, reject) => {
+            document.getElementById('typst-book-js').addEventListener('load', resolve);
+            document.getElementById('typst-book-js').addEventListener('error', reject);
         });
 
-        window.typstRenderModuleReady = typstMainJsLoaded.then(() => {
+        window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
             var typstRenderModule = window.typstRenderModule =
                 window.TypstRenderModule.createTypstSvgRenderer();
-            console.log(typstRenderModule);
             return typstRenderModule
                 .init({
-                    getModule: () => '{{ renderer_module }}',
+                    getModule: () => undefined,
                 }).then(() => typstRenderModule);
         }).catch((err) => {
-            console.error('typst-main.js failed to load', err);
+            console.error('typst-book.js failed to load', err);
         });
     </script>
 
@@ -176,12 +176,8 @@
         <script>
             var html = document.querySelector('html');
             var sidebar = null;
-            if (document.body.clientWidth >= 1080) {
-                try { sidebar = localStorage.getItem('typst-book-sidebar'); } catch (e) { }
-                sidebar = sidebar || 'visible';
-            } else {
-                sidebar = 'hidden';
-            }
+            try { sidebar = localStorage.getItem('typst-book-sidebar'); } catch (e) { }
+            sidebar = sidebar || 'visible';
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
         </script>

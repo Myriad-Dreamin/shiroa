@@ -210,7 +210,7 @@ window.layoutText = function (svg) {
     }
   }
 
-  console.log(`layoutText used time ${performance.now() - layoutBegin} ms`);
+  // console.log(`layoutText used time ${performance.now() - layoutBegin} ms`);
 };
 
 window.handleTypstLocation = function (elem, page, x, y) {

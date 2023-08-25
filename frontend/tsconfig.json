@@ -1,7 +1,25 @@
 {
-  "references": [
-    {
-      "path": "./tsconfig.lib.json"
-    }
-  ]
+  "compilerOptions": {
+    "types": ["./src/global.d.ts"],
+    "baseUrl": ".",
+    "module": "ESNext",
+    "target": "ES2020",
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "isolatedModules": true,
+    "strictNullChecks": true,
+    "stripInternal": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "composite": true
+  },
+  "include": ["src"]
 }
