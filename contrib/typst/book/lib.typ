@@ -27,18 +27,22 @@
 #let get-build-meta() = _labeled-meta(<typst-book-build-meta>)
 
 /// Book metadata in summary.typ
+///
 /// title: The title of the book
 /// authors: The author(s) of the book
 /// description: A description for the book, which is added as meta information in the
-/// html <head> of each page
+///   html <head> of each page
 /// repository: The github repository for the book
+/// repository-edit: The github repository editing template for the book
+///   example: `https://github.com/Me/Book/edit/main/path/to/book/{path}`
 /// language: The main language of the book, which is used as a language attribute
-/// <html lang="en"> for example.
+///   <html lang="en"> for example.
 /// summary: Content summary of the book
 #let book-meta(
     title: "",
     description: "",
     repository: "",
+    repository-edit: "",
     authors: (), // array of string
     language: "", // default "en"
     summary: none,
@@ -48,6 +52,7 @@
       title: title,
       description: description,
       repository: repository,
+      repository_edit: repository-edit,
       authors: authors,
       language: language,
       summary: summary,

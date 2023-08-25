@@ -44,7 +44,6 @@ impl HtmlRenderer {
 
         data.insert("fold_enable".to_owned(), json!(false));
         data.insert("fold_level".to_owned(), json!(0u64));
-        // todo: make dark theme work
         data.insert("preferred_dark_theme".to_owned(), json!("dark"));
         data.insert("default_theme".to_owned(), json!("light"));
         data.insert("book_title".to_owned(), data["title"].clone());
@@ -52,16 +51,10 @@ impl HtmlRenderer {
             data.insert("git_repository_url".to_owned(), repo.clone());
             data.insert("git_repository_icon".to_owned(), json!("fa-github"));
         }
-        // git_repository_edit_url
-        if let Some(repo_edit) = data.get("repository-edit") {
-            data.insert("git_repository_edit_url".to_owned(), repo_edit.clone());
-        } else if let Some(repo) = data.get("repository") {
-            data.insert(
-                "git_repository_edit_url".to_owned(),
-                json!(format!("{}/edit/master/", repo.as_str().unwrap())),
-            );
+        if let Some(edit_url_template) = data.get("repository_edit") {
+            let edit_url = edit_url_template.as_str().unwrap().replace("{path}", path);
+            data.insert("git_repository_edit_url".to_owned(), json!(edit_url));
         }
-        // data.insert("git_repository_url".to_owned(), data["repository"].clone());
 
         self.handlebars.render("index", &data).unwrap()
     }

@@ -1,5 +1,5 @@
 
-#import "@preview/book:0.2.1": *
+#import "@preview/book:0.2.2": *
 
 #show: book
 
@@ -7,6 +7,7 @@
   title: "typst-book",
   description: "typst-book Documentation",
   repository: "https://github.com/Myriad-Dreamin/typst-book",
+  repository-edit: "https://github.com/Myriad-Dreamin/typst-book/edit/main/github-pages/docs/{path}",
   authors: ("Myriad-Dreamin", "7mile"),
   language: "en",
   summary: [ // begin of summary

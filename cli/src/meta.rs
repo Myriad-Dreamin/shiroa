@@ -41,6 +41,9 @@ pub struct BookMeta {
     pub description: String,
     /// The github repository for the book
     pub repository: String,
+    /// The github repository editing template for the book
+    /// example: `https://github.com/Me/Book/edit/main/path/to/book/{path}`
+    pub repository_edit: String,
     /// The main language of the book, which is used as a language attribute
     /// `<html lang="en">` for example.
     pub language: String,

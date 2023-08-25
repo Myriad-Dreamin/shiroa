@@ -1,9 +1,10 @@
 // This is important for typst-book to produce a responsive layout
 // and multiple targets.
-#import "@preview/typst-ts-variables:0.1.0": page-width, target
+#import "@preview/book:0.2.2": get-page-width, target, is-web-target, is-pdf-target
 
-#let is-web-target = target.starts-with("web")
-#let is-pdf-target = target.starts-with("pdf")
+#let page-width = get-page-width()
+#let is-pdf-target = is-pdf-target()
+#let is-web-target = is-web-target()
 
 // todo: move theme style parser to another lib file
 #let theme-target = if target.contains("-") { target.split("-").at(1) } else { "light" }

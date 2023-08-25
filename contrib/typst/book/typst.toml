@@ -1,6 +1,6 @@
 [package]
 name = "book"
-version = "0.2.1"
+version = "0.2.2"
 entrypoint = "lib.typ"
 authors = ["Myriad-Dreamin"]
 license = "Apache-2.0"

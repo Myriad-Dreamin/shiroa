@@ -32,7 +32,7 @@ typst-book build my-book/ # memoryized dest-dir
 The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #link("https://myriad-dreamin.github.io/typst-book/guide/get-started.html")[Get Started] shown.
 
 ```typ
-#import "@preview/book:0.2.1": *
+#import "@preview/book:0.2.2": *
 #show: book
 
 #book-meta(
