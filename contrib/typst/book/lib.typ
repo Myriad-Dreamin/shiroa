@@ -1,4 +1,12 @@
 
+#import "@preview/typst-ts-variables:0.1.0": page-width, target
+
+// export typst.ts variables again, don't import typst-ts-variables directly
+#let get-page-width() = page-width
+#let target = target
+#let is-web-target() = target.starts-with("web")
+#let is-pdf-target() = target.starts-with("pdf")
+
 #let _labeled-meta(label) = locate(loc => {
   let res = query(label, loc)
   if res.len() <= 0 {
