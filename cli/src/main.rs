@@ -186,7 +186,9 @@ pub async fn serve(args: ServeArgs) -> ZResult<()> {
         let cors =
             warp::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE, Method::HEAD]);
 
-        warp::fs::dir(proj.dest_dir)
+        let dev = warp::path("dev").and(warp::fs::dir(""));
+
+        dev.or(warp::fs::dir(proj.dest_dir))
             .with(cors)
             .with(warp::compression::gzip())
     });
