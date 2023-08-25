@@ -147,6 +147,10 @@
   var sidebarResizeHandle = document.getElementById('sidebar-resize-handle');
   var firstContact = null;
 
+  sidebar.addEventListener('transitionend', () => {
+    window.typstRerender();
+  });
+
   function showSidebar() {
     html.classList.remove('sidebar-hidden');
     html.classList.add('sidebar-visible');
@@ -213,6 +217,7 @@
     html.classList.add('sidebar-resizing');
   }
   function resize(e) {
+    window.typstRerender();
     var pos = e.clientX - sidebar.offsetLeft;
     if (pos < 20) {
       hideSidebar();
