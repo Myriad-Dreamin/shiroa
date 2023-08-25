@@ -176,8 +176,12 @@
         <script>
             var html = document.querySelector('html');
             var sidebar = null;
-            try { sidebar = localStorage.getItem('typst-book-sidebar'); } catch (e) { }
-            sidebar = sidebar || 'visible';
+            if (document.body.clientWidth >= 800) {
+                try { sidebar = localStorage.getItem('typst-book-sidebar'); } catch (e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
         </script>
