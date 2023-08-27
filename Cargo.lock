@@ -3596,6 +3596,7 @@ dependencies = [
  "clap",
  "clap_complete",
  "clap_complete_fig",
+ "comemo",
  "env_logger",
  "handlebars",
  "include_dir",

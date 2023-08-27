@@ -33,6 +33,7 @@ handlebars = "4.3"
 
 # general
 anyhow = "1"
+comemo = "0.3"
 tokio = { version = "1.28.1", features = ["full"] }
 
 # cryptography and processing

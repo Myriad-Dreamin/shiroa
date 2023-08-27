@@ -174,6 +174,9 @@ pub async fn serve(args: ServeArgs) -> ZResult<()> {
     // Build the book if it hasn't been built yet
     if !args.no_build {
         proj.build()?;
+
+        // since we don't need the compilation cache anymore, we can evict it
+        comemo::evict(0);
     }
 
     let http_addr: SocketAddr = args

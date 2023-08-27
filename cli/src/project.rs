@@ -273,6 +273,9 @@ impl Project {
                     write_file(&self.dest_dir.join("index.html"), content)?;
                     write_index = true;
                 }
+
+                // cleanup cache
+                comemo::evict(5);
             }
         }
 
