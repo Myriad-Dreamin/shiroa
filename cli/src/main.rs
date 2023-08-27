@@ -152,6 +152,14 @@ Sample page
             .unwrap()
             .replace("/contrib/typst/gh-pages.typ", &page_template),
     )?;
+    write_file(
+        dir.join("templates/theme-style.toml"),
+        include_bytes!("../../contrib/typst/theme-style.toml"),
+    )?;
+    write_file(
+        dir.join("templates/tokyo-night.tmTheme"),
+        include_bytes!("../../contrib/typst/tokyo-night.tmTheme"),
+    )?;
 
     serve(ServeArgs {
         compile: args.compile,
