@@ -1,0 +1,15 @@
+[package]
+name = "typst-book-i18n"
+description = "Tracking typst document translation."
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+typst-syntax.workspace = true
+ecow.workspace = true
+argh = "0.1.12"

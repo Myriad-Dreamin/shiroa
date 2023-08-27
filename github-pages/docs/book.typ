@@ -3,6 +3,8 @@
 
 #show: book
 
+#let repository = "https://github.com/Myriad-Dreamin/typst-book"
+
 #book-meta(
   title: "typst-book",
   description: "typst-book Documentation",

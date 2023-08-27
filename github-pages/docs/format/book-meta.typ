@@ -136,7 +136,7 @@ Below is the summary content for the `book.typ` for this guide, with the resulti
 of contents as rendered to the left.
 
 #{
-  let exp = read("../book.typ")
+  let exp = read("/github-pages/docs/book.typ")
   let exp = exp.find(regex("// begin of summary[\s\S]*// end of summary")).split("\n")
   // remove first and last line (begin and end of summary)
   let exp = exp.slice(1, exp.len()-2)

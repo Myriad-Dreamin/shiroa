@@ -11,7 +11,7 @@ repository = "https://github.com/Myriad-Dreamin/typst-book"
 
 [workspace]
 resolver = "2"
-members = ["cli", "tools/build-from-source"]
+members = ["cli", "tools/i18n", "tools/build-from-source"]
 
 [profile.release]
 debug = true
@@ -25,6 +25,7 @@ strip = true
 
 typst = "0.7.0"
 typst-library = "0.7.0"
+typst-syntax = "0.7.0"
 typst-ts-svg-exporter = "0.4.0-rc1"
 typst-ts-core = "0.4.0-rc1"
 typst-ts-compiler = "0.4.0-rc1"
@@ -33,6 +34,7 @@ handlebars = "4.3"
 
 # general
 anyhow = "1"
+ecow = "0.1"
 comemo = "0.3"
 tokio = { version = "1.28.1", features = ["full"] }
 
@@ -62,6 +64,7 @@ pathdiff = "0.1.0"
 
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
+typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
 typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts" }
 typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "47f3b700e3693653d6dff34c8acbe49a9a7666c9", package = "typst-ts-svg-exporter" }
 typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "47f3b700e3693653d6dff34c8acbe49a9a7666c9", package = "typst-ts-core" }
