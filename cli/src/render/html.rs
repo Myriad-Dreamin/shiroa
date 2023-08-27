@@ -97,13 +97,10 @@ impl HelperDef for RenderToc {
         rc: &mut RenderContext<'reg, 'rc>,
         out: &mut dyn Output,
     ) -> Result<(), RenderError> {
-        println!("RC = {:?}", rc);
-
         // get value from context data
         // rc.get_path() is current json parent path, you should always use it like this
         // param is the key of value you want to display
         let chapters = rc.evaluate(ctx, "@root/chapters").and_then(|c| {
-            println!("scopedjson = {:?}", c);
             serde_json::value::from_value::<Vec<BTreeMap<String, String>>>(c.as_json().clone())
                 .map_err(|_| RenderError::new("Could not decode the JSON data"))
         })?;
@@ -222,7 +219,7 @@ impl HelperDef for RenderToc {
                     out.write(&tmp)?;
                     out.write("\"")?;
 
-                    println!("compare path = {path:?}, current_path = {current_path:?}");
+                    // println!("compare path = {path:?}, current_path = {current_path:?}");
 
                     if path == &current_path || is_first_chapter {
                         is_first_chapter = false;

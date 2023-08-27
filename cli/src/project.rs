@@ -377,6 +377,9 @@ impl Project {
     }
 
     pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> ZResult<String> {
+        let instant = std::time::Instant::now();
+        log::info!("rendering chapter {}", path);
+        // println!("RC = {:?}", rc);
         let data = serde_json::to_value(self.book_meta.clone())
             .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
         let mut data: DataDict = serde_json::from_value(data)
@@ -397,7 +400,9 @@ impl Project {
         // inject path_to_root
         data.insert("path_to_root".to_owned(), json!(self.path_to_root));
 
-        Ok(self.hr.render_index(data, path))
+        let index_html = self.hr.render_index(data, path);
+        log::info!("rendering chapter {} in {:?}", path, instant.elapsed());
+        Ok(index_html)
     }
 
     // pub fn auto_order_section(&mut self) {
