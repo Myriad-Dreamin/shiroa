@@ -61,7 +61,7 @@
 )
 ```
 
-+ ***#translate([Prefix Chapter], flow_id: 11)*** #translate([-], flow_id: 12) #translate([Before the main numbered chapters, prefix chapters can be added], flow_id: 13)
++ *#translate([Prefix Chapter], flow_id: 11)* #translate([-], flow_id: 12) #translate([Before the main numbered chapters, prefix chapters can be added], flow_id: 13)
    #translate([that will not be numbered. This is useful for forewords,], flow_id: 14)
    #translate([introductions, etc. There are, however, some constraints. Prefix chapters cannot be], flow_id: 15)
    #translate([nested; they should all be on the root level. And you cannot add], flow_id: 16)
@@ -71,7 +71,7 @@
    - #chapter("1.typ", section: "1")[First Chapter]
    ```
 
-+ ***#translate([Part Title], flow_id: 18)*** #translate([-], flow_id: 19) #translate([Headers can be used as a title for the following numbered], flow_id: 20)
++ *#translate([Part Title], flow_id: 18)* #translate([-], flow_id: 19) #translate([Headers can be used as a title for the following numbered], flow_id: 20)
    #translate([chapters. This can be used to logically separate different sections], flow_id: 21)
    #translate([of the book. The title is rendered as unclickable text.], flow_id: 22)
    #translate([Titles are optional, and the numbered chapters can be broken into as many], flow_id: 23)
@@ -82,7 +82,7 @@
    - #chapter("1.typ", section: "1")[First Chapter]
    ```
 
-+ ***#translate([Numbered Chapter], flow_id: 25)*** #translate([-], flow_id: 26) #translate([Numbered chapters outline the main content of the book], flow_id: 27)
++ *#translate([Numbered Chapter], flow_id: 25)* #translate([-], flow_id: 26) #translate([Numbered chapters outline the main content of the book], flow_id: 27)
    #translate([and can be nested, resulting in a nice hierarchy], flow_id: 28)
    #translate([(chapters, sub-chapters, etc.).], flow_id: 29)
    ```typ
@@ -98,7 +98,7 @@
    ```
    #translate([Numbered chapters can be denoted either], flow_id: 30) `-`#translate([.], flow_id: 31) 
    
-+ ***#translate([Suffix Chapter], flow_id: 32)*** #translate([-], flow_id: 33) #translate([Like prefix chapters, suffix chapters are unnumbered, but they come after], flow_id: 34) 
++ *#translate([Suffix Chapter], flow_id: 32)* #translate([-], flow_id: 33) #translate([Like prefix chapters, suffix chapters are unnumbered, but they come after], flow_id: 34) 
    #translate([numbered chapters.], flow_id: 35)
    ```typ
    = Last Part
@@ -108,7 +108,7 @@
    #suffix-chapter("suf.typ")[Title of Suffix Chapter]
    ```
 
-+ ***#translate([Draft chapters], flow_id: 36)*** #translate([-], flow_id: 37) #translate([Draft chapters are chapters without a file and thus content.], flow_id: 38)
++ *#translate([Draft chapters], flow_id: 36)* #translate([-], flow_id: 37) #translate([Draft chapters are chapters without a file and thus content.], flow_id: 38)
    #translate([The purpose of a draft chapter is to signal future chapters still to be written.], flow_id: 39)
    #translate([Or when still laying out the structure of the book to avoid creating the files], flow_id: 40)
    #translate([while you are still changing the structure of the book a lot.], flow_id: 41)
@@ -119,7 +119,7 @@
    #chapter(none, section: "5.2")[Draft Chapter]
    ```
 
-+ ***#translate([Separators], flow_id: 45)*** #translate([-], flow_id: 46) #translate([Separators can be added before, in between, and after any other element. They result], flow_id: 47)
++ *#translate([Separators], flow_id: 45)* #translate([-], flow_id: 46) #translate([Separators can be added before, in between, and after any other element. They result], flow_id: 47)
    #translate([in an HTML rendered line in the built table of contents.], flow_id: 48)  #translate([A separator is], flow_id: 49)
    #translate([a line containing exclusively dashes and at least three of them], flow_id: 50)#translate([:], flow_id: 51) `---`#translate([.], flow_id: 52)
    ```typ
