@@ -1,12 +1,13 @@
 //#/dev/frontend/dist/book.mjs
-import { SvgSession } from '@myriaddreamin/typst-ts-renderer';
+import { kObject } from '@myriaddreamin/typst.ts/dist/esm/internal.types';
 import {
+  RenderSession,
   TypstSvgRenderer,
-  createTypstSvgRenderer,
+  createTypstRenderer,
 } from '@myriaddreamin/typst.ts/dist/esm/renderer';
 
 window.TypstRenderModule = {
-  createTypstSvgRenderer,
+  createTypstRenderer,
 };
 
 // window.debounce = function debounce<T extends { (...args: any[]): void }>(fn: T, delay = 200) {
@@ -28,7 +29,7 @@ window.typstBookRenderPage = function (
   // todo: preload artifact
   const getTheme = () => window.getTypstTheme();
   let currTheme = getTheme();
-  let svgModule: SvgSession | undefined = undefined;
+  let svgModule: RenderSession | undefined = undefined;
 
   const appElem = document.createElement('div');
   if (appElem && appContainer) {
@@ -40,7 +41,7 @@ window.typstBookRenderPage = function (
     // free anyway
     if (svgModule) {
       try {
-        svgModule.free();
+        (svgModule as any)[kObject].free();
       } catch (e) {}
     }
 
@@ -53,7 +54,7 @@ window.typstBookRenderPage = function (
       .then(response => response.arrayBuffer())
       .then(buffer => new Uint8Array(buffer));
     const t1 = performance.now();
-    svgModule = (await plugin.createModule(artifactData)) as SvgSession;
+    svgModule = (await plugin.createModule(artifactData)) as RenderSession;
     const t2 = performance.now();
 
     console.log(
@@ -72,7 +73,7 @@ window.typstBookRenderPage = function (
       appElem.style.margin = `0px`;
 
       // todo: merge
-      await (plugin as any).renderSvg(svgModule, appElem);
+      await plugin.renderSvg(svgModule!, appElem);
 
       // const t2 = performance.now();
       // console.log(

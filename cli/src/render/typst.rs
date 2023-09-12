@@ -10,9 +10,7 @@ use typst_ts_compiler::{
     service::{CompileDriver, Compiler, DiagObserver, DynamicLayoutCompiler},
     TypstSystemWorld,
 };
-use typst_ts_core::{
-    artifact_ir::doc::TypstDocument, config::CompileOpts, path::PathClean, TypstAbs,
-};
+use typst_ts_core::{config::CompileOpts, path::PathClean, TypstAbs, TypstDocument};
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
 

@@ -112,20 +112,20 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.18.20.tgz#786c5f41f043b07afb1af37683d7c33668858f6d"
   integrity sha512-kTdfRcSiDfQca/y9QIkng02avJ+NCaQvrMejlsB3RRv5sE9rRoeBPISaZpKxHELzRxZyLvNts1P27W3wV+8geQ==
 
-"@myriaddreamin/typst-ts-renderer@0.4.0-rc2":
-  version "0.4.0-rc2"
-  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst-ts-renderer/-/typst-ts-renderer-0.4.0-rc2.tgz#bc074fe3c5dbc75c777a18db7a037aa9b29d12a2"
-  integrity sha512-eetesS/1KBu11/3tSg8iSp5dx8E4KzRgxf0iLwUGJ41G80ZOvhA32+QBcEA/gpUPDBmL3bXHB4lPoigV1JYNXg==
+"@myriaddreamin/typst-ts-renderer@0.4.0-rc3":
+  version "0.4.0-rc3"
+  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst-ts-renderer/-/typst-ts-renderer-0.4.0-rc3.tgz#a9c5e6fe609b0e6a7cbb1d4b84b1d546c3a2b123"
+  integrity sha512-VcLIC+OBoqoW2GXhslc6TC+TlE11pIKwj3PrUZF7VBTfbScGUCZFBGR9TdTYc7xZ+HU9Cw9LFgQ3AC5y4FofjA==
 
-"@myriaddreamin/typst-ts-web-compiler@0.4.0-rc2":
-  version "0.4.0-rc2"
-  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst-ts-web-compiler/-/typst-ts-web-compiler-0.4.0-rc2.tgz#0ad6f02f932927e42570618b68ccad244137830e"
-  integrity sha512-YrVLN0Pk6INRBndDasXh7iyF0YnNogzy3LjAK4NSOVh7CdfjptPJwBNQlBonJ3Av0ne//oHr5H44ADRPdnOPmQ==
+"@myriaddreamin/typst-ts-web-compiler@0.4.0-rc3":
+  version "0.4.0-rc3"
+  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst-ts-web-compiler/-/typst-ts-web-compiler-0.4.0-rc3.tgz#ce8916f8864fdf94c2789c93a9a3d1242851fb36"
+  integrity sha512-J5+y3xvTZYUDlCD6UiGrLOi6Z4/XRbB6CsseTq+RlUx/0qeNcPoRvDmzT2vkziuDsmxrHpdmu6AALp+w4MexIg==
 
-"@myriaddreamin/typst.ts@0.4.0-rc2":
-  version "0.4.0-rc2"
-  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst.ts/-/typst.ts-0.4.0-rc2.tgz#0a22a927e252a4588ba359f5161efb72cb8cccd0"
-  integrity sha512-kJPMIcYGg19s6EH93oEgBAeEQbUlDCNJrhQycE/pWXyTUbJnPSYCBPr3YkWfkMpbufMtFZqMqIFRVoH7uLltAw==
+"@myriaddreamin/typst.ts@0.4.0-rc3":
+  version "0.4.0-rc3"
+  resolved "https://registry.yarnpkg.com/@myriaddreamin/typst.ts/-/typst.ts-0.4.0-rc3.tgz#e1ab1ef0fca195e0f3053f704d1a545b378eb6ff"
+  integrity sha512-0YIrca4bIZZ40kRgFC5W/B70zJtxswM830wsGyJ5Awwem6RlIyFOg0xNjNzl+ykZTYwAa327QRWd5DhKs+kdIg==
   dependencies:
     idb "^7.1.1"
 
