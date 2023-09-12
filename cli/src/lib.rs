@@ -5,6 +5,8 @@ pub mod project;
 pub mod render;
 pub mod theme;
 pub mod utils;
+pub mod version;
+use version::VersionFormat;
 
 use std::path::PathBuf;
 
@@ -13,6 +15,14 @@ use clap::{ArgAction, Parser, Subcommand};
 #[derive(Debug, Parser)]
 #[clap(name = "typst-book", version = "0.1.0")]
 pub struct Opts {
+    /// Print Version
+    #[arg(short = 'V', long, group = "version-dump")]
+    pub version: bool,
+
+    /// Print Version in format
+    #[arg(long = "VV", alias = "version-fmt", group = "version-dump", default_value_t = VersionFormat::None)]
+    pub vv: VersionFormat,
+
     #[clap(subcommand)]
     pub sub: Option<Subcommands>,
 }
@@ -98,4 +108,9 @@ pub struct ServeArgs {
     /// Listen address.
     #[clap(long, default_value = "127.0.0.1:25520")]
     pub addr: String,
+}
+
+pub mod build_info {
+    /// The version of the typst-ts-core crate.
+    pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 }
