@@ -5,6 +5,7 @@ use typst_book_cli::{
     error::prelude::*,
     project::Project,
     utils::{async_continue, create_dirs, make_absolute, write_file, UnwrapOrExit},
+    version::intercept_version,
     BuildArgs, InitArgs, Opts, ServeArgs, Subcommands,
 };
 use typst_ts_core::path::{unix_slash, PathClean};
@@ -28,6 +29,8 @@ fn main() {
         .filter_module("typst::", log::LevelFilter::Warn)
         .filter_module("typst_library::", log::LevelFilter::Warn)
         .init();
+
+    intercept_version(opts.version, opts.vv);
 
     match opts.sub {
         Some(Subcommands::Init(args)) => {
