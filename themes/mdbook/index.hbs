@@ -110,7 +110,7 @@
 
         window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
             var typstRenderModule = window.typstRenderModule =
-                window.TypstRenderModule.createTypstSvgRenderer();
+                window.TypstRenderModule.createTypstRenderer();
             return typstRenderModule
                 .init({
                     getModule: () => undefined,
