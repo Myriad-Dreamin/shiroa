@@ -1,7 +1,7 @@
 [workspace.package]
 description = "A simple tool for creating modern online books in pure typst."
 authors = ["typst-book Developers"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 readme = "README.md"
 license = "Apache-2.0"
@@ -25,9 +25,9 @@ strip = true
 
 typst = "0.8.0"
 typst-library = "0.8.0"
-typst-ts-svg-exporter = "0.4.0-rc3"
-typst-ts-core = "0.4.0-rc3"
-typst-ts-compiler = "0.4.0-rc3"
+typst-ts-svg-exporter = "0.4.0-rc5"
+typst-ts-core = "0.4.0-rc5"
+typst-ts-compiler = "0.4.0-rc5"
 
 handlebars = "4.3"
 
@@ -61,12 +61,14 @@ pathdiff = "0.1.0"
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.8.0" }
 typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.8.0" }
-typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "f46ee74ef10a47322be041c92086b2c413ccf1e8", package = "typst-ts-svg-exporter" }
-typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "f46ee74ef10a47322be041c92086b2c413ccf1e8", package = "typst-ts-core" }
-typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "f46ee74ef10a47322be041c92086b2c413ccf1e8", package = "typst-ts-compiler" }
+typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.8.0" }
+typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "ebb4b81c6caf359648ae3343423b5b11ce77a9d2", package = "typst-ts-svg-exporter" }
+typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "ebb4b81c6caf359648ae3343423b5b11ce77a9d2", package = "typst-ts-core" }
+typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "ebb4b81c6caf359648ae3343423b5b11ce77a9d2", package = "typst-ts-compiler" }
 
 # typst = { path = "../typst/crates/typst" }
 # typst-library = { path = "../typst/crates/typst-library" }
+# typst-syntax = { path = "../typst/crates/typst-syntax" }
 # typst-ts-svg-exporter = { path = "../typst.ts/exporter/svg" }
 # typst-ts-compiler = { path = "../typst.ts/compiler" }
 # typst-ts-core = { path = "../typst.ts/core" }

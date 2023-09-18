@@ -108,12 +108,13 @@
             document.getElementById('typst-book-js').addEventListener('error', reject);
         });
 
+        var rendererWasmModule = fetch('{{ renderer_module }}');
         window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
             var typstRenderModule = window.typstRenderModule =
                 window.TypstRenderModule.createTypstRenderer();
             return typstRenderModule
                 .init({
-                    getModule: () => undefined,
+                    getModule: () => rendererWasmModule,
                 }).then(() => typstRenderModule);
         }).catch((err) => {
             console.error('typst-book.js failed to load', err);

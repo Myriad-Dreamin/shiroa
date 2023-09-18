@@ -1,6 +1,6 @@
 {
   "name": "typst-book",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Typst Book.",
   "main": "dist/main.js",
   "repository": "https://github.com/Myriad-Dreamin/typst-book",
@@ -16,9 +16,8 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@myriaddreamin/typst-ts-renderer": "0.4.0-rc3",
-    "@myriaddreamin/typst-ts-web-compiler": "0.4.0-rc3",
-    "@myriaddreamin/typst.ts": "0.4.0-rc3"
+    "@myriaddreamin/typst-ts-renderer": "0.4.0-rc5",
+    "@myriaddreamin/typst.ts": "0.4.0-rc5"
   },
   "devDependencies": {
     "typescript": "^5.1.6",
