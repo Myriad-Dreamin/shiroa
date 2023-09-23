@@ -137,6 +137,23 @@ window.typstProcessSvg = function (docRoot) {
   }
 
   docRoot.addEventListener('click', event => {
+    const origin = event.target.closest(`a`);
+    
+    if (origin && origin.getAttribute('onclick') !== undefined) {
+      // stop the browser automatically opening a new tab
+      event.preventDefault();
+   
+      // console.log(origin, origin.href);
+
+      // do whatever you want with the url
+      if (typeof SVGAnimatedString !== 'undefined' && origin.href instanceof SVGAnimatedString) {
+        window.location = origin.href.baseVal;
+      } else {
+        window.location = origin.href;
+      }
+      return;
+    }
+
     let elem = event.target;
     while (elem) {
       const span = elem.getAttribute('data-span');
