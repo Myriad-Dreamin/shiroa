@@ -155,6 +155,17 @@ window.typstProcessSvg = function (docRoot) {
     }
 
     let elem = event.target;
+    const origin = elem.closest(`a`);
+    
+    if (origin && origin.getAttribute('onclick') === null) {
+      let target = origin.getAttribute('target');
+      if (target === '_blank') {
+        // remove the target attribute
+        origin.removeAttribute('target');
+      }
+      return;
+    }
+
     while (elem) {
       const span = elem.getAttribute('data-span');
       if (span) {
