@@ -1,10 +1,10 @@
 //#/dev/frontend/dist/book.mjs
-import { kObject } from '@myriaddreamin/typst.ts/dist/esm/internal.types';
+import { kObject } from '@myriaddreamin/typst.ts/dist/esm/internal.types.mjs';
 import {
   RenderSession,
   TypstSvgRenderer,
   createTypstRenderer,
-} from '@myriaddreamin/typst.ts/dist/esm/renderer';
+} from '@myriaddreamin/typst.ts/dist/esm/renderer.mjs';
 
 window.TypstRenderModule = {
   createTypstRenderer,
