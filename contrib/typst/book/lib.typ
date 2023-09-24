@@ -71,6 +71,22 @@
     )) <typst-book-build-meta>
 ]
 
+// Collect text content of element recursively into a single string
+// https://discord.com/channels/1054443721975922748/1088371919725793360/1138586827708702810
+#let plain-text(it) = {
+  if it == [ ] {
+    " "
+  } else if it.func() == text {
+    it.text
+  } else if it.func() == smartquote {
+    if it.double { "\"" } else { "'" }
+  } else if it.func() == [].func() {
+    it.children.map(plain-text).join()
+  } else {
+    it
+  }
+}
+
 #let _store-content(ct) = if type(ct) == "string" {
   (
     kind: "plain-text",
@@ -82,9 +98,11 @@
     content: ct.text,
   )
 } else {
+  // Unreliable since v0.8.0
+  // ( kind: "raw", content: ct )
   (
-    kind: "raw",
-    content: ct,
+    kind: "plain-text",
+    content: plain-text(ct),
   )
 }
 

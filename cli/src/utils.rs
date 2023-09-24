@@ -68,11 +68,28 @@ pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<
 }
 
 pub fn create_dirs<P: AsRef<Path>>(path: P) -> ZResult<()> {
-    fs::create_dir_all(path.as_ref()).map_err(error_once_map!("create_dirs"))
+    let path = path.as_ref();
+    if path.exists() {
+        return Ok(());
+    }
+
+    fs::create_dir_all(path).map_err(error_once_map!("create_dirs"))
 }
 
 pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> ZResult<()> {
-    fs::write(path.as_ref(), contents.as_ref()).map_err(error_once_map!("write_file"))
+    let path = path.as_ref();
+    if path.exists() {
+        if !path.is_file() {
+            return Err(error_once!("Cannot write file: not a file at path", path: path.display()));
+        }
+        // todo: check mtime
+        // check content
+        if fs::read(path).map_err(error_once_map!("write_file: read"))? == contents.as_ref() {
+            return Ok(());
+        }
+    }
+
+    fs::write(path, contents.as_ref()).map_err(error_once_map!("write_file: write"))
 }
 
 pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> ZResult<()> {
@@ -84,7 +101,7 @@ pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> ZResul
     Ok(())
 }
 
-pub fn release_packages(world: &mut TypstSystemWorld, pkg: include_dir::Dir) {
+fn release_packages_inner(world: &mut TypstSystemWorld, pkg: include_dir::Dir, no_override: bool) {
     fn get_string(v: &toml::Value) -> &str {
         match v {
             toml::Value::String(table) => table,
@@ -110,9 +127,15 @@ pub fn release_packages(world: &mut TypstSystemWorld, pkg: include_dir::Dir) {
 
     if pkg_link_target.exists() {
         eprintln!("package {pkg_dirname} already exists");
-        return;
+        if no_override {
+            return;
+        }
     }
 
     std::fs::create_dir_all(pkg_link_target.parent().unwrap()).unwrap();
     copy_dir_embedded(pkg, &pkg_link_target).unwrap();
+}
+
+pub fn release_packages(world: &mut TypstSystemWorld, pkg: include_dir::Dir) {
+    release_packages_inner(world, pkg, false);
 }
