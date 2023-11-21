@@ -1,4 +1,4 @@
-#import "/github-pages/docs/book.typ": book-page
+#import "/github-pages/docs/book.typ": book-page, cross-link, cross-link-path-label
 
 #show: book-page.with(title: "Theme")
 
@@ -12,7 +12,9 @@ Currently we have no much design on theme's html part. But you can still configu
 
 == Things to note
 
-Your `book.typ` should at least provides a `book-meta`, as #link("https://myriad-dreamin.github.io/typst-book/guide/get-started.html")[Get Started] shown.
+#let t = cross-link("/guide/get-started.typ")[Get Started]
+
+Your `book.typ` should at least provides a `book-meta`, as #t shown.
 
 ```typ
 #import "@preview/book:0.2.2": *

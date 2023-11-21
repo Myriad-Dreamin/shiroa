@@ -1,4 +1,4 @@
-#import "/github-pages/docs/book.typ": book-page
+#import "/github-pages/docs/book.typ": book-page, cross-link
 
 #show: book-page.with(title: "book.typ")
 
@@ -41,7 +41,7 @@ In this example, you specify following fields for the book project:
 - authors #type-hint("array<string>") (optional): Specify the author(s) of the book.
 - summary #type-hint("content") (required): Summarize of the book.
 
-See #link("https://myriad-dreamin.github.io/typst-book/format/book-meta.html")[Book Metadata] for more details.
+See #cross-link("/format/book-meta.typ")[Book Metadata] for more details.
 
 == build-meta
 
@@ -55,4 +55,4 @@ Specify build metadata of the book project. For example:
 
 When you set `build-meta.dest-dir` to `../dist`, `typst-book` will output the generated content to `parent/to/book.typ/../../dist` or `parent/dist`.
 
-See #link("https://myriad-dreamin.github.io/typst-book/format/build-meta.html")[Build Metadata] for more details.
+See #cross-link("/format/build-meta.typ")[Build Metadata] for more details.

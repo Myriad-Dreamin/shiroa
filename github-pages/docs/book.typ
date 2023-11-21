@@ -51,3 +51,4 @@
 // re-export page template
 #import "/contrib/typst/gh-pages.typ": project
 #let book-page = project
+#let cross-link = cross-link
