@@ -235,7 +235,7 @@ impl Project {
         // .unwrap();
 
         // copy files
-        create_dirs(&self.dest_dir.join("renderer"))?;
+        create_dirs(self.dest_dir.join("renderer"))?;
         write_file(
             self.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
             include_bytes!(
