@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use log::warn;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use typst_ts_compiler::service::{Compiler, DiagObserver};
+use typst_ts_compiler::service::Compiler;
 
 use crate::{
     error::prelude::*,
@@ -131,9 +131,10 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .with_compile_diag::<false, _>(|c| {
-                    c.query("<typst-book-internal-package-meta>".to_string(), &doc)
-                })
+                .query("<typst-book-internal-package-meta>".to_string(), &doc);
+            let res = self
+                .tr
+                .report(res)
                 .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
             let res = serde_json::to_value(&res)
                 .map_err(map_string_err("convert_to<InternalPackageMeta>"))?;
@@ -160,9 +161,10 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .with_compile_diag::<false, _>(|c| {
-                    c.query("<typst-book-book-meta>".to_string(), &doc)
-                })
+                .query("<typst-book-book-meta>".to_string(), &doc);
+            let res = self
+                .tr
+                .report(res)
                 .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
             let res = serde_json::to_value(&res).map_err(map_string_err("convert_to<BookMeta>"))?;
             let res: Json<BookMeta> =
@@ -184,9 +186,10 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .with_compile_diag::<false, _>(|c| {
-                    c.query("<typst-book-build-meta>".to_string(), &doc)
-                })
+                .query("<typst-book-build-meta>".to_string(), &doc);
+            let res = self
+                .tr
+                .report(res)
                 .ok_or_else(|| error_once!("retrieve build meta from book.toml"))?;
             let res =
                 serde_json::to_value(&res).map_err(map_string_err("convert_to<BuildMeta>"))?;

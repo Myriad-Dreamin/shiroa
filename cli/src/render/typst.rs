@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use crate::{
     error::prelude::*,
@@ -6,8 +9,12 @@ use crate::{
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
+use typst::diag::SourceResult;
 use typst_ts_compiler::{
-    service::{CompileDriver, Compiler, DiagObserver, DynamicLayoutCompiler},
+    service::{
+        features::WITH_COMPILING_STATUS_FEATURE, CompileDriver, CompileEnv, CompileReport,
+        CompileReporter, Compiler, ConsoleDiagReporter, DynamicLayoutCompiler, FeatureSet,
+    },
     TypstSystemWorld,
 };
 use typst_ts_core::{config::CompileOpts, path::PathClean, TypstAbs, TypstDocument};
@@ -15,7 +22,8 @@ use typst_ts_core::{config::CompileOpts, path::PathClean, TypstAbs, TypstDocumen
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
 
 pub struct TypstRenderer {
-    pub compiler: DynamicLayoutCompiler<CompileDriver>,
+    pub status_env: Arc<FeatureSet>,
+    pub compiler: CompileReporter<DynamicLayoutCompiler<CompileDriver>>,
     pub root_dir: PathBuf,
     pub dest_dir: PathBuf,
 }
@@ -42,12 +50,21 @@ impl TypstRenderer {
         let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
         driver.set_extension("multi.sir.in".to_owned());
         driver.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).to_vec());
+        let driver =
+            CompileReporter::new(driver).with_generic_reporter(ConsoleDiagReporter::default());
 
         Self {
+            status_env: Arc::new(
+                FeatureSet::default().configure(&WITH_COMPILING_STATUS_FEATURE, true),
+            ),
             compiler: driver,
             root_dir,
             dest_dir,
         }
+    }
+
+    fn compiler_layer_mut(&mut self) -> &mut DynamicLayoutCompiler<CompileDriver> {
+        &mut self.compiler.compiler
     }
 
     pub fn fix_dest_dir(&mut self, path: &Path) {
@@ -56,36 +73,60 @@ impl TypstRenderer {
     }
 
     fn set_theme_target(&mut self, theme: &str) {
-        self.compiler.set_target(if theme.is_empty() {
+        self.compiler_layer_mut().set_target(if theme.is_empty() {
             "web".to_owned()
         } else {
             format!("web-{theme}")
         });
 
-        self.compiler.set_extension(if theme.is_empty() {
-            "multi.sir.in".to_owned()
-        } else {
-            format!("{theme}.multi.sir.in")
-        });
+        self.compiler_layer_mut()
+            .set_extension(if theme.is_empty() {
+                "multi.sir.in".to_owned()
+            } else {
+                format!("{theme}.multi.sir.in")
+            });
     }
 
     fn setup_entry(&mut self, path: &Path) {
         if path.is_absolute() {
             panic!("entry file must be relative to the workspace");
         }
-        self.compiler.compiler.entry_file = self.root_dir.join(path).clean();
+        self.compiler_layer_mut().compiler.entry_file = self.root_dir.join(path).clean();
         let output_path = self.dest_dir.join(path).with_extension("").clean();
         std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
-        self.compiler.set_output(output_path);
+        self.compiler_layer_mut().set_output(output_path);
     }
 
-    pub fn compile_book(&mut self, path: &Path) -> ZResult<TypstDocument> {
+    pub fn fork_env<const REPORT_STATUS: bool>(&self) -> CompileEnv {
+        let res = CompileEnv::default();
+        if REPORT_STATUS {
+            res.configure_shared(self.status_env.clone())
+        } else {
+            res
+        }
+    }
+
+    pub fn report<T>(&self, may_value: SourceResult<T>) -> Option<T> {
+        match may_value {
+            Ok(v) => Some(v),
+            Err(err) => {
+                let rep =
+                    CompileReport::CompileError(self.compiler.main_id(), err, Default::default());
+                let rep = Arc::new((Default::default(), rep));
+                // we currently ignore export error here
+                let _ = self.compiler.reporter.export(self.compiler.world(), rep);
+                None
+            }
+        }
+    }
+
+    pub fn compile_book(&mut self, path: &Path) -> ZResult<Arc<TypstDocument>> {
         self.setup_entry(path);
         self.set_theme_target("");
 
         self.compiler
-            .with_compile_diag::<true, _>(Compiler::pure_compile)
-            .ok_or_else(|| error_once!("compile book.typ"))
+            .pure_compile(&mut self.fork_env::<true>())
+            .map_err(|_| error_once!("compile book.typ"))
     }
 
     pub fn compile_page(&mut self, path: &Path) -> ZResult<()> {
@@ -93,9 +134,10 @@ impl TypstRenderer {
 
         for theme in THEME_LIST {
             self.set_theme_target(theme);
+
             self.compiler
-                .with_compile_diag::<true, _>(Compiler::compile)
-                .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
+                .compile(&mut self.fork_env::<true>())
+                .map_err(|_| error_once!("compile page theme", theme: theme))?;
         }
 
         Ok(())
