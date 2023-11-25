@@ -116,7 +116,7 @@
 /// #chapter("chapter1.typ")["Chapter 1"]
 /// #chapter("chapter2.typ", section: "1.2")["Chapter 1.2"]
 /// ```
-#let chapter(link, title, section: none) = metadata((
+#let chapter(link, title, section: auto) = metadata((
     kind: "chapter",
     link: link,
     section: section,
@@ -131,8 +131,8 @@
 /// // other chapters
 /// #suffix-chapter("chapter-suf.typ")["Title of Suffix Chapter"]
 /// ```
-#let prefix-chapter(link, title) = chapter(link, title)
-#let suffix-chapter(link, title) = chapter(link, title)
+#let prefix-chapter(link, title) = chapter(link, title, section: none)
+#let suffix-chapter(link, title) = chapter(link, title, section: none)
 
 /// Represents a divider in the summary sidebar
 #let divider = metadata((
@@ -202,6 +202,52 @@
   none
 }
 
+#let _numbering-sections(meta, base: ()) = {
+  let cnt = 1
+  for c in meta {
+    let idx = cnt
+    if c.at("kind") != "chapter" or c.at("section") == none {
+      (c, )
+      continue
+    }
+
+    // default incremental section
+    cnt += 1
+    let num = base + (idx, )
+    // c.insert("auto-section", num)
+
+    let user-specified = c.at("section")
+    // c.insert("raw-section", repr(user-specified))
+    if user-specified != none and user-specified != auto {
+
+      // update number
+      num = if type(user-specified) == str {
+        user-specified.split(".").map(int)
+      } else if type(user-specified) == array {
+        for n in user-specified {
+          assert(type(n) == int, message: "invalid type of section counter specified " + repr(user-specified) + ", want number in array")
+        }
+        
+        user-specified
+      } else {
+        panic("invalid type of manual section specified " + repr(user-specified) + ", want str or array")
+      }
+
+      // update cnt
+      cnt = num.last() + 1
+    } 
+
+    let auto-num = num.map(str).join(".")
+    c.at("section") = auto-num
+
+    if "sub" in c {
+      c.sub = _numbering-sections(c.at("sub"), base: num)
+    }
+
+    (c, )
+  }
+}
+
 /// show template for a book file
 /// Example:
 /// ```typ
@@ -214,6 +260,7 @@
   locate(loc => {
     let data = query(<typst-book-raw-book-meta>, loc).at(0)
     let meta = _convert-summary(data)
+    meta.at("summary") = _numbering-sections(meta.at("summary"))
 
     book-meta-state.update(meta)
     [
