@@ -2,6 +2,8 @@ import { TypstRenderer } from '@myriaddreamin/typst.ts/dist/esm/renderer';
 
 declare global {
   interface Window {
+    typstGetRelatedElements: any;
+    handleTypstLocation: any;
     getTypstTheme(): string;
     typstRerender?: () => Promise<void>;
     typstChangeTheme?: () => Promise<void>;
