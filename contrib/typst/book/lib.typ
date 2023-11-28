@@ -73,11 +73,9 @@
 
 #let link2page = state("typst-book-link2page", (:))
 
-#let cross-link-path-label(path) = {
-  assert(path.starts-with("/"), message: "absolute positioning required")
+#let encode-url-component(s) = {
   let prev = false
-  
-  for (idx, c) in path.codepoints().enumerate() {
+  for (idx, c) in s.codepoints().enumerate() {
     if c.starts-with(regex("[a-zA-Z]")) {
       if prev {
         prev = false
@@ -92,6 +90,11 @@
       str(c.to-unicode())
     }
   }
+}
+
+#let cross-link-path-label(path) = {
+  assert(path.starts-with("/"), message: "absolute positioning required")
+  encode-url-component(path)
 }
 
 /// Cross link support
@@ -124,7 +127,7 @@
       path-lbl
       if reference != none {
         "&label="
-        str(reference)
+        encode-url-component(str(reference))
       }
     }, content)
   })
