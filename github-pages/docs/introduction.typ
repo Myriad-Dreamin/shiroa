@@ -8,7 +8,7 @@
 
 *typst-book* is heavily inspired by mdBook, but it is considered to be more adapted to Typst style, hence no guarantee of compatibility with mdBook. Compared with mdBook, we utilizes typst's advantages to bring a more flexible writing experience, such as #link("https://typst.app/docs/reference/scripting/")[scripting] and #link("https://typst.app/docs/packages/")[package].
 
-= Net yet finished project
+= Not yet finished project
 
 *typst-book* still have many items in todolist:
 
