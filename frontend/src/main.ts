@@ -57,6 +57,13 @@ function postProcessCrossLinks(appElem: HTMLDivElement) {
   });
 }
 
+let globalSemaLabels: [string, [number, number, number]][] = [];
+window.assignSemaHash = (u: number, x: number, y: number) => {
+  console.log(`find labels ${u}:${x}:${y} in`, globalSemaLabels);
+  // todo: multiple documents
+  location.hash = `loc-${u}x${x.toFixed(2)}x${y.toFixed(2)}`;
+};
+
 window.typstBookRenderPage = function (
   plugin: TypstRenderer,
   relPath: string,
@@ -100,6 +107,7 @@ window.typstBookRenderPage = function (
     );
   }
 
+  const dec = new TextDecoder();
   reloadArtifact(currTheme).then(() => {
     const runRender = async () => {
       // const t1 = performance.now();
@@ -108,10 +116,24 @@ window.typstBookRenderPage = function (
       // todo: bad performance
       appElem.style.margin = `0px`;
 
-      await plugin.renderToSvg({
+      const cached = await plugin.renderToSvg({
         renderSession: svgModule!,
         container: appElem,
       });
+      if (!cached) {
+        const customs: [string, Uint8Array][] = await plugin.getCustomV1({
+          renderSession: svgModule!,
+        });
+        const semaLabel = customs.find(k => k[0] === 'sema-label');
+        if (semaLabel) {
+          const labelBin = semaLabel[1];
+          const labels = JSON.parse(dec.decode(labelBin));
+          globalSemaLabels = labels.map(([label, pos]: [string, string]) => {
+            const [_, u, x, y] = pos.split(/[pxy]/).map(Number.parseFloat);
+            return [label, [u, x, y]];
+          });
+        }
+      }
 
       postProcessCrossLinks(appElem);
 

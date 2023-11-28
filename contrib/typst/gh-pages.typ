@@ -1,6 +1,6 @@
 // This is important for typst-book to produce a responsive layout
 // and multiple targets.
-#import "@preview/book:0.2.2": get-page-width, target, is-web-target, is-pdf-target
+#import "@preview/book:0.2.2": get-page-width, target, is-web-target, is-pdf-target, plain-text
 
 #let page-width = get-page-width()
 #let is-pdf-target = is-pdf-target()
@@ -97,20 +97,39 @@
   // set text style
   set text(font: main-font, size: 16pt, fill: main-color, lang: "en")
 
+  let ld = state("label-disambiguator", (:))
+  let update-ld(k) = ld.update(it => {
+    it.insert(k, it.at(k, default: 0) + 1);
+    it
+  })
+  let get-ld(loc, k) = {
+    let d = ld.at(loc).at(k);
+    if d > 1 {
+      k + "_d" + str(d)
+    } else {
+      k
+    }
+  }
+
   // render a dash to hint headings instead of bolding it.
   show heading : set text(weight: "regular") if is-web-target
-  show heading : it => locate(loc => {
+  show heading : it => {
     it
     if is-web-target {
-      style(styles => {
-        let h = measure(it.body, styles).height;
-        place(left, dx: -20pt, dy: -h - 12pt, [
-          #set text(fill: dash-color)
-          #link(loc)[\#]
-        ])
-      })
+      let title = plain-text(it.body).trim();
+      update-ld(title)
+      locate(loc => {
+        let dest = label(get-ld(loc, title));
+        style(styles => {
+          let h = measure(it.body, styles).height;
+          place(left, dx: -20pt, dy: -h - 12pt, [
+            #set text(fill: dash-color)
+            #link(loc)[\#] #dest
+          ])
+        })
+      });
     }
-  })
+  }
 
   // link setting
   show link : set text(fill: dash-color)
