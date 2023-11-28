@@ -74,16 +74,18 @@
 // Collect text content of element recursively into a single string
 // https://discord.com/channels/1054443721975922748/1088371919725793360/1138586827708702810
 #let plain-text(it) = {
-  if it == [ ] {
+  if type(it) == str {
+    it
+  } else if it == [ ] {
     " "
-  } else if it.func() == text {
+  } else if it.func() == text or it.func() == raw {
     it.text
   } else if it.func() == smartquote {
     if it.double { "\"" } else { "'" }
   } else if it.func() == [].func() {
-    it.children.map(plain-text).join()
+    it.children.map(plain-text).filter(t => type(t) == str).join()
   } else {
-    it
+    none
   }
 }
 
