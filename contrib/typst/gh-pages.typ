@@ -62,6 +62,17 @@
   )
 }
 
+#let make-unique-label(it, disambiguator: 1) = label({
+  let k = plain-text(it).trim()
+  if disambiguator > 1 {
+    k + "_d" + str(disambiguator)
+  } else {
+    k
+  }
+})
+
+#let heading-reference(it, d: 1) = make-unique-label(it.body, disambiguator: d)
+
 // The project function defines how your document looks.
 // It takes your content and some metadata and formats it.
 // Go ahead and customize it to your liking!
@@ -102,14 +113,7 @@
     it.insert(k, it.at(k, default: 0) + 1);
     it
   })
-  let get-ld(loc, k) = {
-    let d = ld.at(loc).at(k);
-    if d > 1 {
-      k + "_d" + str(d)
-    } else {
-      k
-    }
-  }
+  let get-ld(loc, k) = make-unique-label(k, disambiguator: ld.at(loc).at(k))
 
   // render a dash to hint headings instead of bolding it.
   show heading : set text(weight: "regular") if is-web-target
@@ -119,7 +123,7 @@
       let title = plain-text(it.body).trim();
       update-ld(title)
       locate(loc => {
-        let dest = label(get-ld(loc, title));
+        let dest = get-ld(loc, title);
         style(styles => {
           let h = measure(it.body, styles).height;
           place(left, dx: -20pt, dy: -h - 12pt, [
