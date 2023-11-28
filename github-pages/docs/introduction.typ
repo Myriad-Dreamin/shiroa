@@ -13,14 +13,12 @@
 *typst-book* still have many items in todolist:
 
 - User experience, which is transparent to writers:
-  - Proper selection box of text content
-  - Semantic hash tag in pages
   - SEO optimization
   - Faster font loading
   - Reducing the size of theme bundle files and compiled svg artifacts
   - Add prev/next buttons
+  - initialize a book project interactively
 - Writer experience:
-  - Cross-link support
   - Multimedia html elements
   - Book specific helper functions
   - Customize Favicon
