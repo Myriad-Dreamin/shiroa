@@ -2922,6 +2922,7 @@ dependencies = [
  "env_logger",
  "handlebars",
  "include_dir",
+ "indexmap 2.2.6",
  "log",
  "pathdiff",
  "serde",
