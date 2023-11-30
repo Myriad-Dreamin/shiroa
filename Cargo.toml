@@ -23,11 +23,11 @@ strip = true
 
 [workspace.dependencies]
 
-typst = "0.9.0"
-typst-library = "0.9.0"
-typst-ts-svg-exporter = "0.4.1-rc2"
-typst-ts-core = "0.4.1-rc2"
-typst-ts-compiler = "0.4.1-rc2"
+typst = "0.8.0"
+typst-library = "0.8.0"
+typst-ts-svg-exporter = "0.4.0-rc5"
+typst-ts-core = "0.4.0-rc5"
+typst-ts-compiler = "0.4.0-rc5"
 
 handlebars = "4.3"
 
@@ -59,13 +59,12 @@ include_dir = "0.7.3"
 pathdiff = "0.1.0"
 
 [patch.crates-io]
-typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.9.0-content-hint" }
-typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.9.0-content-hint" }
-typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.9.0-content-hint" }
-typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "005161c13cd2493fc1b7da8337dec2a8fbedd3fb", package = "typst-ts-svg-exporter" }
-typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "005161c13cd2493fc1b7da8337dec2a8fbedd3fb", package = "typst-ts-core" }
-typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "005161c13cd2493fc1b7da8337dec2a8fbedd3fb", package = "typst-ts-compiler" }
-hayagriva = { git = "https://github.com/Myriad-Dreamin/hayagriva.git", branch = "typst.ts-v0.9.0" }
+typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.8.0" }
+typst-library = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.8.0" }
+typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.8.0" }
+typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "ebb4b81c6caf359648ae3343423b5b11ce77a9d2", package = "typst-ts-svg-exporter" }
+typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "ebb4b81c6caf359648ae3343423b5b11ce77a9d2", package = "typst-ts-core" }
+typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "ebb4b81c6caf359648ae3343423b5b11ce77a9d2", package = "typst-ts-compiler" }
 
 # typst = { path = "../typst/crates/typst" }
 # typst-library = { path = "../typst/crates/typst-library" }
