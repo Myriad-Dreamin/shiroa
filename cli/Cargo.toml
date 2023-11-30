@@ -17,7 +17,7 @@ bench = false
 doc = false
 
 [dependencies]
-typst.workspace = true
+# typst.workspace = true
 # typst-library.workspace = true
 
 warp.workspace = true
