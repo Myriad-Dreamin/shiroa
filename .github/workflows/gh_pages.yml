@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Download font assets
         run: |
           curl -L https://github.com/Myriad-Dreamin/typst-book/releases/download/v0.1.0/charter-font-assets.tar.gz | tar -xvz -C assets/fonts

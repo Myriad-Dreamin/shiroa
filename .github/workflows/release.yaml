@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Install Yarn
         uses: borales/actions-yarn@v4
         with:
@@ -83,6 +85,8 @@ jobs:
       target: ${{ matrix.platform }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
       - name: rust toolchain
@@ -143,6 +147,8 @@ jobs:
       target: ${{ matrix.platform }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: actions/download-artifact@v2
         with:
           path: artifacts
@@ -193,6 +199,8 @@ jobs:
         run: apk add --no-cache git clang lld musl-dev npm
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
       - name: Configure git
