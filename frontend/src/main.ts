@@ -24,20 +24,40 @@ function postProcessCrossLinks(appElem: HTMLDivElement) {
   appElem.querySelectorAll('.pseudo-link').forEach(link => {
     // update target
     const a = link.parentElement!;
-    if (origin && a.getAttribute('onclick') === null) {
-      let target = a.getAttribute('target');
-      if (target === '_blank') {
-        // remove the target attribute
-        a.removeAttribute('target');
+    if (origin) {
+      const onclick = a.getAttribute('onclick');
+      if (onclick === null) {
+        let target = a.getAttribute('target');
+        if (target === '_blank') {
+          // remove the target attribute
+          a.removeAttribute('target');
+        }
+      } else if (globalSemaLabels) {
+        if (onclick.startsWith('handleTypstLocation')) {
+          // get params(p, x, y) in 'handleTypstLocation(this, p, x, y)'
+          const [u, x, y] = onclick
+            .split('(')[1]
+            .split(')')[0]
+            .split(',')
+            .slice(1)
+            .map(s => Number.parseFloat(s.trim()));
+          for (const [label, pos] of globalSemaLabels) {
+            const [u1, x1, y1] = pos;
+            if (u === u1 && Math.abs(x - x1) < 0.01 && Math.abs(y - y1) < 0.01) {
+              // todo: deduplicate id
+              a.id = `typst-label-${label}`;
+              a.setAttribute('href', `#label-${label}`);
+              a.setAttribute('xlink:href', `#label-${label}`);
+              break;
+            }
+          }
+        }
       }
     }
 
     // update cross-link
-    const href = a.getAttribute('href')! || a.getAttribute('xlink:href')!;
-    if (href.startsWith('cross-link')) {
-      const url = new URL(href);
-      const pathLabelUnicodes = url.searchParams.get('path-label')!;
-      const plb = pathLabelUnicodes
+    const decodeTypstUrlc = (s: string) =>
+      s
         .split('-')
         .map(s => {
           const n = Number.parseInt(s);
@@ -47,15 +67,55 @@ function postProcessCrossLinks(appElem: HTMLDivElement) {
             return String.fromCharCode(n);
           }
         })
-        .join('')
-        .replace('.typ', '.html');
-      const absolutePath = new URL(plb, window.location.href).href;
+        .join('');
+    const href = a.getAttribute('href')! || a.getAttribute('xlink:href')!;
+    if (href.startsWith('cross-link')) {
+      const url = new URL(href);
+      const pathLabelUnicodes = url.searchParams.get('path-label')!;
+      const labelUnicodes = url.searchParams.get('label');
+      const plb = decodeTypstUrlc(pathLabelUnicodes).replace('.typ', '.html');
+      let absolutePath = new URL(plb, window.location.href).href;
+      if (labelUnicodes) {
+        absolutePath += '#label-' + encodeURIComponent(decodeTypstUrlc(labelUnicodes));
+      }
       a.setAttribute('href', absolutePath);
       a.setAttribute('xlink:href', absolutePath);
       // todo: label handling
     }
   });
 }
+
+let prevHovers: Element[] | undefined = undefined;
+
+function updateHovers(elems: Element[]) {
+  if (prevHovers) {
+    for (const h of prevHovers) {
+      h.classList.remove('focus');
+    }
+  }
+  prevHovers = elems;
+}
+let globalSemaLabels: [string, [number, number, number]][] = [];
+
+window.assignSemaHash = (u: number, x: number, y: number) => {
+  // console.log(`find labels ${u}:${x}:${y} in`, globalSemaLabels);
+  for (const [label, pos] of globalSemaLabels) {
+    const [u1, x1, y1] = pos;
+    if (u === u1 && Math.abs(x - x1) < 0.01 && Math.abs(y - y1) < 0.01) {
+      location.hash = `label-${label}`;
+      const semaLinkLocation = document.getElementById(`typst-label-${label}`);
+      const relatedElems: Element[] = window.typstGetRelatedElements(semaLinkLocation);
+      for (const h of relatedElems) {
+        h.classList.add('focus');
+      }
+      updateHovers(relatedElems);
+      return;
+    }
+  }
+  updateHovers([]);
+  // todo: multiple documents
+  location.hash = `loc-${u}x${x.toFixed(2)}x${y.toFixed(2)}`;
+};
 
 window.typstBookRenderPage = function (
   plugin: TypstRenderer,
@@ -100,7 +160,9 @@ window.typstBookRenderPage = function (
     );
   }
 
+  const dec = new TextDecoder();
   reloadArtifact(currTheme).then(() => {
+    let initialRender = true;
     const runRender = async () => {
       // const t1 = performance.now();
       // console.log('hold', svgModule, currTheme);
@@ -108,10 +170,24 @@ window.typstBookRenderPage = function (
       // todo: bad performance
       appElem.style.margin = `0px`;
 
-      await plugin.renderToSvg({
+      const cached = await plugin.renderToSvg({
         renderSession: svgModule!,
         container: appElem,
       });
+      if (!cached) {
+        const customs: [string, Uint8Array][] = await plugin.getCustomV1({
+          renderSession: svgModule!,
+        });
+        const semaLabel = customs.find(k => k[0] === 'sema-label');
+        if (semaLabel) {
+          const labelBin = semaLabel[1];
+          const labels = JSON.parse(dec.decode(labelBin));
+          globalSemaLabels = labels.map(([label, pos]: [string, string]) => {
+            const [_, u, x, y] = pos.split(/[pxy]/).map(Number.parseFloat);
+            return [encodeURIComponent(label), [u, x, y]];
+          });
+        }
+      }
 
       postProcessCrossLinks(appElem);
 
@@ -136,6 +212,29 @@ window.typstBookRenderPage = function (
           appElem.style.margin = `0px`;
         } else {
           appElem.style.margin = `0 ${wMargin}px`;
+        }
+      }
+
+      if (!cached && window.location.hash) {
+        // console.log('hash', window.location.hash);
+
+        // parse location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
+        const hash = window.location.hash;
+        const firstSep = hash.indexOf('-');
+        // console.log('jump label', window.location.hash, firstSep, globalSemaLabels);
+        if (firstSep != -1 && hash.slice(0, firstSep) === '#label') {
+          const labelTarget = hash.slice(firstSep + 1);
+          for (const [label, pos] of globalSemaLabels) {
+            if (label === labelTarget) {
+              const [u, x, y] = pos;
+              // console.log('jump label', label, pos);
+              window.handleTypstLocation(appElem.firstElementChild!, u, x, y, {
+                behavior: initialRender ? 'smooth' : 'instant',
+              });
+              initialRender = false;
+              break;
+            }
+          }
         }
       }
     };

@@ -8,19 +8,17 @@
 
 *typst-book* is heavily inspired by mdBook, but it is considered to be more adapted to Typst style, hence no guarantee of compatibility with mdBook. Compared with mdBook, we utilizes typst's advantages to bring a more flexible writing experience, such as #link("https://typst.app/docs/reference/scripting/")[scripting] and #link("https://typst.app/docs/packages/")[package].
 
-= Net yet finished project
+= Not yet finished project
 
 *typst-book* still have many items in todolist:
 
 - User experience, which is transparent to writers:
-  - Proper selection box of text content
-  - Semantic hash tag in pages
   - SEO optimization
   - Faster font loading
   - Reducing the size of theme bundle files and compiled svg artifacts
   - Add prev/next buttons
+  - initialize a book project interactively
 - Writer experience:
-  - Cross-link support
   - Multimedia html elements
   - Book specific helper functions
   - Customize Favicon

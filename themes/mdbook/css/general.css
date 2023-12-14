@@ -202,3 +202,7 @@ kbd {
 .result-no-output {
     font-style: italic;
 }
+
+.focus .typst-text {
+  --glyph_fill: var(--sidebar-active);
+}

@@ -17,7 +17,8 @@ use typst_ts_compiler::{
     },
     TypstSystemWorld,
 };
-use typst_ts_core::{config::CompileOpts, path::PathClean, TypstAbs, TypstDocument};
+use typst_ts_core::{config::CompileOpts, path::PathClean, TakeAs, TypstAbs, TypstDocument};
+use typst_ts_svg_exporter::flat_ir::{LayoutRegionNode, PageMetadata};
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
 
@@ -134,6 +135,52 @@ impl TypstRenderer {
 
         for theme in THEME_LIST {
             self.set_theme_target(theme);
+
+            // let path = path.clone().to_owned();
+            self.compiler_layer_mut()
+                .set_post_process_layout(move |_m, doc, layout| {
+                    // println!("post process {}", path.display());
+
+                    let LayoutRegionNode::Pages(pages) = layout else {
+                        unreachable!();
+                    };
+
+                    let (mut meta, pages) = pages.take();
+
+                    let introspector = &doc.introspector;
+                    let labels = doc
+                        .introspector
+                        .all()
+                        .flat_map(|elem| elem.label().zip(elem.location()))
+                        .map(|(label, elem)| {
+                            (
+                                label.clone().as_str().to_owned(),
+                                introspector.position(elem),
+                            )
+                        })
+                        .map(|(label, pos)| {
+                            (
+                                label,
+                                format!(
+                                    "p{}x{:.2}y{:.2}",
+                                    pos.page,
+                                    pos.point.x.to_pt(),
+                                    pos.point.y.to_pt()
+                                ),
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    // println!("{:#?}", labels);
+
+                    let labels = serde_json::to_vec(&labels).unwrap_or_exit();
+
+                    meta.push(PageMetadata::Custom(vec![(
+                        "sema-label".into(),
+                        labels.into(),
+                    )]));
+
+                    LayoutRegionNode::Pages(Arc::new((meta, pages)))
+                });
 
             self.compiler
                 .compile(&mut self.fork_env::<true>())

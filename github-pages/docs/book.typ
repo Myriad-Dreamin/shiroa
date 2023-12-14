@@ -33,7 +33,12 @@
           // - #chapter(none)[#text("= Introduction")]
         - #chapter("format/build-meta.typ")[Build Metadata]
       - #chapter("format/theme.typ")[Theme]
-      - #chapter(none)[Typst Support]
+      - #chapter("format/supports.typ")[Typst Support]
+        - #chapter("format/supports/cross-ref.typ")[Cross Reference]
+          - #chapter("format/supports/cross-ref-sample.typ")[Cross Reference Sample]
+        - #chapter("format/supports/embed-html.typ")[Embed Sanitized HTML Elements]
+          - #chapter("format/supports/multimedia.typ")[Multimedia components]
+        - #chapter("format/supports/sema-desc.typ")[Semantic Page Description]
     - #chapter(none)[For developers]
       - #chapter(none)[Typst-side APIs]
       - #chapter(none)[typst-book CLI Internals]
@@ -49,6 +54,7 @@
 #get-book-meta()
 
 // re-export page template
-#import "/contrib/typst/gh-pages.typ": project
+#import "/contrib/typst/gh-pages.typ": project, heading-reference
 #let book-page = project
 #let cross-link = cross-link
+#let heading-reference = heading-reference
