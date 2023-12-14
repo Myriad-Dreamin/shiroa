@@ -2,7 +2,7 @@
 import { kObject } from '@myriaddreamin/typst.ts/dist/esm/internal.types.mjs';
 import {
   RenderSession,
-  TypstSvgRenderer,
+  TypstRenderer,
   createTypstRenderer,
 } from '@myriaddreamin/typst.ts/dist/esm/renderer.mjs';
 
@@ -20,9 +20,45 @@ window.TypstRenderModule = {
 //     }, delay);
 //   }) as unknown as T;
 // };
+function postProcessCrossLinks(appElem: HTMLDivElement) {
+  appElem.querySelectorAll('.pseudo-link').forEach(link => {
+    // update target
+    const a = link.parentElement!;
+    if (origin && a.getAttribute('onclick') === null) {
+      let target = a.getAttribute('target');
+      if (target === '_blank') {
+        // remove the target attribute
+        a.removeAttribute('target');
+      }
+    }
+
+    // update cross-link
+    const href = a.getAttribute('href')! || a.getAttribute('xlink:href')!;
+    if (href.startsWith('cross-link')) {
+      const url = new URL(href);
+      const pathLabelUnicodes = url.searchParams.get('path-label')!;
+      const plb = pathLabelUnicodes
+        .split('-')
+        .map(s => {
+          const n = Number.parseInt(s);
+          if (Number.isNaN(n)) {
+            return s;
+          } else {
+            return String.fromCharCode(n);
+          }
+        })
+        .join('')
+        .replace('.typ', '.html');
+      const absolutePath = new URL(plb, window.location.href).href;
+      a.setAttribute('href', absolutePath);
+      a.setAttribute('xlink:href', absolutePath);
+      // todo: label handling
+    }
+  });
+}
 
 window.typstBookRenderPage = function (
-  plugin: TypstSvgRenderer,
+  plugin: TypstRenderer,
   relPath: string,
   appContainer: HTMLDivElement | undefined,
 ) {
@@ -72,8 +108,12 @@ window.typstBookRenderPage = function (
       // todo: bad performance
       appElem.style.margin = `0px`;
 
-      // todo: merge
-      await plugin.renderSvg(svgModule!, appElem);
+      await plugin.renderToSvg({
+        renderSession: svgModule!,
+        container: appElem,
+      });
+
+      postProcessCrossLinks(appElem);
 
       // const t2 = performance.now();
       // console.log(

@@ -17,7 +17,7 @@ bench = false
 doc = false
 
 [dependencies]
-# typst.workspace = true
+typst.workspace = true
 # typst-library.workspace = true
 
 warp.workspace = true
@@ -59,4 +59,6 @@ vergen.workspace = true
 
 [features]
 embedded-fonts = []
-default = ["embedded-fonts"]
+embedded-cjk-fonts = []
+embedded-emoji-fonts = []
+default = ["embedded-fonts", "embedded-cjk-fonts", "embedded-emoji-fonts"]
