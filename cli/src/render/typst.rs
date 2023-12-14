@@ -125,9 +125,9 @@ impl TypstRenderer {
         self.setup_entry(path);
         self.set_theme_target("");
 
-        self.compiler
-            .pure_compile(&mut self.fork_env::<true>())
-            .map_err(|_| error_once!("compile book.typ"))
+        let res = self.compiler.pure_compile(&mut self.fork_env::<true>());
+        self.report(res)
+            .ok_or_else(|| error_once!("compile book.typ"))
     }
 
     pub fn compile_page(&mut self, path: &Path) -> ZResult<()> {
@@ -182,9 +182,9 @@ impl TypstRenderer {
                     LayoutRegionNode::Pages(Arc::new((meta, pages)))
                 });
 
-            self.compiler
-                .compile(&mut self.fork_env::<true>())
-                .map_err(|_| error_once!("compile page theme", theme: theme))?;
+            let res = self.compiler.compile(&mut self.fork_env::<true>());
+            self.report(res)
+                .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
         }
 
         Ok(())
