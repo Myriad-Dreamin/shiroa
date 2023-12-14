@@ -1,4 +1,4 @@
-#import "/github-pages/docs/book.typ": book-page
+#import "/github-pages/docs/book.typ": book-page, cross-link
 
 #show: book-page.with(title: "CLI Serve Command")
 
@@ -30,7 +30,7 @@ typst-book serve path/to/book
 
 == Build options
 
-The `serve` command will build your book once before serving the content. It is hence including all of the #link("https://myriad-dreamin.github.io/typst-book/cli/build.html")[options] from `build` command.
+The `serve` command will build your book once before serving the content. It is hence including all of the #cross-link("/cli/build.typ")[options] from `build` command.
 
 == Server options
 

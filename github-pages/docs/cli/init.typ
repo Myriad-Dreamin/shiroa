@@ -1,10 +1,10 @@
-#import "/github-pages/docs/book.typ": book-page
+#import "/github-pages/docs/book.typ": book-page, cross-link
 
 #show: book-page.with(title: "CLI Init Command")
 
 = The init command
 
-The `init` command will try to initialize your book to build your book successfully by default. It is hence including all of the #link("https://myriad-dreamin.github.io/typst-book/cli/build.html")[options] from `build` command.
+The `init` command will try to initialize your book to build your book successfully by default. It is hence including all of the #cross-link("/cli/build.typ")[options] from `build` command.
 
 For instance, Initialize a book to the directory `my-book`:
 
@@ -29,7 +29,7 @@ typst-book build my-book/ # memoryized dest-dir
 
 == Things to note
 
-The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #link("https://myriad-dreamin.github.io/typst-book/guide/get-started.html")[Get Started] shown.
+The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #cross-link("/guide/get-started.typ")[Get Started] shown.
 
 ```typ
 #import "@preview/book:0.2.2": *
