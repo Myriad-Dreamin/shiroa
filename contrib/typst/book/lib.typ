@@ -202,32 +202,41 @@
   none
 }
 
+/// Internal method to number sections
+/// meta: array of summary nodes
+/// base: array of section number
 #let _numbering-sections(meta, base: ()) = {
+  // incremental section counter used in loop
   let cnt = 1
   for c in meta {
-    let idx = cnt
+    // skip non-chapter nodes or nodes without section number
     if c.at("kind") != "chapter" or c.at("section") == none {
       (c, )
       continue
     }
 
     // default incremental section
+    let idx = cnt
     cnt += 1
     let num = base + (idx, )
     // c.insert("auto-section", num)
 
     let user-specified = c.at("section")
     // c.insert("raw-section", repr(user-specified))
+
+    // update section number if user specified it by str or array
     if user-specified != none and user-specified != auto {
 
       // update number
       num = if type(user-specified) == str {
+        // e.g. "1.2.3" -> (1, 2, 3)
         user-specified.split(".").map(int)
       } else if type(user-specified) == array {
         for n in user-specified {
           assert(type(n) == int, message: "invalid type of section counter specified " + repr(user-specified) + ", want number in array")
         }
         
+        // e.g. (1, 2, 3)
         user-specified
       } else {
         panic("invalid type of manual section specified " + repr(user-specified) + ", want str or array")
@@ -237,9 +246,11 @@
       cnt = num.last() + 1
     } 
 
+    // update section number
     let auto-num = num.map(str).join(".")
     c.at("section") = auto-num
 
+    // update sub chapters
     if "sub" in c {
       c.sub = _numbering-sections(c.at("sub"), base: num)
     }
