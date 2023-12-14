@@ -24,7 +24,9 @@ strip = true
 [workspace.dependencies]
 
 typst = "0.10.0"
-typst-ts-svg-exporter = "0.4.1"
+typst-ts-svg-exporter = { version = "0.4.1", features = [
+    "experimental-ligature",
+] }
 typst-ts-core = "0.4.1"
 typst-ts-compiler = "0.4.1"
 
