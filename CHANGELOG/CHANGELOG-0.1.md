@@ -1,3 +1,26 @@
+# v0.1.2
+
+## Changelog since v0.1.2
+
+**Full Changelog**: https://github.com/Myriad-Dreamin/typst-book/compare/v0.1.1...v0.1.2
+
+## Feature
+
+- feat: automatically assign section number in https://github.com/Myriad-Dreamin/typst-book/pull/37
+- dev: enable ligature feature in https://github.com/Myriad-Dreamin/typst-book/pull/38
+- scripting: cross link support in https://github.com/Myriad-typstbook/pull/41
+- scripting: support semantic link jump in https://github.mMyriad-Dreamin/typst-book/pull/42
+
+## Enhancement
+
+- theme: override target="\_blank" behavior in https://github.com/Myriad-Dreamin/typst-book/pull/27 and https://github.com/Myriad-Dreamin/typst-book/pull/28
+- scripting: improve plain text conversion in https://github.com/Myriad-Dreamin/typst-book/pull/39
+  - This is used by conversion of typst title contents
+- scripting: don't justify code block in https://github.com/Myriad-Dreamin/typst-book/pull/40
+  - You can update your template like it.
+- build: upgrade typst.ts to 0.4.1 in https://github.com/Myriad-Dreamin/typst-book/pull/36
+  - It brings text selection enhancement
+
 # v0.1.1
 
 ## Changelog since v0.1.1
