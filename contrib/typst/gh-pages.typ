@@ -129,6 +129,7 @@
         fill: code-extra-colors.at("bg"),
         [
           #set text(fill: code-extra-colors.at("fg")) if code-extra-colors.at("fg") != none
+          #set par(justify: false)
           #place(right, text(luma(110), it.lang))
           #it
         ],
