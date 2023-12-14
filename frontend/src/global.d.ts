@@ -2,6 +2,7 @@ import { TypstRenderer } from '@myriaddreamin/typst.ts/dist/esm/renderer';
 
 declare global {
   interface Window {
+    typstPathToRoot: string | undefined;
     typstGetRelatedElements: any;
     handleTypstLocation: any;
     getTypstTheme(): string;

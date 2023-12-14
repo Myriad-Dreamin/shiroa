@@ -74,7 +74,10 @@ function postProcessCrossLinks(appElem: HTMLDivElement) {
       const pathLabelUnicodes = url.searchParams.get('path-label')!;
       const labelUnicodes = url.searchParams.get('label');
       const plb = decodeTypstUrlc(pathLabelUnicodes).replace('.typ', '.html');
-      let absolutePath = new URL(plb, window.location.href).href;
+      let absolutePath = window.typstPathToRoot
+        ? new URL(window.typstPathToRoot, window.location.href).href
+        : window.location.href;
+      absolutePath = new URL(plb, absolutePath).href;
       if (labelUnicodes) {
         absolutePath += '#label-' + encodeURIComponent(decodeTypstUrlc(labelUnicodes));
       }
