@@ -118,23 +118,6 @@ window.assignSemaHash = (u: number, x: number, y: number) => {
   location.hash = `loc-${u}x${x.toFixed(2)}x${y.toFixed(2)}`;
 };
 
-const userAgent = navigator.userAgent.toLowerCase();
-const isTablet =
-  /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/.test(
-    userAgent,
-  );
-
-const typstProcessSvgBase = window.typstProcessSvg;
-// console.log('isTablet', isTablet, typstProcessSvgBase);
-window.typstProcessSvg = function (t: HTMLElement, n: Record<string, any>) {
-  n = n || {};
-  if (isTablet) {
-    n.layoutText = false;
-  }
-  console.log('layout text feature', n);
-  typstProcessSvgBase(t, n);
-};
-
 window.typstBookRenderPage = function (
   plugin: TypstRenderer,
   relPath: string,
