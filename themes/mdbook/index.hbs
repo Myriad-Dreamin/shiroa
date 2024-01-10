@@ -44,11 +44,6 @@
     <link rel="stylesheet" href="{{ ../path_to_root }}{{ this }}">
     {{/each}}
 
-    <style>
-        .typst-app {
-            margin: 0;
-        }
-    </style>
     <script>
         /// https://segmentfault.com/a/1190000016574288
         (function () {
@@ -98,8 +93,8 @@
         });
     </script>
 
-    {{!-- <script id="typst-book-js" type="module" src="/dev/frontend/dist/book.mjs"></script> --}}
     <script id="typst-book-js" type="module" src="{{ path_to_root }}typst-book.js"></script>
+    {{!-- <script id="typst-book-js" type="module" src="/dev/frontend/dist/book.mjs"></script> --}}
     <script>
         window.typstRerender = () => { };
         window.typstChangeTheme = () => { };
@@ -110,6 +105,7 @@
         });
 
         var rendererWasmModule = fetch('{{ renderer_module }}');
+        {{!-- var rendererWasmModule = fetch('/dev/frontend/node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm'); --}}
         window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
             var typstRenderModule = window.typstRenderModule =
                 window.TypstRenderModule.createTypstRenderer();
@@ -340,6 +336,7 @@
         </div>
 
         <script src="{{ path_to_root }}svg_utils.js"></script>
+        {{!-- <script src="/dev/frontend/src/svg_utils.cjs"></script> --}}
         <script src="{{ path_to_root }}index.js"></script>
 
     </div>

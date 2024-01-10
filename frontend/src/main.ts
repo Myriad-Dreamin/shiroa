@@ -126,7 +126,8 @@ window.typstBookRenderPage = function (
   // todo: preload artifact
   const getTheme = () => window.getTypstTheme();
   let currTheme = getTheme();
-  let svgModule: RenderSession | undefined = undefined;
+  let session: RenderSession | undefined = undefined;
+  let disposeSession: () => void = () => {};
 
   const appElem = document.createElement('div');
   if (appElem && appContainer) {
@@ -136,10 +137,8 @@ window.typstBookRenderPage = function (
 
   async function reloadArtifact(theme: string) {
     // free anyway
-    if (svgModule) {
-      try {
-        (svgModule as any)[kObject].free();
-      } catch (e) {}
+    if (session) {
+      disposeSession();
     }
 
     appElem.innerHTML = '';
@@ -150,47 +149,129 @@ window.typstBookRenderPage = function (
     const artifactData = await fetch(`${relPath}.${theme}.multi.sir.in`)
       .then(response => response.arrayBuffer())
       .then(buffer => new Uint8Array(buffer));
-    const t1 = performance.now();
-    svgModule = (await plugin.createModule(artifactData)) as RenderSession;
-    const t2 = performance.now();
 
-    console.log(
-      `theme = ${theme}, load artifact took ${t2 - t1} milliseconds, parse artifact took ${
-        t2 - t1
-      } milliseconds`,
-    );
+    const t1 = performance.now();
+    return new Promise(resolve => {
+      return plugin.runWithSession(sessionRef => {
+        return new Promise(async doDisposeSession => {
+          disposeSession = doDisposeSession as any;
+          session = sessionRef;
+          sessionRef.manipulateData({
+            action: 'reset',
+            data: artifactData,
+          });
+          const t2 = performance.now();
+
+          await plugin.renderDom({
+            renderSession: sessionRef,
+            container: appElem,
+            pixelPerPt: 3,
+          });
+
+          console.log(
+            `theme = ${theme}, load artifact took ${t2 - t1} milliseconds, parse artifact took ${
+              t2 - t1
+            } milliseconds`,
+          );
+
+          resolve(undefined);
+        });
+      });
+    });
   }
 
   const dec = new TextDecoder();
   reloadArtifact(currTheme).then(() => {
-    let initialRender = true;
-    const runRender = async () => {
-      // const t1 = performance.now();
-      // console.log('hold', svgModule, currTheme);
+    // const runRender = async () => {
+    //   // const t1 = performance.now();
+    //   // console.log('hold', session, currTheme);
+
+    //   // todo: bad performance
+    //   appElem.style.margin = `0px`;
+
+    //   // todo: merge
+    //   await plugin.renderSvg(session!, appElem);
+
+    //   // const t2 = performance.now();
+    //   // console.log(
+    //   //   `render took ${t2 - t1} milliseconds.`,
+    //   //   appElem.getAttribute('data-applied-width'),
+    //   // );
+
+    //   const w = appElem.getAttribute('data-applied-width');
+    //   if (w) {
+    //     const parentWidth = appElem.parentElement!.clientWidth;
+    //     const svgWidth = Number.parseInt(w.slice(0, w.length - 2));
+    //     // console.log(
+    //     //   parentWidth,
+    //     //   svgWidth,
+    //     //   window.devicePixelRatio,
+    //     //   getComputedStyle(appElem).fontSize,
+    //     // );
+    //     const wMargin = (parentWidth - svgWidth) / 2;
+    //     if (wMargin < 0) {
+    //       appElem.style.margin = `0px`;
+    //     } else {
+    //       appElem.style.margin = `0 ${wMargin}px`;
+    //     }
+    //   }
+    // };
+
+    const runRender = async (isResponsive?: boolean) => {
+      let responsive = isResponsive !== false ? true : false;
+      const t = performance.now();
+      const basePos = {
+        left: 0,
+        top: 0,
+        right: window.innerWidth,
+        bottom: window.innerHeight,
+      };
+      const appPos = appElem.getBoundingClientRect();
+      const left = Math.max(basePos.left, appPos.left);
+      const top = Math.max(basePos.top, appPos.top);
+      const right = Math.min(basePos.right, appPos.right);
+      const bottom = Math.min(basePos.bottom, appPos.bottom);
+      const rect = {
+        x: left,
+        y: top,
+        width: Math.max(right - left, 0),
+        height: Math.max(bottom - top, 0),
+      };
+      if (rect.width <= 0 || rect.height <= 0) {
+        rect.x = rect.y = rect.width = rect.height = 0;
+      }
+      // console.log('ccc', basePos, appPos, rect);
+
+      await plugin.triggerDomRerender({
+        renderSession: session!,
+        responsive,
+        ...rect,
+      });
+      console.log('pull render time!!!!!!!!!', performance.now() - t, responsive);
 
       // todo: bad performance
-      appElem.style.margin = `0px`;
+      // appElem.style.margin = `0px`;
 
-      const cached = await plugin.renderToSvg({
-        renderSession: svgModule!,
-        container: appElem,
-      });
-      if (!cached) {
-        const customs: [string, Uint8Array][] = await plugin.getCustomV1({
-          renderSession: svgModule!,
-        });
-        const semaLabel = customs.find(k => k[0] === 'sema-label');
-        if (semaLabel) {
-          const labelBin = semaLabel[1];
-          const labels = JSON.parse(dec.decode(labelBin));
-          globalSemaLabels = labels.map(([label, pos]: [string, string]) => {
-            const [_, u, x, y] = pos.split(/[pxy]/).map(Number.parseFloat);
-            return [encodeURIComponent(label), [u, x, y]];
-          });
-        }
-      }
+      // const cached = await plugin.renderToSvg({
+      //   renderSession: svgModule!,
+      //   container: appElem,
+      // });
+      // if (!cached) {
+      //   const customs: [string, Uint8Array][] = await plugin.getCustomV1({
+      //     renderSession: svgModule!,
+      //   });
+      //   const semaLabel = customs.find(k => k[0] === 'sema-label');
+      //   if (semaLabel) {
+      //     const labelBin = semaLabel[1];
+      //     const labels = JSON.parse(dec.decode(labelBin));
+      //     globalSemaLabels = labels.map(([label, pos]: [string, string]) => {
+      //       const [_, u, x, y] = pos.split(/[pxy]/).map(Number.parseFloat);
+      //       return [encodeURIComponent(label), [u, x, y]];
+      //     });
+      //   }
+      // }
 
-      postProcessCrossLinks(appElem);
+      // postProcessCrossLinks(appElem);
 
       // const t2 = performance.now();
       // console.log(
@@ -198,52 +279,70 @@ window.typstBookRenderPage = function (
       //   appElem.getAttribute('data-applied-width'),
       // );
 
-      const w = appElem.getAttribute('data-applied-width');
-      if (w) {
-        const parentWidth = appElem.parentElement!.clientWidth;
-        const svgWidth = Number.parseInt(w.slice(0, w.length - 2));
-        // console.log(
-        //   parentWidth,
-        //   svgWidth,
-        //   window.devicePixelRatio,
-        //   getComputedStyle(appElem).fontSize,
-        // );
-        const wMargin = (parentWidth - svgWidth) / 2;
-        if (wMargin < 0) {
-          appElem.style.margin = `0px`;
-        } else {
-          appElem.style.margin = `0 ${wMargin}px`;
-        }
-      }
+      // const w = appElem.getAttribute('data-applied-width');
+      // if (w) {
+      //   const parentWidth = appElem.parentElement!.clientWidth;
+      //   const svgWidth = Number.parseInt(w.slice(0, w.length - 2));
+      //   // console.log(
+      //   //   parentWidth,
+      //   //   svgWidth,
+      //   //   window.devicePixelRatio,
+      //   //   getComputedStyle(appElem).fontSize,
+      //   // );
+      //   const wMargin = (parentWidth - svgWidth) / 2;
+      //   if (wMargin < 0) {
+      //     appElem.style.margin = `0px`;
+      //   } else {
+      //     appElem.style.margin = `0 ${wMargin}px`;
+      //   }
+      // }
 
-      if (!cached && window.location.hash) {
-        // console.log('hash', window.location.hash);
+      // if (!cached && window.location.hash) {
+      //   // console.log('hash', window.location.hash);
 
-        // parse location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
-        const hash = window.location.hash;
-        const firstSep = hash.indexOf('-');
-        // console.log('jump label', window.location.hash, firstSep, globalSemaLabels);
-        if (firstSep != -1 && hash.slice(0, firstSep) === '#label') {
-          const labelTarget = hash.slice(firstSep + 1);
-          for (const [label, pos] of globalSemaLabels) {
-            if (label === labelTarget) {
-              const [u, x, y] = pos;
-              // console.log('jump label', label, pos);
-              window.handleTypstLocation(appElem.firstElementChild!, u, x, y, {
-                behavior: initialRender ? 'smooth' : 'instant',
-              });
-              initialRender = false;
-              break;
-            }
-          }
-        }
-      }
+      //   // parse location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
+      //   const hash = window.location.hash;
+      //   const firstSep = hash.indexOf('-');
+      //   // console.log('jump label', window.location.hash, firstSep, globalSemaLabels);
+      //   if (firstSep != -1 && hash.slice(0, firstSep) === '#label') {
+      //     const labelTarget = hash.slice(firstSep + 1);
+      //     for (const [label, pos] of globalSemaLabels) {
+      //       if (label === labelTarget) {
+      //         const [u, x, y] = pos;
+      //         // console.log('jump label', label, pos);
+      //         window.handleTypstLocation(appElem.firstElementChild!, u, x, y, {
+      //           behavior: initialRender ? 'smooth' : 'instant',
+      //         });
+      //         initialRender = false;
+      //         break;
+      //       }
+      //     }
+      //   }
+      // }
     };
 
     let base = runRender();
 
-    window.typstRerender = () => {
-      return (base = base.then(runRender));
+    let renderResponsive: boolean | undefined = undefined;
+    function checkRender() {
+      if (renderResponsive === undefined) {
+        return;
+      }
+      const r = renderResponsive;
+      renderResponsive = undefined;
+      runRender(r);
+    }
+
+    const submitRerender = (r: boolean) => {
+      if (r !== true && r !== false) {
+        throw new Error('invalid responsive');
+      }
+      if (r === false) {
+        renderResponsive = false;
+      } else if (renderResponsive !== false) {
+        renderResponsive = true;
+      }
+      return (base = base.then(() => checkRender()));
     };
 
     window.typstChangeTheme = () => {
@@ -256,7 +355,33 @@ window.typstBookRenderPage = function (
       return (base = base.then(() => reloadArtifact(currTheme).then(runRender)));
     };
 
-    window.onresize = window.typstRerender;
+    let responsiveTimeout: any = undefined;
+    let responsiveTimeout2: any = undefined;
+    const responsiveAction = (responsive?: boolean) => {
+      clearTimeout(responsiveTimeout);
+      clearTimeout(responsiveTimeout2);
+      if (responsive === undefined || responsive === true) {
+        responsiveTimeout = setTimeout(() => {
+          submitRerender(true);
+        }, 10);
+      }
+      if (responsive === undefined || responsive === false) {
+        responsiveTimeout2 = setTimeout(() => {
+          clearTimeout(responsiveTimeout);
+          submitRerender(false);
+        }, 200);
+      }
+    };
+
+    window.addEventListener('resize', () => responsiveAction());
+    if ('onscrollend' in (window as any)) {
+      window.addEventListener('scroll', () => responsiveAction(true));
+      window.addEventListener('scrollend', () => responsiveAction(false));
+    } else {
+      window.addEventListener('scroll', () => responsiveAction());
+    }
+
+    window.typstRerender = responsiveAction;
 
     // trigger again to regard user changed theme during first reloading
     window.typstChangeTheme();

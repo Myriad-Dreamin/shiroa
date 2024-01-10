@@ -148,7 +148,7 @@
   var firstContact = null;
 
   sidebar.addEventListener('transitionend', () => {
-    window.typstRerender();
+    window.typstRerender(true);
   });
 
   function showSidebar() {
@@ -217,7 +217,7 @@
     html.classList.add('sidebar-resizing');
   }
   function resize(e) {
-    window.typstRerender();
+    window.typstRerender(true);
     var pos = e.clientX - sidebar.offsetLeft;
     if (pos < 20) {
       hideSidebar();
@@ -231,6 +231,7 @@
   }
   //on mouseup remove windows functions mousemove & mouseup
   function stopResize(e) {
+    window.typstRerender(false);
     html.classList.remove('sidebar-resizing');
     window.removeEventListener('mousemove', resize, false);
     window.removeEventListener('mouseup', stopResize, false);

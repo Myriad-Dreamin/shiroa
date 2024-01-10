@@ -17,8 +17,12 @@ use typst_ts_compiler::{
     },
     TypstSystemWorld,
 };
-use typst_ts_core::{config::CompileOpts, path::PathClean, TakeAs, TypstAbs, TypstDocument};
-use typst_ts_svg_exporter::flat_ir::{LayoutRegionNode, PageMetadata};
+use typst_ts_core::{
+    config::CompileOpts,
+    path::PathClean,
+    vector::ir::{LayoutRegionNode, PageMetadata},
+    TakeAs, TypstAbs, TypstDocument,
+};
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
 
