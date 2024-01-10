@@ -238,15 +238,11 @@ impl Project {
         create_dirs(self.dest_dir.join("renderer"))?;
         write_file(
             self.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
-            include_bytes!(
-                "../../frontend/node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm"
-            ),
+            include_bytes!("../../assets/artifacts/typst_ts_renderer_bg.wasm"),
         )?;
         write_file(
             self.dest_dir.join("typst-main.js"),
-            include_bytes!(
-                "../../frontend/node_modules/@myriaddreamin/typst.ts/dist/esm/main.bundle.js"
-            ),
+            include_bytes!("../../assets/artifacts/main.bundle.js"),
         )?;
         write_file(
             self.dest_dir.join("svg_utils.js"),
@@ -254,7 +250,7 @@ impl Project {
         )?;
         write_file(
             self.dest_dir.join("typst-book.js"),
-            include_bytes!("../../frontend/dist/book.mjs"),
+            include_bytes!("../../assets/artifacts/book.mjs"),
         )?;
         write_file(
             self.dest_dir.join("index.js"),

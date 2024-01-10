@@ -42,16 +42,6 @@ jobs:
           node-version: 18.x
       - name: Install Artifact Cache
         uses: Swatinem/rust-cache@v2
-      - name: Build JavaScript packages (Install)
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
-          dir: 'frontend'
-      - name: Build JavaScript packages (Compile)
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: 'frontend'
       - name: Build Book
         run: |
           cargo run --release --bin typst-book -- build --path-to-root /typst-book/ -w . github-pages/docs

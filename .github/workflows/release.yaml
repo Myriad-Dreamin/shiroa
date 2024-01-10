@@ -103,18 +103,6 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install gcc-arm-linux-gnueabihf
-      - name: Install Yarn
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install # will run `yarn install` command
-          dir: 'frontend'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
-      - name: Build JavaScript packages
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: 'frontend'
       - name: Run Native Build
         shell: pwsh
         run: |

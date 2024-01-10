@@ -16,18 +16,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install Artifact Cache
         uses: Swatinem/rust-cache@v2
-      - name: Install Yarn
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install # will run `yarn install` command
-          dir: 'frontend'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
-      - name: Build JavaScript packages
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: 'frontend'
       - name: Fmt check
         run: cargo fmt --check --all
       - name: Clippy check
