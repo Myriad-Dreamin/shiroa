@@ -117,7 +117,6 @@ jobs:
       - name: Run Cross Build
         run: |
           mkdir -p frontend/node_modules
-          cp -r artifacts/typst-ts-dist frontend/node_modules/@myriaddreamin
           docker run -v /var/run/docker.sock:/var/run/docker.sock -v ${GITHUB_WORKSPACE}:/project -w /project typst-book/riscv64:latest cargo build --manifest-path cli/Cargo.toml --release --target ${CARGO_TARGET} --bin typst-book
           docker run -v /var/run/docker.sock:/var/run/docker.sock -v ${GITHUB_WORKSPACE}:/project -w /project typst-book/riscv64:latest cargo build --manifest-path cli/Cargo.toml --profile release-stripped --target ${CARGO_TARGET} --bin typst-book
         env:
