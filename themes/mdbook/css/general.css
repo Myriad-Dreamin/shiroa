@@ -115,7 +115,6 @@ h6:target::before {
 }
 
 .content {
-  overflow-x: scroll;
   overflow-y: auto;
   padding: 0 5px 50px 5px;
 }
