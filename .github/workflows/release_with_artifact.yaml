@@ -96,7 +96,6 @@ jobs:
             arch: riscv64
 
     name: build (${{ matrix.rust-target }})
-    needs: [build-frontend-packages]
     runs-on: ${{ matrix.os }}
     env:
       target: ${{ matrix.platform }}-${{ matrix.arch }}
