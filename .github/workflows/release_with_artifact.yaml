@@ -1,7 +1,5 @@
-name: typst_book::release
+name: typst_book::release_with_artifact
 on:
-  release:
-    types: [created]
   workflow_dispatch:
 
 env:
@@ -11,37 +9,6 @@ env:
   RUSTC_WRAPPER: 'sccache'
 
 jobs:
-  build-frontend-packages:
-    name: build (Frontend packages)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Install Yarn
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install # will run `yarn install` command
-          dir: 'frontend'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
-      - name: Build JavaScript packages
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: 'frontend'
-      - uses: actions/upload-artifact@v3
-        with:
-          name: typst-ts-dist
-          path: frontend/node_modules/@myriaddreamin
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v3
-        with:
-          name: typst-book-dist
-          path: frontend/dist
-          if-no-files-found: error
-
   build:
     strategy:
       matrix:
@@ -103,18 +70,6 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install gcc-arm-linux-gnueabihf
-      - name: Install Yarn
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install # will run `yarn install` command
-          dir: 'frontend'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
-      - name: Build JavaScript packages
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: 'frontend'
       - name: Run Native Build
         shell: pwsh
         run: |
@@ -164,7 +119,6 @@ jobs:
         run: |
           mkdir -p frontend/node_modules
           cp -r artifacts/typst-ts-dist frontend/node_modules/@myriaddreamin
-          cp -r artifacts/typst-book-dist frontend/dist
           docker run -v /var/run/docker.sock:/var/run/docker.sock -v ${GITHUB_WORKSPACE}:/project -w /project typst-book/riscv64:latest cargo build --manifest-path cli/Cargo.toml --release --target ${CARGO_TARGET} --bin typst-book
           docker run -v /var/run/docker.sock:/var/run/docker.sock -v ${GITHUB_WORKSPACE}:/project -w /project typst-book/riscv64:latest cargo build --manifest-path cli/Cargo.toml --profile release-stripped --target ${CARGO_TARGET} --bin typst-book
         env:
@@ -206,18 +160,6 @@ jobs:
       - name: Configure git
         run: |
           git config --global --add safe.directory $PWD
-      - name: Install Yarn
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install # will run `yarn install` command
-          dir: 'frontend'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
-      - name: Build JavaScript packages
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: 'frontend'
       - name: build binaries
         run: |
           cargo build --release --manifest-path cli/Cargo.toml --target $RUST_TARGET --bin typst-book
