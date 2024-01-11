@@ -9,15 +9,15 @@
     "typst-book Developers"
   ],
   "scripts": {
-    "build": "exit 0",
-    "dev": "exit 0",
+    "build": "tsc && vite build",
+    "dev": "vite build --watch",
     "link:local": "yarn link @myriaddreamin/typst.ts @myriaddreamin/typst-ts-renderer"
   },
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@myriaddreamin/typst-ts-renderer": "file:./exp/typst-ts-renderer",
-    "@myriaddreamin/typst.ts": "file:./exp/typst.ts"
+    "@myriaddreamin/typst-ts-renderer": "0.4.1",
+    "@myriaddreamin/typst.ts": "0.4.1"
   },
   "devDependencies": {
     "typescript": "^5.3.3",

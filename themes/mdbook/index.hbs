@@ -44,6 +44,9 @@
     <link rel="stylesheet" href="{{ ../path_to_root }}{{ this }}">
     {{/each}}
 
+    <style>
+        .typst-app { position: relative; }
+    </style>
     <script>
         /// https://segmentfault.com/a/1190000016574288
         (function () {
@@ -73,24 +76,8 @@
             };
         })();
 
-        document.ready(() => {
-            let fromCtrlC = false;
-            let fromRightClick = false;
-            document.addEventListener(
-                'keydown',
-                evt => (fromCtrlC = evt.key.toUpperCase() == 'C' && evt.ctrlKey),
-            );
-            document.addEventListener('contextmenu', evt => (fromRightClick = true));
-            document.addEventListener('copy', evt => {
-                const originatorEvent = fromCtrlC ? 'CTRL-C' : fromRightClick ? 'right click' : 'toolbar menu';
-                console.log(`Copy event received from ${originatorEvent} within element`, evt.target);
-                fromCtrlC = false;
-                fromRightClick = false;
-
-                // evt.clipboardData.setData('text/plain', 'foo');
-                // evt.preventDefault(); // default behaviour is to copy any selected text
-            });
-        });
+        window.captureStack = function() { }
+        {{!-- window.captureStack = function() { return new Error(); } --}}
     </script>
 
     <script id="typst-book-js" type="module" src="{{ path_to_root }}typst-book.js"></script>

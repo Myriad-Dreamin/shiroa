@@ -6,7 +6,9 @@ declare global {
     typstGetRelatedElements: any;
     handleTypstLocation: any;
     getTypstTheme(): string;
+    captureStack(): any;
     typstRerender?: (responsive?: boolean) => void;
+    typstCheckAndRerender?: (responsive: boolean, stack?: any) => Promise<void>;
     typstChangeTheme?: () => Promise<void>;
     debounce<T extends { (...args: any[]): void }>(fn: T, delay = 200): T;
     assignSemaHash: (u: number, x: number, y: number) => void;
@@ -16,6 +18,7 @@ declare global {
       relPath: string,
       appContainer: HTMLDivElement | undefined,
     );
+    typstBindSvgDom(elem: HTMLDivElement, dom: SVGSVGElement);
     TypstRenderModule: any;
   }
 }

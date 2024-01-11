@@ -246,7 +246,7 @@ impl Project {
         )?;
         write_file(
             self.dest_dir.join("svg_utils.js"),
-            include_bytes!("../../frontend/src/svg_utils.cjs"),
+            include_bytes!("../../assets/artifacts/svg_utils.cjs"),
         )?;
         write_file(
             self.dest_dir.join("typst-book.js"),
