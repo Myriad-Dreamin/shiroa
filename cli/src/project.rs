@@ -241,10 +241,6 @@ impl Project {
             include_bytes!("../../assets/artifacts/typst_ts_renderer_bg.wasm"),
         )?;
         write_file(
-            self.dest_dir.join("typst-main.js"),
-            include_bytes!("../../assets/artifacts/main.bundle.js"),
-        )?;
-        write_file(
             self.dest_dir.join("svg_utils.js"),
             include_bytes!("../../assets/artifacts/svg_utils.cjs"),
         )?;
