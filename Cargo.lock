@@ -3668,7 +3668,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-compiler"
 version = "0.4.2-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?branch=book-exp#b2e70be417125a57bd852d76f6d8559f6fc23b41"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?branch=book-exp#bd6ae4d9aacd6f0247134972e9b5f46cb68c595e"
 dependencies = [
  "append-only-vec",
  "base64",
@@ -3706,7 +3706,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-core"
 version = "0.4.2-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?branch=book-exp#b2e70be417125a57bd852d76f6d8559f6fc23b41"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?branch=book-exp#bd6ae4d9aacd6f0247134972e9b5f46cb68c595e"
 dependencies = [
  "base64",
  "base64-serde",
@@ -3745,7 +3745,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-svg-exporter"
 version = "0.4.2-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?branch=book-exp#b2e70be417125a57bd852d76f6d8559f6fc23b41"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?branch=book-exp#bd6ae4d9aacd6f0247134972e9b5f46cb68c595e"
 dependencies = [
  "base64",
  "comemo 0.3.1 (git+https://github.com/Dherse/comemo?rev=15c8d5b)",
