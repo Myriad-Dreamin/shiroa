@@ -1,6 +1,11 @@
 use anyhow::Result;
-use vergen::{vergen, Config};
+use vergen::EmitBuilder;
 
 fn main() -> Result<()> {
-    vergen(Config::default())
+    EmitBuilder::builder()
+        .all_build()
+        .all_cargo()
+        .all_git()
+        .all_rustc()
+        .emit()
 }

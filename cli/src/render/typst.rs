@@ -40,17 +40,14 @@ impl TypstRenderer {
         let dest_dir = make_absolute_from(Path::new(&args.dest_dir), || root_dir.clone()).clean();
 
         let world = TypstSystemWorld::new(CompileOpts {
-            root_dir: workspace_dir.clone(),
+            // root_dir: workspace_dir.clone(),
             font_paths: args.font_paths.clone(),
             with_embedded_fonts: EMBEDDED_FONT.to_owned(),
             ..CompileOpts::default()
         })
         .unwrap_or_exit();
 
-        let driver = CompileDriver {
-            world,
-            entry_file: Default::default(),
-        };
+        let driver = CompileDriver::new(world).with_entry_file(Default::default());
 
         let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
         driver.set_extension("multi.sir.in".to_owned());
@@ -96,7 +93,11 @@ impl TypstRenderer {
         if path.is_absolute() {
             panic!("entry file must be relative to the workspace");
         }
-        self.compiler_layer_mut().compiler.entry_file = self.root_dir.join(path).clean();
+        let entry_file = self.root_dir.join(path).clean().into();
+        self.compiler_layer_mut()
+            .compiler
+            .set_entry_file(entry_file)
+            .unwrap();
         let output_path = self.dest_dir.join(path).with_extension("").clean();
         std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
         self.compiler_layer_mut().set_output(output_path);
