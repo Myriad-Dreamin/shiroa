@@ -5,6 +5,7 @@ import {
   TypstRenderer,
   createTypstRenderer,
 } from '@myriaddreamin/typst.ts/dist/esm/renderer.mjs';
+import type { TypstDomDocument } from '@myriaddreamin/typst.ts/dist/esm/dom.mjs';
 
 window.TypstRenderModule = {
   createTypstRenderer,
@@ -20,8 +21,16 @@ window.TypstRenderModule = {
 //     }, delay);
 //   }) as unknown as T;
 // };
-function postProcessCrossLinks(appElem: HTMLDivElement) {
-  appElem.querySelectorAll('.typst-content-link').forEach(a => {
+let initialRender = true;
+let jumppedCrossLink = false;
+function postProcessCrossLinks(appElem: HTMLDivElement, reEnters: number) {
+  const links = appElem.querySelectorAll('.typst-content-link');
+  if (links.length === 0) {
+    console.log('no links found, probe after a while');
+    setTimeout(() => postProcessCrossLinks(appElem, reEnters * 1.5), reEnters);
+    return;
+  }
+  links.forEach(a => {
     if (origin) {
       const onclick = a.getAttribute('onclick');
       if (onclick === null) {
@@ -82,6 +91,31 @@ function postProcessCrossLinks(appElem: HTMLDivElement) {
       // todo: label handling
     }
   });
+
+  // todo: out of page
+  if (window.location.hash && !jumppedCrossLink) {
+    // console.log('hash', window.location.hash);
+
+    // parse location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
+    const hash = window.location.hash;
+    const firstSep = hash.indexOf('-');
+    // console.log('jump label', window.location.hash, firstSep, globalSemaLabels);
+    if (firstSep != -1 && hash.slice(0, firstSep) === '#label') {
+      const labelTarget = hash.slice(firstSep + 1);
+      for (const [label, dom, pos] of globalSemaLabels) {
+        if (label === labelTarget) {
+          const [_, x, y] = pos;
+          // console.log('jump label', label, pos);
+          window.handleTypstLocation(dom, 1, x, y, {
+            behavior: initialRender ? 'smooth' : 'instant',
+          });
+          initialRender = false;
+          jumppedCrossLink = true;
+          break;
+        }
+      }
+    }
+  }
 }
 
 let prevHovers: Element[] | undefined = undefined;
@@ -137,6 +171,7 @@ window.typstBookRenderPage = function (
   const getTheme = () => window.getTypstTheme();
   let currTheme = getTheme();
   let session: RenderSession | undefined = undefined;
+  let dom: TypstDomDocument = undefined!;
   let disposeSession: () => void = () => {};
 
   const appElem = document.createElement('div');
@@ -145,39 +180,28 @@ window.typstBookRenderPage = function (
     appContainer.appendChild(appElem);
   }
 
-  function getViewport() {
-    const domScale = 1;
-    const appPos = appElem.getBoundingClientRect();
-    const left = appPos.left;
-    const top = -appPos.top;
-    const right = window.innerWidth;
-    const bottom = window.innerHeight - appPos.top;
-    const rect = {
-      x: 0,
-      y: top / domScale,
-      width: Math.max(right - left, 0) / domScale,
-      height: Math.max(bottom - top, 0) / domScale,
-    };
-    if (rect.width <= 0 || rect.height <= 0) {
-      rect.x = rect.y = rect.width = rect.height = 0;
-    }
-    return rect;
-  }
-
   const dec = new TextDecoder();
-  window.typstBindSvgDom = async (elem: HTMLDivElement, dom: SVGSVGElement) => {};
+  window.typstBindSvgDom = async (_elem: HTMLDivElement, _dom: SVGSVGElement) => {};
 
-  let initialRender = true;
+  let runningSemantics: Record<string, string> = {};
   const typstBindCustomSemantics = async (
     root: HTMLElement,
     svg: SVGSVGElement,
     semantics: HTMLDivElement,
   ) => {
-    console.log('bind custom semantics', root, svg, semantics);
-    const customs: [string, Uint8Array][] = await plugin.getCustomV1({
+    const index = root?.getAttribute('data-index');
+    const key = `${index}`;
+    const width = root?.getAttribute('data-width');
+    const keyResolving = `${width}`;
+    if (runningSemantics[key] === keyResolving) {
+      return;
+    }
+    runningSemantics[key] = keyResolving;
+    console.log('bind custom semantics', key, keyResolving, svg?.viewBox);
+    const customs = await plugin.getCustomV1({
       renderSession: session!,
     });
-    const semaLabel = customs.find(k => k[0] === 'sema-label');
+    const semaLabel = customs.find((k: [string, string]) => k[0] === 'sema-label');
     if (semaLabel) {
       const labelBin = semaLabel[1];
       const labels = JSON.parse(dec.decode(labelBin));
@@ -187,55 +211,22 @@ window.typstBookRenderPage = function (
       });
     }
 
-    postProcessCrossLinks(semantics);
-
-    const w = appElem.getAttribute('data-applied-width');
-    if (w) {
-      const parentWidth = appElem.parentElement!.clientWidth;
-      const svgWidth = Number.parseInt(w.slice(0, w.length - 2));
-      // console.log(
-      //   parentWidth,
-      //   svgWidth,
-      //   window.devicePixelRatio,
-      //   getComputedStyle(appElem).fontSize,
-      // );
-      const wMargin = (parentWidth - svgWidth) / 2;
-      if (wMargin < 0) {
-        appElem.style.margin = `0px`;
-      } else {
-        appElem.style.margin = `0 ${wMargin}px`;
-      }
-    }
-
-    // todo: out of page
-    if (window.location.hash) {
-      // console.log('hash', window.location.hash);
-
-      // parse location.hash = `loc-${page}x${x.toFixed(2)}x${y.toFixed(2)}`;
-      const hash = window.location.hash;
-      const firstSep = hash.indexOf('-');
-      // console.log('jump label', window.location.hash, firstSep, globalSemaLabels);
-      if (firstSep != -1 && hash.slice(0, firstSep) === '#label') {
-        const labelTarget = hash.slice(firstSep + 1);
-        for (const [label, dom, pos] of globalSemaLabels) {
-          if (label === labelTarget) {
-            const [_, x, y] = pos;
-            // console.log('jump label', label, pos);
-            window.handleTypstLocation(dom, 1, x, y, {
-              behavior: initialRender ? 'smooth' : 'instant',
-            });
-            initialRender = false;
-            break;
-          }
-        }
-      }
-    }
+    postProcessCrossLinks(semantics, 100);
   };
+  // todo: remove this hack
+  let semanticHandlers: (() => void)[] = [];
   (window as any).typstBindCustomSemantics = (
     root: HTMLElement,
     svg: SVGSVGElement,
     semantics: HTMLDivElement,
-  ) => setTimeout(() => typstBindCustomSemantics(root, svg, semantics), 0);
+  ) =>
+    setTimeout(() => {
+      const semanticHandler = () => {
+        typstBindCustomSemantics(root, svg, semantics);
+      };
+      semanticHandler();
+      semanticHandlers.push(semanticHandler);
+    }, 0);
 
   const baseHandleTypstLocation = window.handleTypstLocation;
   window.handleTypstLocation = (
@@ -252,6 +243,8 @@ window.typstBookRenderPage = function (
     }
 
     console.log(docRoot);
+    options = options || {};
+    options.isDom = true;
 
     for (const h of docRoot.children) {
       if (h.classList.contains('typst-dom-page')) {
@@ -259,8 +252,7 @@ window.typstBookRenderPage = function (
         if (idx + 1 === page) {
           const svg = h.querySelector('.typst-svg-page');
           if (svg) {
-            // todo: load it.
-            baseHandleTypstLocation(svg, 1, x, y, options);
+            baseHandleTypstLocation(svg, page, x, y, options);
           }
           return;
         }
@@ -268,7 +260,7 @@ window.typstBookRenderPage = function (
     }
   };
 
-  window.assignSemaHash = (u: number, x: number, y: number) => {
+  window.assignSemaHash = (u, x, y) => {
     // console.log(`find labels ${u}:${x}:${y} in`, globalSemaLabels);
     for (const [label, dom, pos] of globalSemaLabels) {
       const [u1, x1, y1] = pos;
@@ -289,7 +281,7 @@ window.typstBookRenderPage = function (
             return;
           }
           // const semaLinkLocation = document.getElementById(`typst-label-${label}`);
-          const relatedElems: Element[] = window.typstGetRelatedElements(lnk);
+          const relatedElems = window.typstGetRelatedElements(lnk);
           for (const h of relatedElems) {
             h.classList.add('focus');
           }
@@ -306,15 +298,19 @@ window.typstBookRenderPage = function (
 
   async function reloadArtifact(theme: string) {
     // free anyway
+    if (dom) {
+      dom.dispose();
+      dom = undefined!;
+    }
     if (session) {
       disposeSession();
+      session = undefined!;
     }
 
     appElem.innerHTML = '';
     // todo: don't modify this attribute here, instead hide detail in typst.ts
     appElem.removeAttribute('data-applied-width');
 
-    const t0 = performance.now();
     const artifactData = await fetch(`${relPath}.${theme}.multi.sir.in`)
       .then(response => response.arrayBuffer())
       .then(buffer => new Uint8Array(buffer));
@@ -325,18 +321,26 @@ window.typstBookRenderPage = function (
         return new Promise(async doDisposeSession => {
           disposeSession = doDisposeSession as any;
           session = sessionRef;
-          sessionRef.manipulateData({
-            action: 'reset',
-            data: artifactData,
-          });
           const t2 = performance.now();
 
-          await plugin.renderDom({
+          jumppedCrossLink = false;
+          semanticHandlers.splice(0, semanticHandlers.length);
+          runningSemantics = {};
+          dom = await plugin.renderDom({
             renderSession: sessionRef,
             container: appElem,
-            pixelPerPt: 3,
-            viewport: getViewport(),
+            pixelPerPt: 4.5,
           });
+          const mod = dom.impl.modes.find(([k, _]) => k == 'dom')!;
+          const postRender = mod[1].postRender;
+          mod[1].postRender = function () {
+            console.log('hack run semantic handlers');
+            postRender.apply(this);
+            for (const h of semanticHandlers) {
+              h();
+            }
+            return;
+          };
 
           console.log(
             `theme = ${theme}, load artifact took ${t2 - t1} milliseconds, parse artifact took ${
@@ -344,90 +348,16 @@ window.typstBookRenderPage = function (
             } milliseconds`,
           );
 
-          resolve(undefined);
+          dom.addChangement(['new', artifactData as unknown as string]);
+
+          resolve(dom);
         });
       });
     });
   }
 
-  reloadArtifact(currTheme).then(() => {
-    // const runRender = async () => {
-    //   // const t1 = performance.now();
-    //   // console.log('hold', session, currTheme);
-
-    //   // todo: bad performance
-    //   appElem.style.margin = `0px`;
-
-    //   // todo: merge
-    //   await plugin.renderSvg(session!, appElem);
-
-    //   // const t2 = performance.now();
-    //   // console.log(
-    //   //   `render took ${t2 - t1} milliseconds.`,
-    //   //   appElem.getAttribute('data-applied-width'),
-    //   // );
-
-    //   const w = appElem.getAttribute('data-applied-width');
-    //   if (w) {
-    //     const parentWidth = appElem.parentElement!.clientWidth;
-    //     const svgWidth = Number.parseInt(w.slice(0, w.length - 2));
-    //     // console.log(
-    //     //   parentWidth,
-    //     //   svgWidth,
-    //     //   window.devicePixelRatio,
-    //     //   getComputedStyle(appElem).fontSize,
-    //     // );
-    //     const wMargin = (parentWidth - svgWidth) / 2;
-    //     if (wMargin < 0) {
-    //       appElem.style.margin = `0px`;
-    //     } else {
-    //       appElem.style.margin = `0 ${wMargin}px`;
-    //     }
-    //   }
-    // };
-
+  reloadArtifact(currTheme).then((dom: TypstDomDocument) => {
     let base: Promise<any> = Promise.resolve();
-
-    let renderResponsive: boolean | undefined = undefined;
-    const checkAndRerender = (r: boolean, stack?: any) => {
-      if (r !== true && r !== false) {
-        throw new Error('invalid responsive');
-      }
-      if (r === false) {
-        renderResponsive = false;
-      } else if (renderResponsive !== false) {
-        renderResponsive = true;
-      }
-
-      if (stack) {
-        console.log('submit', stack);
-      }
-      return (base = base.then(() => queueRerender(stack)));
-
-      async function queueRerender(stack: any) {
-        if (renderResponsive === undefined) {
-          if (stack) {
-            console.log('skip', stack);
-          }
-          return;
-        }
-        let responsive = renderResponsive === false ? false : true;
-        renderResponsive = undefined;
-        const t = performance.now();
-
-        // console.log('ccc', basePos, appPos, rect);
-
-        await plugin.triggerDomRerender({
-          renderSession: session!,
-          responsive,
-          viewport: getViewport(),
-        });
-
-        if (stack) {
-          console.log('pull render', performance.now() - t, responsive, stack);
-        }
-      }
-    };
 
     window.typstChangeTheme = () => {
       const nextTheme = getTheme();
@@ -436,33 +366,17 @@ window.typstBookRenderPage = function (
       }
       currTheme = nextTheme;
 
-      return (base = base.then(() => reloadArtifact(currTheme)));
+      return reloadArtifact(currTheme);
     };
 
-    let responsiveTimeout: any = undefined;
-    let responsiveTimeout2: any = undefined;
-    const responsiveAction = (responsive?: boolean, stack?: any) => {
-      stack ||= window.captureStack();
-      clearTimeout(responsiveTimeout);
-      if (responsive === undefined || responsive === true) {
-        responsiveTimeout = setTimeout(() => {
-          checkAndRerender(true, stack);
-        }, 10);
-      }
-      if (responsive === undefined || responsive === false) {
-        clearTimeout(responsiveTimeout2);
-        responsiveTimeout2 = setTimeout(() => {
-          clearTimeout(responsiveTimeout);
-          checkAndRerender(false, stack);
-        }, 200);
-      }
-    };
-
-    window.addEventListener('resize', () => responsiveAction());
-    window.addEventListener('scroll', () => responsiveAction(false));
-
-    window.typstRerender = responsiveAction;
-    window.typstCheckAndRerender = checkAndRerender;
+    const viewportHandler = () => dom.addViewportChange();
+    window.addEventListener('resize', viewportHandler);
+    window.addEventListener('scroll', viewportHandler);
+    dom.impl.disposeList.push(() => {
+      window.removeEventListener('resize', viewportHandler);
+      window.removeEventListener('scroll', viewportHandler);
+    });
+    window.typstRerender = viewportHandler;
 
     // trigger again to regard user changed theme during first reloading
     window.typstChangeTheme();

@@ -1,11 +1,11 @@
 use std::{
+    borrow::Cow,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
 use crate::{
     error::prelude::*,
-    font::EMBEDDED_FONT,
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
@@ -18,7 +18,7 @@ use typst_ts_compiler::{
     TypstSystemWorld,
 };
 use typst_ts_core::{
-    config::CompileOpts,
+    config::{compiler::EntryOpts, CompileOpts},
     path::PathClean,
     vector::ir::{LayoutRegionNode, PageMetadata},
     TakeAs, TypstAbs, TypstDocument,
@@ -40,17 +40,14 @@ impl TypstRenderer {
         let dest_dir = make_absolute_from(Path::new(&args.dest_dir), || root_dir.clone()).clean();
 
         let world = TypstSystemWorld::new(CompileOpts {
-            root_dir: workspace_dir.clone(),
+            entry: EntryOpts::new_workspace(workspace_dir.clone()),
             font_paths: args.font_paths.clone(),
-            with_embedded_fonts: EMBEDDED_FONT.to_owned(),
+            with_embedded_fonts: typst_assets::fonts().map(Cow::Borrowed).collect(),
             ..CompileOpts::default()
         })
         .unwrap_or_exit();
 
-        let driver = CompileDriver {
-            world,
-            entry_file: Default::default(),
-        };
+        let driver = CompileDriver::new(world);
 
         let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
         driver.set_extension("multi.sir.in".to_owned());
@@ -96,7 +93,12 @@ impl TypstRenderer {
         if path.is_absolute() {
             panic!("entry file must be relative to the workspace");
         }
-        self.compiler_layer_mut().compiler.entry_file = self.root_dir.join(path).clean();
+        let entry = self.root_dir.join(path).clean().as_path().into();
+        let err = self.compiler_layer_mut().compiler.set_entry_file(entry);
+        if err.is_err() {
+            self.report(err);
+            panic!("failed to set entry file");
+        }
         let output_path = self.dest_dir.join(path).with_extension("").clean();
         std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
         self.compiler_layer_mut().set_output(output_path);
