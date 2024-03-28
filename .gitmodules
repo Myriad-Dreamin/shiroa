@@ -1,9 +1,5 @@
-[submodule "assets/fonts"]
-	path = assets/fonts
-	url = https://github.com/Myriad-Dreamin/typst.git
-	branch = assets-fonts
 [submodule "assets/artifacts"]
 	path = assets/artifacts
 	url = https://github.com/Myriad-Dreamin/typst/
-	branch = assets-book-v0.1.3
-	shadow = true
+	branch = assets-book-v0.1.3-2
+	shallow = true

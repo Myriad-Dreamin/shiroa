@@ -147,12 +147,12 @@ impl Project {
 
             let package_meta = res
                 .first()
-                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/book:0.2.3; or do you forget the show rule `#show: book`?)"))?;
+                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/book:0.2.4; or do you forget the show rule `#show: book`?)"))?;
 
             let InternalPackageMeta::Package { version } = &package_meta.value;
-            if version != "0.2.3" {
+            if version != "0.2.4" {
                 return Err(error_once!(
-                    "outdated book package, please import @preview/book:0.2.3", importing_version: version,
+                    "outdated book package, please import @preview/book:0.2.4", importing_version: version,
                 ));
             }
         }
