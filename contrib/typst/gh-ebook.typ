@@ -1,4 +1,4 @@
-#import "@preview/book:0.2.3": *
+#import "@preview/book:0.2.4": *
 #import "/contrib/typst/gh-pages.typ": project, part-style
 
 #let _page-project = project

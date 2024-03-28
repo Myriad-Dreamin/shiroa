@@ -1,4 +1,4 @@
-#import "@preview/book:0.2.3": *
+#import "@preview/book:0.2.4": *
 
 #import "/contrib/typst/gh-ebook.typ"
 #let ebook = gh-ebook

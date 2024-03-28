@@ -17,7 +17,7 @@ Currently we have no much design on theme's html part. But you can still configu
 Your `book.typ` should at least provides a `book-meta`, as #t shown.
 
 ```typ
-#import "@preview/book:0.2.3": *
+#import "@preview/book:0.2.4": *
 #show: book
 
 #book-meta(
