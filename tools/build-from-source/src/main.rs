@@ -35,6 +35,11 @@ fn main() -> anyhow::Result<()> {
     cmd.current_dir(project.join("frontend"));
     run(cmd)?;
 
+    // copy to assets\artifacts\book.mjs
+    let src = project.join("frontend/dist/book.mjs");
+    let dst = project.join("assets/artifacts/book.mjs");
+    std::fs::copy(src, dst)?;
+
     println!("Running cargo build...");
     let mut cmd = Command::new("cargo");
     cmd.args(["build", "--release"]);

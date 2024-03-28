@@ -22,9 +22,15 @@ To make it easier to run, put the path to the binary into your `PATH`.
 
 To build the `typst-book` executable from source, you will first need to install Yarn, Rust, and Cargo.
 Follow the instructions on the #link("https://classic.yarnpkg.com/en/docs/install")[Yarn installation page] and #link("https://www.rust-lang.org/tools/install")[Rust installation page].
-typst-book currently requires at least Rust version 1.71.
+typst-book currently requires at least Rust version 1.75.
 
-Since typst-book building depends on `yarn`, you cannot directly use `cargo install` to pull and build it. The build command is:
+To build with precompiled artifacts, run the following commands:
+
+```sh
+cargo install --git https://github.com/Myriad-Dreamin/typst-book --locked typst-book-cli
+```
+
+To build from source, run the following commands (note: it depends on `yarn` to build frontend):
 
 ```sh
 git clone https://github.com/Myriad-Dreamin/typst-book.git
