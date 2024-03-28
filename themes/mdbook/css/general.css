@@ -270,7 +270,7 @@ kbd {
   height: var(--data-page-height);
   color: transparent;
   font-family: monospace;
-  white-space: nowrap;
+  white-space: pre;
 }
 
 .typst-html-semantics span {
