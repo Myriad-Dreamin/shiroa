@@ -1,3 +1,14 @@
+# v0.1.3
+
+## Changelog since v0.1.3
+
+**Full Changelog**: https://github.com/Myriad-Dreamin/typst-book/compare/v0.1.2...v0.1.3
+
+Most efforts are internal improvements and there is no external changes since v0.1.2.
+
+- Implemented new text selection, which already works great on simple pages.
+- Improved performance on large pages. Note: you may still get bad performance if you set `#set page(height: auto)`, which will get improved in the future.
+
 # v0.1.2
 
 ## Changelog since v0.1.2
