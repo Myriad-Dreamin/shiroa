@@ -118,21 +118,22 @@
   // render a dash to hint headings instead of bolding it.
   show heading : set text(weight: "regular") if is-web-target
   show heading : it => {
-    it
-    if is-web-target {
-      let title = plain-text(it.body).trim();
-      update-ld(title)
-      locate(loc => {
-        let dest = get-ld(loc, title);
-        style(styles => {
-          let h = measure(it.body, styles).height;
-          place(left, dx: -20pt, dy: -h - 12pt, [
+    block({
+      if is-web-target {
+        let title = plain-text(it.body).trim();
+        update-ld(title)
+        context ({
+          let loc = here();
+          let dest = get-ld(loc, title);
+          let h = measure(it.body).height;
+          place(left, dx: - 20pt, [
             #set text(fill: dash-color)
             #link(loc)[\#] #dest
           ])
-        })
-      });
-    }
+        });
+      }
+      it
+    })
   }
 
   // link setting
