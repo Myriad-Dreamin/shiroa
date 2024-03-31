@@ -120,17 +120,20 @@
   show heading : it => {
     block({
       if is-web-target {
-        let title = plain-text(it.body).trim();
-        update-ld(title)
-        context ({
-          let loc = here();
-          let dest = get-ld(loc, title);
-          let h = measure(it.body).height;
-          place(left, dx: - 20pt, [
-            #set text(fill: dash-color)
-            #link(loc)[\#] #dest
-          ])
-        });
+        let title = plain-text(it.body);
+        if title != none {
+          let title = title.trim();
+          update-ld(title)
+          context ({
+            let loc = here();
+            let dest = get-ld(loc, title);
+            let h = measure(it.body).height;
+            place(left, dx: - 20pt, [
+              #set text(fill: dash-color)
+              #link(loc)[\#] #dest
+            ])
+          });
+        }
       }
       it
     })
