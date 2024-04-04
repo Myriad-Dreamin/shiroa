@@ -32,7 +32,7 @@ typst-book build my-book/ # memoryized dest-dir
 The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #cross-link("/guide/get-started.typ")[Get Started] shown.
 
 ```typ
-#import "@preview/book:0.2.4": *
+#import "@preview/book:0.2.5": *
 #show: book
 
 #book-meta(
