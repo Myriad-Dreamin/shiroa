@@ -1,5 +1,5 @@
 [submodule "assets/artifacts"]
 	path = assets/artifacts
 	url = https://github.com/Myriad-Dreamin/typst/
-	branch = assets-book-v0.1.3-2
+	branch = assets-book-v0.1.4
 	shallow = true

@@ -1,3 +1,15 @@
+# v0.1.4
+
+## Changelog since v0.1.4
+
+**Full Changelog**: https://github.com/Myriad-Dreamin/typst-book/compare/v0.1.3...v0.1.4
+
+- (Fix) Specifying white space pre props in CSS in https://github.com/Myriad-Dreamin/typst-book/pull/54
+- (Fix) Improved `plain-text` by @ice1000 in https://github.com/Myriad-Dreamin/typst-book/pull/57
+- (Fix) Used `overflow-x: auto` by @ice1000 in https://github.com/Myriad-Dreamin/typst-book/pull/58
+- Performed null checking on creating labels in template in https://github.com/Myriad-Dreamin/typst-book/pull/59
+  - You need to update your template to get this change.
+
 # v0.1.3
 
 ## Changelog since v0.1.3

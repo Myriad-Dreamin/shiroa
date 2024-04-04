@@ -1,5 +1,5 @@
 
-#import "@preview/book:0.2.4": *
+#import "@preview/book:0.2.5": *
 
 #show: book
 
@@ -43,13 +43,11 @@
       - #chapter(none)[Typst-side APIs]
       - #chapter(none)[typst-book CLI Internals]
       - #chapter(none)[Alternative Backends]
-  // end of summary
-  ]
+    // end of summary
+  ],
 )
 
-#build-meta(
-  dest-dir: "../dist",
-)
+#build-meta(dest-dir: "../dist")
 
 #get-book-meta()
 

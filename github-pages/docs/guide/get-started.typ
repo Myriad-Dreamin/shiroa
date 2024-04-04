@@ -48,7 +48,7 @@ Before a chapter can be viewed, it must be added to this list.
 Here's a basic summary file with a few chapters:
 
 ```typ
-#import "@preview/book:0.2.4": *
+#import "@preview/book:0.2.5": *
 #show: book
 
 #book-meta( // put metadata of your book like book.toml of mdbook
