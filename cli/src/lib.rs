@@ -67,6 +67,13 @@ pub struct CompileArgs {
     #[clap(long, default_value = "/")]
     pub path_to_root: String,
 
+    /// Specify a theme directory to copy recursively.
+    ///
+    /// The files will be copied to the `theme/` in the output
+    /// directory.
+    #[clap(long)]
+    pub theme: Option<String>,
+
     /// Add additional directories to search for fonts
     #[clap(
         long = "font-path",

@@ -10,7 +10,8 @@ use crate::{
     error::prelude::*,
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
     render::{DataDict, HtmlRenderer, TypstRenderer},
-    utils::{copy_dir_embedded, create_dirs, release_packages, write_file},
+    theme::Theme,
+    utils::{create_dirs, release_packages, write_file},
     CompileArgs,
 };
 use include_dir::include_dir;
@@ -44,8 +45,10 @@ impl fmt::Display for JsonContent {
 }
 
 pub struct Project {
+    pub theme: Theme,
     pub tr: TypstRenderer,
     pub hr: HtmlRenderer,
+
     pub book_meta: Option<BookMeta>,
     pub build_meta: Option<BuildMeta>,
 
@@ -70,13 +73,21 @@ impl Project {
             args.workspace = args.dir.clone();
         }
 
+        let theme = match &args.theme {
+            Some(theme) => Theme::new(Path::new(theme))?,
+            None => Theme::default(),
+        };
+
         let tr = TypstRenderer::new(args);
-        let hr = HtmlRenderer::new();
+        let hr = HtmlRenderer::new(&theme);
 
         let mut proj = Self {
             dest_dir: tr.dest_dir.clone(),
+
+            theme,
             tr,
             hr,
+
             book_meta: None,
             build_meta: None,
             path_to_root,
@@ -212,45 +223,28 @@ impl Project {
     pub fn build(&mut self) -> ZResult<()> {
         let mut write_index = false;
 
-        create_dirs(&self.dest_dir)?;
-        copy_dir_embedded(
-            include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/css"),
-            self.dest_dir.join("css"),
-        )?;
-        copy_dir_embedded(
-            include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/css"),
-            self.dest_dir.join("FontAwesome/css"),
-        )?;
-        copy_dir_embedded(
-            include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/fonts"),
-            self.dest_dir.join("FontAwesome/fonts"),
-        )?;
+        let themes = self.dest_dir.join("theme");
 
-        // todo use themes in filesystem
-        // copy_dir_all("themes/mdbook/css", self.dest_dir.join("css")).unwrap();
-        // copy_dir_all(
-        //     "themes/mdbook/fontAwesome",
-        //     self.dest_dir.join("fontAwesome"),
-        // )
-        // .unwrap();
+        // Always update the theme if it is static
+        // Or copy on first build
+        if self.theme.is_static() || !themes.exists() {
+            log::info!("copying theme assets to {:?}", themes);
+            self.theme.copy_assets(&themes)?;
+        }
 
-        // copy files
-        create_dirs(self.dest_dir.join("renderer"))?;
+        // copy internal files
+        create_dirs(self.dest_dir.join("internal"))?;
         write_file(
-            self.dest_dir.join("renderer/typst_ts_renderer_bg.wasm"),
+            self.dest_dir.join("internal/typst_ts_renderer_bg.wasm"),
             include_bytes!("../../assets/artifacts/typst_ts_renderer_bg.wasm"),
         )?;
         write_file(
-            self.dest_dir.join("svg_utils.js"),
+            self.dest_dir.join("internal/svg_utils.js"),
             include_bytes!("../../assets/artifacts/svg_utils.cjs"),
         )?;
         write_file(
-            self.dest_dir.join("typst-book.js"),
+            self.dest_dir.join("internal/typst-book.js"),
             include_bytes!("../../assets/artifacts/book.mjs"),
-        )?;
-        write_file(
-            self.dest_dir.join("index.js"),
-            include_bytes!("../../themes/mdbook/index.js"),
         )?;
 
         for ch in self.iter_chapters() {
@@ -386,7 +380,7 @@ impl Project {
         // inject chapters
         data.insert("chapters".to_owned(), json!(self.iter_chapters()));
 
-        let renderer_module = format!("{}renderer/typst_ts_renderer_bg.wasm", self.path_to_root);
+        let renderer_module = format!("{}internal/typst_ts_renderer_bg.wasm", self.path_to_root);
         data.insert("renderer_module".to_owned(), json!(renderer_module));
 
         // inject content
