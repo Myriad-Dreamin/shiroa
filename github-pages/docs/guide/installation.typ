@@ -34,6 +34,7 @@ To build from source, run the following commands (note: it depends on `yarn` to 
 
 ```sh
 git clone https://github.com/Myriad-Dreamin/typst-book.git
+git submodule update --recursive --init
 cargo run --bin typst-book-build
 # optional: install it globally
 cargo install --path ./cli

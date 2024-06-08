@@ -150,7 +150,7 @@ impl HelperDef for RenderToc {
 
         for item in chapters {
             // Spacer
-            if item.get("spacer").is_some() {
+            if item.contains_key("spacer") {
                 out.write("<li class=\"spacer\"></li>")?;
                 continue;
             }
@@ -189,7 +189,7 @@ impl HelperDef for RenderToc {
                     write_li_open_tag(out, is_expanded, false)?;
                 }
                 Ordering::Equal => {
-                    write_li_open_tag(out, is_expanded, item.get("section").is_none())?;
+                    write_li_open_tag(out, is_expanded, !item.contains_key("section"))?;
                 }
             }
 

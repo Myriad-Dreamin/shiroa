@@ -67,7 +67,7 @@ impl Project {
         }
 
         if args.workspace.is_empty() {
-            args.workspace = args.dir.clone();
+            args.workspace.clone_from(&args.dir);
         }
 
         let tr = TypstRenderer::new(args);
@@ -101,11 +101,11 @@ impl Project {
         }
 
         if final_dest_dir.is_empty() {
-            final_dest_dir = "dist".to_owned();
+            "dist".clone_into(&mut final_dest_dir);
         }
 
         proj.tr.fix_dest_dir(Path::new(&final_dest_dir));
-        proj.dest_dir = proj.tr.dest_dir.clone();
+        proj.dest_dir.clone_from(&proj.tr.dest_dir);
 
         Ok(proj)
     }
