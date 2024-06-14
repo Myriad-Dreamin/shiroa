@@ -69,12 +69,12 @@ pathdiff = "0.2.1"
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.11.1-content-hint" }
 typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.11.1-content-hint" }
-# typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", branch = "book-exp", package = "typst-ts-svg-exporter" }
-# typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", branch = "book-exp", package = "typst-ts-core" }
-# typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", branch = "book-exp", package = "typst-ts-compiler" }
+typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-svg-exporter" }
+typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-core" }
+typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-compiler" }
 
 # typst = { path = "../../../typst/crates/typst" }
 # typst-syntax = { path = "../../../typst/crates/typst-syntax" }
-typst-ts-svg-exporter = { path = "../../exporter/svg" }
-typst-ts-compiler = { path = "../../compiler" }
-typst-ts-core = { path = "../../core" }
+# typst-ts-svg-exporter = { path = "../../exporter/svg" }
+# typst-ts-compiler = { path = "../../compiler" }
+# typst-ts-core = { path = "../../core" }
