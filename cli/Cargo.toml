@@ -51,6 +51,7 @@ typst-ts-compiler.workspace = true
 handlebars.workspace = true
 
 typst-ts-svg-exporter.workspace = true
+typst-ts-text-exporter.workspace = true
 pathdiff.workspace = true
 
 [build-dependencies]

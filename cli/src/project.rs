@@ -5,6 +5,7 @@ use log::warn;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use typst_ts_compiler::service::Compiler;
+use typst_ts_core::escape::{escape_str, AttributeEscapes};
 
 use crate::{
     error::prelude::*,
@@ -341,7 +342,7 @@ impl Project {
         chapters
     }
 
-    pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> ZResult<String> {
+    pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> ZResult<ChapterArtifact> {
         let rel_data_path = std::path::Path::new(&self.path_to_root)
             .join(path)
             .with_extension("")
@@ -350,7 +351,7 @@ impl Project {
             // windows
             .replace('\\', "/");
 
-        self.tr.compile_page(Path::new(path))?;
+        let doc = self.tr.compile_page(Path::new(path))?;
 
         let dynamic_load_trampoline = self
             .hr
@@ -365,7 +366,15 @@ impl Project {
                 "render typst_load_trampoline for compile_chapter",
             ))?;
 
-        Ok(dynamic_load_trampoline.to_owned())
+        let description = self.tr.generate_desc(&doc)?;
+
+        Ok(ChapterArtifact {
+            content: dynamic_load_trampoline.to_owned(),
+            description: escape_str::<AttributeEscapes>(
+                &description.chars().take(512).collect::<String>(),
+            )
+            .into_owned(),
+        })
     }
 
     pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> ZResult<String> {
@@ -384,10 +393,15 @@ impl Project {
         data.insert("renderer_module".to_owned(), json!(renderer_module));
 
         // inject content
+
+        let art = self.compile_chapter(chapter_data, path)?;
+
+        // inject content
         data.insert(
-            "content".to_owned(),
-            serde_json::Value::String(self.compile_chapter(chapter_data, path)?),
+            "description".to_owned(),
+            serde_json::Value::String(art.description),
         );
+        data.insert("content".to_owned(), serde_json::Value::String(art.content));
 
         // inject path_to_root
         data.insert("path_to_root".to_owned(), json!(self.path_to_root));
@@ -422,4 +436,9 @@ impl Project {
     //         dfs_elem(elem, &mut order);
     //     }
     // }
+}
+
+pub struct ChapterArtifact {
+    pub description: String,
+    pub content: String,
 }

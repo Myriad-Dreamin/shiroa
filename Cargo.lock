@@ -2933,6 +2933,7 @@ dependencies = [
  "typst-ts-compiler",
  "typst-ts-core",
  "typst-ts-svg-exporter",
+ "typst-ts-text-exporter",
  "vergen",
  "warp",
 ]
@@ -3745,6 +3746,15 @@ dependencies = [
  "reflexo",
  "siphasher 1.0.1",
  "tiny-skia",
+ "typst",
+ "typst-ts-core",
+]
+
+[[package]]
+name = "typst-ts-text-exporter"
+version = "0.5.0-rc4"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=6cc978011c16328b7aaa0dc660bb73818977475b#6cc978011c16328b7aaa0dc660bb73818977475b"
+dependencies = [
  "typst",
  "typst-ts-core",
 ]
