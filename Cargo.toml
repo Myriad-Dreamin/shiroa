@@ -27,6 +27,7 @@ typst = "0.11.1"
 typst-assets = "0.11.1"
 typst-ts-core = { version = "0.5.0-rc4" }
 typst-ts-compiler = { version = "0.5.0-rc4" }
+typst-ts-text-exporter = { version = "0.5.0-rc4" }
 typst-ts-svg-exporter = { version = "0.5.0-rc4", features = [
     "experimental-ligature",
 ] }
@@ -70,6 +71,7 @@ pathdiff = "0.2.1"
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.11.1-content-hint" }
 typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.11.1-content-hint" }
 typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-svg-exporter" }
+typst-ts-text-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-text-exporter" }
 typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-core" }
 typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "6cc978011c16328b7aaa0dc660bb73818977475b", package = "typst-ts-compiler" }
 

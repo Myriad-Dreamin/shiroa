@@ -21,7 +21,7 @@ use typst_ts_core::{
     config::{compiler::EntryOpts, CompileOpts},
     path::PathClean,
     vector::ir::{LayoutRegionNode, PageMetadata},
-    TakeAs, TypstAbs, TypstDocument,
+    TakeAs, Transformer, TypstAbs, TypstDocument,
 };
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
@@ -136,8 +136,10 @@ impl TypstRenderer {
             .ok_or_else(|| error_once!("compile book.typ"))
     }
 
-    pub fn compile_page(&mut self, path: &Path) -> ZResult<()> {
+    pub fn compile_page(&mut self, path: &Path) -> ZResult<Arc<TypstDocument>> {
         self.setup_entry(path);
+
+        let mut any_doc = None;
 
         for theme in THEME_LIST {
             self.set_theme_target(theme);
@@ -189,10 +191,23 @@ impl TypstRenderer {
                 });
 
             let res = self.compiler.compile(&mut self.fork_env::<true>());
-            self.report(res)
+            let doc = self
+                .report(res)
                 .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
+            any_doc = Some(doc.clone());
         }
 
-        Ok(())
+        any_doc.ok_or_else(|| error_once!("compile page.typ"))
+    }
+
+    pub fn generate_desc(&mut self, doc: &TypstDocument) -> ZResult<String> {
+        let e = typst_ts_text_exporter::TextExporter::default();
+        let mut w = std::io::Cursor::new(Vec::new());
+        e.export(self.compiler.world(), (Arc::new(doc.clone()), &mut w))
+            .map_err(|e| error_once!("export text", error: format!("{e:?}")))?;
+
+        let w = w.into_inner();
+
+        String::from_utf8(w).map_err(|e| error_once!("export text", error: format!("{e:?}")))
     }
 }
