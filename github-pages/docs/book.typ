@@ -4,10 +4,10 @@
 #show: book
 
 #book-meta(
-  title: "typst-book",
-  description: "typst-book Documentation",
-  repository: "https://github.com/Myriad-Dreamin/typst-book",
-  repository-edit: "https://github.com/Myriad-Dreamin/typst-book/edit/main/github-pages/docs/{path}",
+  title: "shiroa",
+  description: "shiroa Documentation",
+  repository: "https://github.com/Myriad-Dreamin/shiroa",
+  repository-edit: "https://github.com/Myriad-Dreamin/shiroa/edit/main/github-pages/docs/{path}",
   authors: ("Myriad-Dreamin", "7mile"),
   language: "en",
   summary: [ // begin of summary
@@ -41,7 +41,7 @@
         - #chapter("format/supports/sema-desc.typ")[Semantic Page Description]
     - #chapter(none)[For developers]
       - #chapter(none)[Typst-side APIs]
-      - #chapter(none)[typst-book CLI Internals]
+      - #chapter(none)[shiroa CLI Internals]
       - #chapter(none)[Alternative Backends]
     // end of summary
   ],

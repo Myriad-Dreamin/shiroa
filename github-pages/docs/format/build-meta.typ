@@ -26,4 +26,4 @@ The directory to put the rendered book in. By default this is `book/` in the boo
 )
 ```
 
-When you set it to `../dist`, `typst-book` will output the rendered book to `parent/to/book.typ/../../dist` or calculated `parent/dist`.
+When you set it to `../dist`, `shiroa` will output the rendered book to `parent/to/book.typ/../../dist` or calculated `parent/dist`.

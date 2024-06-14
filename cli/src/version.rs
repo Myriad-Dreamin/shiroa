@@ -45,7 +45,7 @@ impl VersionInfo {
     fn new() -> Self {
         Self {
             // todo: global app name
-            name: "typst-book",
+            name: "shiroa",
             version: VERSION,
             features: env!("VERGEN_CARGO_FEATURES").split(',').collect::<Vec<_>>(),
 

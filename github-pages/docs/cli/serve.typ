@@ -5,10 +5,10 @@
 = The serve command
 
 The serve command is used to preview a book by serving it via HTTP at
-`localhost:25520` by default: 
+`localhost:25520` by default:
 
 ```bash
-typst-book serve
+shiroa serve
 ```
 
 // The `serve` command  watches the book's `src` directory for
@@ -25,7 +25,7 @@ The `serve` command can take a directory as an argument to use as the book's
 root instead of the current working directory.
 
 ```bash
-typst-book serve path/to/book
+shiroa serve path/to/book
 ```
 
 == Build options
@@ -37,12 +37,12 @@ The `serve` command will build your book once before serving the content. It is 
 The `serve` address defaults to `localhost:25520`. Either option can be specified on the command line:
 
 ```bash
-typst-book serve path/to/book --addr 8000:127.0.0.1
+shiroa serve path/to/book --addr 8000:127.0.0.1
 ```
 
 === --open
 
-When you use the `--open` flag, typst-book will open the rendered book in
+When you use the `--open` flag, shiroa will open the rendered book in
 your default web browser after building it.
 
 // == Specify exclude patterns

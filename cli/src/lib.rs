@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use clap::{ArgAction, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[clap(name = "typst-book", version = "0.1.0")]
+#[clap(name = "shiroa", version = "0.1.0")]
 pub struct Opts {
     /// Print Version
     #[arg(short = 'V', long, group = "version-dump")]
@@ -28,7 +28,7 @@ pub struct Opts {
 
 #[derive(Debug, Subcommand)]
 #[clap(
-    about = "The cli for typst-book.",
+    about = "The cli for shiroa.",
     after_help = "",
     next_display_order = None
 )]
@@ -58,7 +58,7 @@ pub struct CompileArgs {
 
     /// Output to directory, default in the same directory as the entry file.
     /// Relative paths are interpreted relative to the book's root directory.
-    /// If omitted, typst-book uses build.build-dir from book.toml or defaults
+    /// If omitted, shiroa uses build.build-dir from book.toml or defaults
     /// to `./dist`.
     #[clap(long, short, default_value = "")]
     pub dest_dir: String,

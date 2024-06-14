@@ -27,7 +27,7 @@
   function get_theme() {
     var theme;
     try {
-      theme = localStorage.getItem('typst-book-theme');
+      theme = localStorage.getItem('shiroa-theme');
     } catch (e) {}
     if (theme === null || theme === undefined) {
       return default_theme;
@@ -45,7 +45,7 @@
 
     if (store) {
       try {
-        localStorage.setItem('typst-book-theme', theme);
+        localStorage.setItem('shiroa-theme', theme);
       } catch (e) {}
     }
 
@@ -160,7 +160,7 @@
     sidebarToggleButton.setAttribute('aria-expanded', true);
     sidebar.setAttribute('aria-hidden', false);
     try {
-      localStorage.setItem('typst-book-sidebar', 'visible');
+      localStorage.setItem('shiroa-sidebar', 'visible');
     } catch (e) {}
   }
 
@@ -183,7 +183,7 @@
     sidebarToggleButton.setAttribute('aria-expanded', false);
     sidebar.setAttribute('aria-hidden', true);
     try {
-      localStorage.setItem('typst-book-sidebar', 'hidden');
+      localStorage.setItem('shiroa-sidebar', 'hidden');
     } catch (e) {}
   }
 

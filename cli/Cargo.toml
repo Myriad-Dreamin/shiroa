@@ -1,6 +1,6 @@
 [package]
-name = "typst-book-cli"
-description = "Command line tool for typst-book."
+name = "shiroa-cli"
+description = "Command line tool for shiroa."
 authors.workspace = true
 version.workspace = true
 license.workspace = true
@@ -9,7 +9,7 @@ homepage.workspace = true
 repository.workspace = true
 
 [[bin]]
-name = "typst-book"
+name = "shiroa"
 path = "src/main.rs"
 test = false
 doctest = false

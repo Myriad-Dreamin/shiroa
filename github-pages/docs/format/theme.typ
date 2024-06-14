@@ -5,7 +5,7 @@
 = Theme
 
 The default renderer uses a #link("https://handlebarsjs.com")[handlebars] template to
-render your typst source files and comes with a default theme included in the `typst-book`
+render your typst source files and comes with a default theme included in the `shiroa`
 binary.
 
 Currently we have no much design on theme's html part. But you can still configure your book project like a regular typst project.
@@ -88,10 +88,10 @@ What is arguable, your `template.typ` must import and respect the `page-width` a
 // **Note:** When you override a file, it is possible that you break some
 // functionality. Therefore I recommend to use the file from the default theme as
 // template and only add / modify what you need. You can copy the default theme
-// into your source directory automatically by using `typst-book init --theme` and just
+// into your source directory automatically by using `shiroa init --theme` and just
 // remove the files you don't want to override.
 
-// `typst-book init --theme` will not create every file listed above.
+// `shiroa init --theme` will not create every file listed above.
 // Some files, such as `head.hbs`, do not have built-in equivalents.
 // Just create the file if you need it.
 

@@ -1,12 +1,12 @@
 [workspace.package]
 description = "A simple tool for creating modern online books in pure typst."
-authors = ["typst-book Developers"]
+authors = ["shiroa Developers"]
 version = "0.1.5"
 edition = "2021"
 readme = "README.md"
 license = "Apache-2.0"
-homepage = "https://github.com/Myriad-Dreamin/typst-book"
-repository = "https://github.com/Myriad-Dreamin/typst-book"
+homepage = "https://github.com/Myriad-Dreamin/shiroa"
+repository = "https://github.com/Myriad-Dreamin/shiroa"
 
 
 [workspace]

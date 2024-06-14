@@ -142,7 +142,7 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .query("<typst-book-internal-package-meta>".to_string(), &doc);
+                .query("<shiroa-internal-package-meta>".to_string(), &doc);
             let res = self
                 .tr
                 .report(res)
@@ -172,7 +172,7 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .query("<typst-book-book-meta>".to_string(), &doc);
+                .query("<shiroa-book-meta>".to_string(), &doc);
             let res = self
                 .tr
                 .report(res)
@@ -197,7 +197,7 @@ impl Project {
             let res = self
                 .tr
                 .compiler
-                .query("<typst-book-build-meta>".to_string(), &doc);
+                .query("<shiroa-build-meta>".to_string(), &doc);
             let res = self
                 .tr
                 .report(res)
@@ -243,7 +243,7 @@ impl Project {
             include_bytes!("../../assets/artifacts/svg_utils.cjs"),
         )?;
         write_file(
-            self.dest_dir.join("internal/typst-book.js"),
+            self.dest_dir.join("internal/shiroa.js"),
             include_bytes!("../../assets/artifacts/book.mjs"),
         )?;
 

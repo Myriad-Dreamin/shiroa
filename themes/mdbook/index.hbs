@@ -80,15 +80,15 @@
         {{!-- window.captureStack = function() { return new Error(); } --}}
     </script>
 
-    <script id="typst-book-js" type="module" src="{{ path_to_root }}internal/typst-book.js"></script>
-    {{!-- <script id="typst-book-js" type="module" src="/dev/frontend/dist/book.mjs"></script> --}}
+    <script id="shiroa-js" type="module" src="{{ path_to_root }}internal/shiroa.js"></script>
+    {{!-- <script id="shiroa-js" type="module" src="/dev/frontend/dist/book.mjs"></script> --}}
     <script>
         window.typstRerender = () => { };
         window.typstChangeTheme = () => { };
 
         var typstBookJsLoaded = new Promise((resolve, reject) => {
-            document.getElementById('typst-book-js').addEventListener('load', resolve);
-            document.getElementById('typst-book-js').addEventListener('error', reject);
+            document.getElementById('shiroa-js').addEventListener('load', resolve);
+            document.getElementById('shiroa-js').addEventListener('error', reject);
         });
 
         var rendererWasmModule = fetch('{{ renderer_module }}');
@@ -101,7 +101,7 @@
                     getModule: () => rendererWasmModule,
                 }).then(() => typstRenderModule);
         }).catch((err) => {
-            console.error('typst-book.js failed to load', err);
+            console.error('shiroa.js failed to load', err);
         });
     </script>
 
@@ -124,15 +124,15 @@
                 localStorage.removeItem('mdbook-sidebar');
             } catch (e) { }
             try {
-                var theme = localStorage.getItem('typst-book-theme');
-                var sidebar = localStorage.getItem('typst-book-sidebar');
+                var theme = localStorage.getItem('shiroa-theme');
+                var sidebar = localStorage.getItem('shiroa-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
-                    localStorage.setItem('typst-book-theme', theme.slice(1, theme.length - 1));
+                    localStorage.setItem('shiroa-theme', theme.slice(1, theme.length - 1));
                 }
 
                 if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
-                    localStorage.setItem('typst-book-sidebar', sidebar.slice(1, sidebar.length - 1));
+                    localStorage.setItem('shiroa-sidebar', sidebar.slice(1, sidebar.length - 1));
                 }
             } catch (e) { }
         </script>
@@ -141,7 +141,7 @@
         <script>
             window.getTypstTheme = function getTypstTheme() {
                 var _theme;
-                try { _theme = localStorage.getItem('typst-book-theme'); } catch (e) { }
+                try { _theme = localStorage.getItem('shiroa-theme'); } catch (e) { }
                 if (_theme === null || _theme === undefined) { _theme = default_theme; }
                 window.typstBookTheme = _theme;
                 return _theme;
@@ -163,7 +163,7 @@
             var html = document.querySelector('html');
             var sidebar = null;
             if (document.body.clientWidth >= 800) {
-                try { sidebar = localStorage.getItem('typst-book-sidebar'); } catch (e) { }
+                try { sidebar = localStorage.getItem('shiroa-sidebar'); } catch (e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';

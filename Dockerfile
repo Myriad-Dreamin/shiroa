@@ -14,8 +14,8 @@ WORKDIR /app
 COPY --from=build-yarn /app/frontend /app/frontend
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 RUN apt-get install -y git \
-    && cargo build -p typst-book-cli --release
+    && cargo build -p shiroa-cli --release
 
 FROM debian:11
 WORKDIR /root/
-COPY --from=build  /app/target/release/typst-book /bin
+COPY --from=build  /app/target/release/shiroa /bin

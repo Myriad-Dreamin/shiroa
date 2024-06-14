@@ -1,6 +1,6 @@
 [package]
-name = "typst-book-build"
-description = "Build typst-book from source."
+name = "shiroa-build"
+description = "Build shiroa from source."
 authors.workspace = true
 version.workspace = true
 license.workspace = true

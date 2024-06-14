@@ -1,12 +1,12 @@
 {
-  "name": "typst-book",
+  "name": "shiroa",
   "version": "0.1.5",
   "description": "Typst Book.",
   "main": "dist/main.js",
-  "repository": "https://github.com/Myriad-Dreamin/typst-book",
+  "repository": "https://github.com/Myriad-Dreamin/shiroa",
   "author": "Myriad-Dreamin",
   "contributors": [
-    "typst-book Developers"
+    "shiroa Developers"
   ],
   "scripts": {
     "build": "tsc && vite build",

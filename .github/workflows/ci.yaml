@@ -1,4 +1,4 @@
-name: typst_book::ci
+name: shiroa::ci
 on: [push, pull_request]
 
 env:
@@ -27,6 +27,6 @@ jobs:
           cargo build --release --workspace
       - name: Build Book
         run: |
-          cargo run --release --bin typst-book -- build --path-to-root /typst-book/ -w . github-pages/docs
+          cargo run --release --bin shiroa -- build --path-to-root /shiroa/ -w . github-pages/docs
       - name: Test
         run: cargo test --workspace --no-fail-fast

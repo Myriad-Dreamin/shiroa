@@ -1,4 +1,4 @@
-// This is important for typst-book to produce a responsive layout
+// This is important for shiroa to produce a responsive layout
 // and multiple targets.
 #import "@preview/book:0.2.5": get-page-width, target, is-web-target, is-pdf-target, plain-text
 
@@ -24,13 +24,13 @@
   "Charter",
   "Source Han Serif SC",
   "Source Han Serif TC",
-  // typst-book's embedded font
+  // shiroa's embedded font
   "Linux Libertine",
 )
 
 #let code-font = (
   "BlexMono Nerd Font Mono",
-  // typst-book's embedded font
+  // shiroa's embedded font
   "DejaVu Sans Mono",
 )
 
@@ -39,16 +39,16 @@
 
 #let code-extra-colors = if code-theme-file.len() > 0 {
   let data = xml(theme-style.at("code-theme")).first()
-  
+
   let find-child(elem, tag) = {
     elem.children.find(e => "tag" in e and e.tag == tag)
   }
-  
+
   let find-kv(elem, key, tag) = {
     let idx = elem.children.position(e => "tag" in e and e.tag == "key" and e.children.first() == key)
     elem.children.slice(idx).find(e => "tag" in e and e.tag == tag)
   }
-  
+
   let plist-dict = find-child(data, "dict")
   let plist-array = find-child(plist-dict, "array")
   let theme-setting = find-child(plist-array, "dict")
@@ -80,14 +80,14 @@
     author: authors,
     title: title,
   ) if not is-pdf-target
-  
+
   // set web/pdf page properties
   set page(
     numbering: none,
     number-align: center,
     width: page-width,
   )
-  
+
   // remove margins for web target
   set page(
     margin: (
@@ -103,7 +103,7 @@
     ),
     height: auto,
   ) if is-web-target
-  
+
   // set text style
   set text(
     font: main-font,
@@ -111,14 +111,14 @@
     fill: main-color,
     lang: "en",
   )
-  
+
   let ld = state("label-disambiguator", (:))
   let update-ld(k) = ld.update(it => {
     it.insert(k, it.at(k, default: 0) + 1)
     it
   })
   let get-ld(loc, k) = make-unique-label(k, disambiguator: ld.at(loc).at(k))
-  
+
   // render a dash to hint headings instead of bolding it.
   show heading: set text(weight: "regular") if is-web-target
   show heading: it => {
@@ -148,13 +148,13 @@
       it
     })
   }
-  
+
   // link setting
   show link: set text(fill: dash-color)
-  
+
   // math setting
   show math.equation: set text(weight: 400)
-  
+
   // code block setting
   show raw: it => {
     set text(font: code-font)
@@ -175,10 +175,10 @@
       it
     }
   }
-  
+
   // Main body.
   set par(justify: true)
-  
+
   body
 }
 
