@@ -10,10 +10,8 @@ pub struct HtmlRenderer {
 }
 
 impl HtmlRenderer {
-    pub fn new() -> Self {
+    pub fn new(theme: &theme::Theme) -> Self {
         let mut handlebars = Handlebars::new();
-        // todo std::path::Path::new("themes/mdbook")
-        let theme = theme::Theme::default();
 
         debug!("Register the index handlebars template");
         handlebars
@@ -288,10 +286,4 @@ fn write_li_open_tag(
     }
     li.push_str("\">");
     out.write(&li)
-}
-
-impl Default for HtmlRenderer {
-    fn default() -> Self {
-        Self::new()
-    }
 }

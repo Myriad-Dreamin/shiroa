@@ -26,17 +26,17 @@
     {{#if favicon_png}}
     <link rel="shortcut icon" href="{{ path_to_root }}favicon.png">
     {{/if}}
-    <link rel="stylesheet" href="{{ path_to_root }}css/variables.css">
-    <link rel="stylesheet" href="{{ path_to_root }}css/general.css">
-    <link rel="stylesheet" href="{{ path_to_root }}css/chrome.css">
+    <link rel="stylesheet" href="{{ path_to_root }}theme/css/variables.css">
+    <link rel="stylesheet" href="{{ path_to_root }}theme/css/general.css">
+    <link rel="stylesheet" href="{{ path_to_root }}theme/css/chrome.css">
     {{#if print_enable}}
-    <link rel="stylesheet" href="{{ path_to_root }}css/print.css" media="print">
+    <link rel="stylesheet" href="{{ path_to_root }}theme/css/print.css" media="print">
     {{/if}}
 
     <!-- Fonts -->
-    <link rel="stylesheet" href="{{ path_to_root }}FontAwesome/css/font-awesome.css">
+    <link rel="stylesheet" href="{{ path_to_root }}theme/FontAwesome/css/font-awesome.css">
     {{#if copy_fonts}}
-    <link rel="stylesheet" href="{{ path_to_root }}fonts/fonts.css">
+    <link rel="stylesheet" href="{{ path_to_root }}theme/fonts/fonts.css">
     {{/if}}
 
     <!-- Custom theme stylesheets -->
@@ -80,7 +80,7 @@
         {{!-- window.captureStack = function() { return new Error(); } --}}
     </script>
 
-    <script id="typst-book-js" type="module" src="{{ path_to_root }}typst-book.js"></script>
+    <script id="typst-book-js" type="module" src="{{ path_to_root }}internal/typst-book.js"></script>
     {{!-- <script id="typst-book-js" type="module" src="/dev/frontend/dist/book.mjs"></script> --}}
     <script>
         window.typstRerender = () => { };
@@ -237,7 +237,7 @@
 
                     <div class="right-buttons">
                         {{#if print_enable}}
-                        <a href="{{ path_to_root }}print.html" title="Print this book" aria-label="Print this book">
+                        <a href="{{ path_to_root }}theme/print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         {{/if}}
@@ -322,9 +322,9 @@
 
         </div>
 
-        <script src="{{ path_to_root }}svg_utils.js"></script>
+        <script src="{{ path_to_root }}internal/svg_utils.js"></script>
         {{!-- <script src="/dev/frontend/src/svg_utils.cjs"></script> --}}
-        <script src="{{ path_to_root }}index.js"></script>
+        <script src="{{ path_to_root }}theme/index.js"></script>
 
     </div>
 </body>
