@@ -1,3 +1,13 @@
+# v0.1.5
+
+## Changelog since v0.1.5
+
+- Fixed documentation about building by @duskmoon314 in https://github.com/Myriad-Dreamin/typst-book/pull/67
+- Updated typst.ts to v0.5.0-rc4 (with canvas improvements) in https://github.com/Myriad-Dreamin/typst-book/pull/70
+- Supported basic theming in https://github.com/Myriad-Dreamin/typst-book/pull/71
+
+**Full Changelog**: https://github.com/Myriad-Dreamin/typst-book/compare/v0.1.4...v0.1.5
+
 # v0.1.4
 
 ## Changelog since v0.1.4

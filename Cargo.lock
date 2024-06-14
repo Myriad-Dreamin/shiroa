@@ -3584,14 +3584,14 @@ checksum = "2b3061f8d268e8eec7481c9ab24540455cb4912983c49aae38fa6e8bf8ef4d9c"
 
 [[package]]
 name = "typst-book-build"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
 ]
 
 [[package]]
 name = "typst-book-cli"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "clap",
