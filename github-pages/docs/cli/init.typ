@@ -9,22 +9,22 @@ The `init` command will try to initialize your book to build your book successfu
 For instance, Initialize a book to the directory `my-book`:
 
 ```bash
-typst-book init my-book/
-typst-book build my-book/
+shiroa init my-book/
+shiroa build my-book/
 ```
 
 Initialize a book with specific typst workspace directory:
 
 ```bash
-typst-book init -w . my-book/
-typst-book build -w . my-book/
+shiroa init -w . my-book/
+shiroa build -w . my-book/
 ```
 
 Initialize a book with specific `dest-dir`:
 
 ```bash
-typst-book init --dest-dir ../dist my-book/
-typst-book build my-book/ # memoryized dest-dir
+shiroa init --dest-dir ../dist my-book/
+shiroa build my-book/ # memoryized dest-dir
 ```
 
 == Things to note

@@ -4,15 +4,15 @@
 
 = Creating a Book
 
-Once you have the `typst-book` CLI tool installed, you can use it to create and render a book.
+Once you have the `shiroa` CLI tool installed, you can use it to create and render a book.
 
 == Initializing a book
 
-The `typst-book init` command will create a new directory containing an empty book for you to get started.
+The `shiroa init` command will create a new directory containing an empty book for you to get started.
 Give it the name of the directory that you want to create:
 
 ```sh
-typst-book init my-first-book
+shiroa init my-first-book
 ```
 
 It will ask a few questions before generating the book.
@@ -25,13 +25,13 @@ cd my-first-book
 There are several ways to render a book, but one of the easiest methods is to use the `serve` command, which will build your book and start a local webserver:
 
 ```sh
-typst-book serve
+shiroa serve
 ```
 
 // The `--open` option will open your default web browser to view your new book.
-// You can leave the server running even while you edit the content of the book, and `typst-book` will automatically rebuild the output *and* automatically refresh your web browser.
+// You can leave the server running even while you edit the content of the book, and `shiroa` will automatically rebuild the output *and* automatically refresh your web browser.
 
-Check out the `typst-book help` for more information about other `typst-book` commands and CLI options.
+Check out the `shiroa help` for more information about other `shiroa` commands and CLI options.
 
 == Anatomy of a book
 
@@ -52,9 +52,9 @@ Here's a basic summary file with a few chapters:
 #show: book
 
 #book-meta( // put metadata of your book like book.toml of mdbook
-  title: "typst-book",
-  description: "typst-book Documentation",
-  repository: "https://github.com/Myriad-Dreamin/typst-book",
+  title: "shiroa",
+  description: "shiroa Documentation",
+  repository: "https://github.com/Myriad-Dreamin/shiroa",
   authors: ("Myriad-Dreamin", "7mile"),
   language: "en",
   summary: [ // this field works like summary.md of mdbook
@@ -67,7 +67,7 @@ Here's a basic summary file with a few chapters:
 ```
 
 Try opening up `src/book.typ` in your editor and adding a few chapters.
-// If any of the chapter files do not exist, `typst-book` will automatically create them for you.
+// If any of the chapter files do not exist, `shiroa` will automatically create them for you.
 
 // For more details on other formatting options for the summary file, check out the [Summary chapter](../format/summary.typ).
 
@@ -86,10 +86,10 @@ Fill out your content here.
 The precise layout of the files is up to you.
 The organization of the files will correspond to the HTML files generated, so keep in mind that the file layout is part of the URL of each chapter.
 
-// While the `typst-book serve` command is running, you can open any of the chapter files and start editing them.
-// Each time you save the file, `typst-book` will rebuild the book and refresh your web browser.
+// While the `shiroa serve` command is running, you can open any of the chapter files and start editing them.
+// Each time you save the file, `shiroa` will rebuild the book and refresh your web browser.
 
-// Check out the #link("https://rust-lang.github.io/myriad-dreamin/typst-book/format/typst.html")[Typst chapter] for more information on formatting the content of your chapters.
+// Check out the #link("https://rust-lang.github.io/myriad-dreamin/shiroa/format/typst.html")[Typst chapter] for more information on formatting the content of your chapters.
 
 All other files in the `src` directory will be included in the output.
 So if you have images or other static files, just include them somewhere in the `src` directory.
@@ -98,10 +98,10 @@ So if you have images or other static files, just include them somewhere in the 
 
 Once you've written your book, you may want to host it somewhere for others to view.
 The first step is to build the output of the book.
-This can be done with the `typst-book build` command in the same directory where the `book.toml` file is located:
+This can be done with the `shiroa build` command in the same directory where the `book.toml` file is located:
 
 ```sh
-typst-book build
+shiroa build
 ```
 
 This will generate a directory named `book` which contains the HTML content of your book.

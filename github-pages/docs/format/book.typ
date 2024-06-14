@@ -8,11 +8,11 @@
 
 The `book.typ` consists of many meta sections describing your book project. If you are familiar with `mdbook`, the `book.typ` file is similar to the `book.toml` with `summary.md` file.
 
-The main file is used by `typst-book` to know what chapters to include, in what
+The main file is used by `shiroa` to know what chapters to include, in what
 order they should appear, what their hierarchy is and where the source files
 are. Without this file, there is no book.
 
-Since the `book.typ` is merely a typst source file, you can import them everywhere, which could be quite useful. For example, to export project to a single PDF file, an #link("https://github.com/Myriad-Dreamin/typst-book/blob/b9fc82b0d7f7009dfcaaf405d32f8ab044960e4f/github-pages/docs/pdf.typ")[ebook] file can aggregate all source files of this project according to the imported `book-meta.summary` metadata from `book.typ`.
+Since the `book.typ` is merely a typst source file, you can import them everywhere, which could be quite useful. For example, to export project to a single PDF file, an #link("https://github.com/Myriad-Dreamin/shiroa/blob/b9fc82b0d7f7009dfcaaf405d32f8ab044960e4f/github-pages/docs/pdf.typ")[ebook] file can aggregate all source files of this project according to the imported `book-meta.summary` metadata from `book.typ`.
 
 == book-meta
 
@@ -22,7 +22,7 @@ Specify general metadata of the book project. For example:
 
 ```typ
 #book-meta(
-  title: "typst-book",
+  title: "shiroa",
   authors: ("Myriad-Dreamin", "7mile"),
   summary: [ // this field works like summary.md of mdbook
     #prefix-chapter("pre.typ")[Prefix Chapter]
@@ -53,6 +53,6 @@ Specify build metadata of the book project. For example:
 )
 ```
 
-When you set `build-meta.dest-dir` to `../dist`, `typst-book` will output the generated content to `parent/to/book.typ/../../dist` or `parent/dist`.
+When you set `build-meta.dest-dir` to `../dist`, `shiroa` will output the generated content to `parent/to/book.typ/../../dist` or `parent/dist`.
 
 See #cross-link("/format/build-meta.typ")[Build Metadata] for more details.

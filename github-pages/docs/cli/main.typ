@@ -5,17 +5,17 @@
 = Command Line Tool
 
 // todo: cross link
-The `typst-book` command-line tool is used to create and build books.
-After you have #cross-link("/guide/installation.typ")[installed] `typst-book`, you can run the `typst-book help` command in your terminal to view the available commands.
+The `shiroa` command-line tool is used to create and build books.
+After you have #cross-link("/guide/installation.typ")[installed] `shiroa`, you can run the `shiroa help` command in your terminal to view the available commands.
 
 This following sections provide in-depth information on the different commands available.
 
 // todo: cross link
-- #cross-link("/cli/init.typ")[`typst-book init <directory>`] — Creates a new book with minimal boilerplate to start with.
-- #cross-link("/cli/build.typ")[`typst-book build`] — Renders the book.
-- #cross-link("/cli/serve.typ")[`typst-book serve`] — Runs a web server to view the book, and rebuilds on changes.
-- #cross-link("/cli/clean.typ")[`typst-book clean`] — Deletes the rendered output.
-- #cross-link("/cli/completions.typ")[`typst-book completions`] — Support for shell auto-completion.
+- #cross-link("/cli/init.typ")[`shiroa init <directory>`] — Creates a new book with minimal boilerplate to start with.
+- #cross-link("/cli/build.typ")[`shiroa build`] — Renders the book.
+- #cross-link("/cli/serve.typ")[`shiroa serve`] — Runs a web server to view the book, and rebuilds on changes.
+- #cross-link("/cli/clean.typ")[`shiroa clean`] — Deletes the rendered output.
+- #cross-link("/cli/completions.typ")[`shiroa completions`] — Support for shell auto-completion.
 
 = Note about the missing `watch` command
 

@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
-use typst_book_cli::{
+use shiroa_cli::{
     error::prelude::*,
     project::Project,
     utils::{async_continue, create_dirs, make_absolute, write_file, UnwrapOrExit},
@@ -105,7 +105,7 @@ async fn init(args: InitArgs) -> ZResult<()> {
 #show: book
 
 #book-meta(
-  title: "typst-book",
+  title: "shiroa",
   summary: [
     #prefix-chapter("sample-page.typ")[Hello, typst]
   ]

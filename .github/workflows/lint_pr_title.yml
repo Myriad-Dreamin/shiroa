@@ -1,4 +1,4 @@
-name: typst_book::lint_pr_title
+name: shiroa::lint_pr_title
 on:
   pull_request:
     types: [opened, edited, synchronize]

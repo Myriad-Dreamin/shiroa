@@ -21,10 +21,10 @@
 #let book-meta-state = state("book-meta", none)
 
 /// helper function to get (and print/use) the final book metadata
-#let get-book-meta() = _labeled-meta(<typst-book-book-meta>)
+#let get-book-meta() = _labeled-meta(<shiroa-book-meta>)
 
 /// helper function to get (and print/use) the final build metadata
-#let get-build-meta() = _labeled-meta(<typst-book-build-meta>)
+#let get-build-meta() = _labeled-meta(<shiroa-build-meta>)
 
 /// Book metadata in summary.typ
 ///
@@ -47,16 +47,16 @@
     language: "", // default "en"
     summary: none,
 ) = [
-    #metadata((
-      kind: "book",
-      title: title,
-      description: description,
-      repository: repository,
-      repository_edit: repository-edit,
-      authors: authors,
-      language: language,
-      summary: summary,
-    )) <typst-book-raw-book-meta>
+  #metadata((
+    kind: "book",
+    title: title,
+    description: description,
+    repository: repository,
+    repository_edit: repository-edit,
+    authors: authors,
+    language: language,
+    summary: summary,
+  )) <shiroa-raw-book-meta>
 ]
 
 /// Build metadata in summary.typ
@@ -64,14 +64,14 @@
 /// the book's root directory. This can overridden with the --dest-dir CLI
 /// option.
 #let build-meta(
-    dest-dir: "",
+  dest-dir: "",
 ) = [
-    #metadata((
-      "dest-dir": dest-dir
-    )) <typst-book-build-meta>
+  #metadata((
+    "dest-dir": dest-dir,
+  )) <shiroa-build-meta>
 ]
 
-#let link2page = state("typst-book-link2page", (:))
+#let link2page = state("shiroa-link2page", (:))
 
 #let encode-url-component(s) = {
   let prev = false
@@ -113,7 +113,7 @@
     }
 
     if reference != none {
-      let result = query(reference, loc);
+      let result = query(reference, loc)
       // whether it is internal link
       if result.len() > 0 {
         link(reference, content)
@@ -122,20 +122,23 @@
     }
     // assert(read(path) != none, message: "no such file")
 
-    link({
-      "cross-link://jump?path-label="
-      path-lbl
-      if reference != none {
-        "&label="
-        encode-url-component(str(reference))
-      }
-    }, content)
+    link(
+      {
+        "cross-link://jump?path-label="
+        path-lbl
+        if reference != none {
+          "&label="
+          encode-url-component(str(reference))
+        }
+      },
+      content,
+    )
   })
 }
 
 // Collect text content of element recursively into a single string
 // https://discord.com/channels/1054443721975922748/1088371919725793360/1138586827708702810
-// https://github.com/Myriad-Dreamin/typst-book/issues/55
+// https://github.com/Myriad-Dreamin/shiroa/issues/55
 #let _styled = smallcaps("").func();
 #let _equation = $1$.func();
 #let _sequence = [].func();
@@ -153,7 +156,11 @@
   } else if f == text or f == raw {
     it.text
   } else if f == smartquote {
-    if it.double { "\"" } else { "'" }
+    if it.double {
+      "\""
+    } else {
+      "'"
+    }
   } else if f == _sequence {
     it.children.map(plain-text).filter(t => type(t) == str).join()
   } else {
@@ -191,10 +198,10 @@
 /// #chapter("chapter2.typ", section: "1.2")["Chapter 1.2"]
 /// ```
 #let chapter(link, title, section: auto) = metadata((
-    kind: "chapter",
-    link: link,
-    section: section,
-    title: _store-content(title),
+  kind: "chapter",
+  link: link,
+  section: section,
+  title: _store-content(title),
 ))
 
 /// Represents a prefix/suffix chapter in the book
@@ -210,7 +217,7 @@
 
 /// Represents a divider in the summary sidebar
 #let divider = metadata((
-    kind: "divider"
+  kind: "divider",
 ))
 
 /// Internal method to convert summary content nodes
@@ -218,14 +225,14 @@
 
   // The entry point of the metadata nodes
   if metadata == elem.func() {
-    
+
     // convert any metadata elem to its value
     let node = elem.value
 
     // Convert the summary content inside the book elem
     if node.at("kind") == "book" {
-        let summary = node.at("summary")
-        node.insert("summary", _convert-summary(summary))
+      let summary = node.at("summary")
+      node.insert("summary", _convert-summary(summary))
     }
 
     return node
@@ -234,9 +241,9 @@
   // convert a heading element to a part elem
   if heading == elem.func() {
     return (
-        kind: "part",
-        level: elem.depth,
-        title:  _store-content(elem.body),
+      kind: "part",
+      level: elem.depth,
+      title: _store-content(elem.body),
     )
   }
 
@@ -247,23 +254,23 @@
     let maybe-children = _convert-summary(elem.body)
 
     if type(maybe-children) == "array" {
-        // if the list-item has children, then process subchapters
+      // if the list-item has children, then process subchapters
 
-        if maybe-children.len() <= 0 {
-            panic("invalid list-item, no maybe-children")
-        }
+      if maybe-children.len() <= 0 {
+        panic("invalid list-item, no maybe-children")
+      }
 
-        // the first child is the chapter itself
-        let node = maybe-children.at(0)
+      // the first child is the chapter itself
+      let node = maybe-children.at(0)
 
-        // the rest are subchapters
-        let rest = maybe-children.slice(1)
-        node.insert("sub", rest)
+      // the rest are subchapters
+      let rest = maybe-children.slice(1)
+      node.insert("sub", rest)
 
-        return node
+      return node
     } else {
-        // no children, return the list-item itself
-        return maybe-children
+      // no children, return the list-item itself
+      return maybe-children
     }
   }
 
@@ -285,14 +292,14 @@
   for c in meta {
     // skip non-chapter nodes or nodes without section number
     if c.at("kind") != "chapter" or c.at("section") == none {
-      (c, )
+      (c,)
       continue
     }
 
     // default incremental section
     let idx = cnt
     cnt += 1
-    let num = base + (idx, )
+    let num = base + (idx,)
     // c.insert("auto-section", num)
 
     let user-specified = c.at("section")
@@ -307,9 +314,12 @@
         user-specified.split(".").map(int)
       } else if type(user-specified) == array {
         for n in user-specified {
-          assert(type(n) == int, message: "invalid type of section counter specified " + repr(user-specified) + ", want number in array")
+          assert(
+            type(n) == int,
+            message: "invalid type of section counter specified " + repr(user-specified) + ", want number in array",
+          )
         }
-        
+
         // e.g. (1, 2, 3)
         user-specified
       } else {
@@ -318,7 +328,7 @@
 
       // update cnt
       cnt = num.last() + 1
-    } 
+    }
 
     // update section number
     let auto-num = num.map(str).join(".")
@@ -329,7 +339,7 @@
       c.sub = _numbering-sections(c.at("sub"), base: num)
     }
 
-    (c, )
+    (c,)
   }
 }
 
@@ -340,16 +350,16 @@
 /// ```
 #let book(content) = {
   // set page(width: 300pt, margin: (left: 10pt, right: 10pt, rest: 0pt))
-  [#metadata(toml("typst.toml")) <typst-book-internal-package-meta>]
+  [#metadata(toml("typst.toml")) <shiroa-internal-package-meta>]
 
   locate(loc => {
-    let data = query(<typst-book-raw-book-meta>, loc).at(0)
+    let data = query(<shiroa-raw-book-meta>, loc).at(0)
     let meta = _convert-summary(data)
     meta.at("summary") = _numbering-sections(meta.at("summary"))
 
     book-meta-state.update(meta)
     [
-      #metadata(meta) <typst-book-book-meta>
+      #metadata(meta) <shiroa-book-meta>
     ]
   })
 
@@ -357,14 +367,16 @@
   //   node
   // }
   // #sidebar-gen(converted)
-// #get-book-meta()
+  // #get-book-meta()
   content
 }
 
 #let external-book(spec: none) = {
-  place(hide[
-    #spec
-  ])
+  place(
+    hide[
+      #spec
+    ],
+  )
 }
 
 #let visit-summary(x, visit) = {
@@ -389,7 +401,7 @@
         }
       }
 
-      show : it => {
+      show: it => {
         let abs-link = cross-link-path-label("/" + link)
         locate(loc => {
           link2page.update(it => {
@@ -400,7 +412,7 @@
 
         it
       }
-     
+
       visit.at("chapter")(chapter-content)
     }
 

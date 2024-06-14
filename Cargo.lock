@@ -2904,6 +2904,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "shiroa-build"
+version = "0.1.5"
+dependencies = [
+ "anyhow",
+]
+
+[[package]]
+name = "shiroa-cli"
+version = "0.1.5"
+dependencies = [
+ "anyhow",
+ "clap",
+ "clap_complete",
+ "clap_complete_fig",
+ "comemo",
+ "env_logger",
+ "handlebars",
+ "include_dir",
+ "log",
+ "pathdiff",
+ "serde",
+ "serde_json",
+ "tokio",
+ "toml",
+ "typst",
+ "typst-assets",
+ "typst-ts-compiler",
+ "typst-ts-core",
+ "typst-ts-svg-exporter",
+ "vergen",
+ "warp",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3581,40 +3615,6 @@ name = "typst-assets"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b3061f8d268e8eec7481c9ab24540455cb4912983c49aae38fa6e8bf8ef4d9c"
-
-[[package]]
-name = "typst-book-build"
-version = "0.1.5"
-dependencies = [
- "anyhow",
-]
-
-[[package]]
-name = "typst-book-cli"
-version = "0.1.5"
-dependencies = [
- "anyhow",
- "clap",
- "clap_complete",
- "clap_complete_fig",
- "comemo",
- "env_logger",
- "handlebars",
- "include_dir",
- "log",
- "pathdiff",
- "serde",
- "serde_json",
- "tokio",
- "toml",
- "typst",
- "typst-assets",
- "typst-ts-compiler",
- "typst-ts-core",
- "typst-ts-svg-exporter",
- "vergen",
- "warp",
-]
 
 [[package]]
 name = "typst-macros"

@@ -21,7 +21,7 @@ pub fn async_continue<F: std::future::Future<Output = ()>>(f: F) -> ! {
 pub fn exit_with_error<E: std::error::Error>(err: E) -> ! {
     clap::Error::raw(
         clap::error::ErrorKind::ValueValidation,
-        format!("typst-book error: {}", err),
+        format!("shiroa error: {}", err),
     )
     .exit()
 }
