@@ -459,8 +459,6 @@ impl TypstRenderer {
 
         let built_outline = built_outline.unwrap();
 
-        // todo: separate pages into multiple files
-
         #[derive(Default)]
         struct SeparatedChapters {
             theme: String,
