@@ -121,11 +121,6 @@ impl Project {
             include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/book"),
         );
 
-        release_packages(
-            proj.tr.compiler.world_mut(),
-            include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/variables"),
-        );
-
         if matches!(proj.meta_source, MetaSource::Strict) {
             assert!(entry_file.is_none());
             proj.compile_meta()?;
@@ -189,12 +184,12 @@ impl Project {
 
             let package_meta = res
                 .first()
-                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/book:0.2.5; or do you forget the show rule `#show: book`?)"))?;
+                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/shiroa:0.1.0; or do you forget the show rule `#show: book`?)"))?;
 
             let InternalPackageMeta::Package { version } = &package_meta.value;
-            if version != "0.2.5" {
+            if version != "0.1.0" {
                 return Err(error_once!(
-                    "outdated book package, please import @preview/book:0.2.5", importing_version: version,
+                    "outdated book package, please import @preview/shiroa:0.1.0", importing_version: version,
                 ));
             }
         }

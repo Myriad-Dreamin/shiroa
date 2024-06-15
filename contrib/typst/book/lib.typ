@@ -1,7 +1,7 @@
 
-#import "@preview/typst-ts-variables:0.1.0": page-width, target
+#import "sys.typ": target, page-width
 
-// export typst.ts variables again, don't import typst-ts-variables directly
+// export typst.ts variables again, don't use sys arguments directly
 #let get-page-width() = page-width
 #let target = target
 #let is-web-target() = target.starts-with("web")
