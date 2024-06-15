@@ -1,6 +1,6 @@
 // This is important for shiroa to produce a responsive layout
 // and multiple targets.
-#import "@preview/book:0.2.5": get-page-width, target, is-web-target, is-pdf-target, plain-text
+#import "@preview/shiroa:0.1.0": get-page-width, target, is-web-target, is-pdf-target, plain-text
 
 #let page-width = get-page-width()
 #let is-pdf-target = is-pdf-target()

@@ -1,4 +1,4 @@
-#import "@preview/book:0.2.5": *
+#import "@preview/shiroa:0.1.0": *
 #import "/contrib/typst/gh-pages.typ": project, part-style
 
 #let _page-project = project
@@ -12,25 +12,25 @@
     author: authors,
     title: title,
   )
-  
+
   // inherit from gh-pages
   show: _page-project
-  
+
   if title != "" {
     heading(title)
   }
-  
+
   locate(loc => {
     let inc = _resolve-inclusion-state.final(loc)
     external-book(spec: inc(spec))
-    
+
     let mt = book-meta-state.final(loc)
     let styles = (inc: inc, part: part-style, chapter: it => it)
-    
+
     if mt != none {
       mt.summary.map(it => visit-summary(it, styles)).sum()
     }
   })
-  
+
   content
 }
