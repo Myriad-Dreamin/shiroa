@@ -2449,7 +2449,7 @@ dependencies = [
 [[package]]
 name = "reflexo"
 version = "0.5.0-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=6cc978011c16328b7aaa0dc660bb73818977475b#6cc978011c16328b7aaa0dc660bb73818977475b"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=b5371c5821b962617272b38b18cb2c1ee4110c99#b5371c5821b962617272b38b18cb2c1ee4110c99"
 dependencies = [
  "base64 0.22.0",
  "bitvec",
@@ -2935,6 +2935,7 @@ dependencies = [
  "typst-ts-core",
  "typst-ts-svg-exporter",
  "typst-ts-text-exporter",
+ "url",
  "vergen",
  "warp",
 ]
@@ -3659,7 +3660,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-compiler"
 version = "0.5.0-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=6cc978011c16328b7aaa0dc660bb73818977475b#6cc978011c16328b7aaa0dc660bb73818977475b"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=b5371c5821b962617272b38b18cb2c1ee4110c99#b5371c5821b962617272b38b18cb2c1ee4110c99"
 dependencies = [
  "append-only-vec",
  "base64 0.22.0",
@@ -3696,7 +3697,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-core"
 version = "0.5.0-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=6cc978011c16328b7aaa0dc660bb73818977475b#6cc978011c16328b7aaa0dc660bb73818977475b"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=b5371c5821b962617272b38b18cb2c1ee4110c99#b5371c5821b962617272b38b18cb2c1ee4110c99"
 dependencies = [
  "base64 0.22.0",
  "base64-serde",
@@ -3737,7 +3738,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-svg-exporter"
 version = "0.5.0-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=6cc978011c16328b7aaa0dc660bb73818977475b#6cc978011c16328b7aaa0dc660bb73818977475b"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=b5371c5821b962617272b38b18cb2c1ee4110c99#b5371c5821b962617272b38b18cb2c1ee4110c99"
 dependencies = [
  "base64 0.22.0",
  "comemo",
@@ -3754,7 +3755,7 @@ dependencies = [
 [[package]]
 name = "typst-ts-text-exporter"
 version = "0.5.0-rc4"
-source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=6cc978011c16328b7aaa0dc660bb73818977475b#6cc978011c16328b7aaa0dc660bb73818977475b"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=b5371c5821b962617272b38b18cb2c1ee4110c99#b5371c5821b962617272b38b18cb2c1ee4110c99"
 dependencies = [
  "typst",
  "typst-ts-core",

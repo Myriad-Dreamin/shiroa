@@ -1,5 +1,6 @@
 
 #import "sys.typ": target, page-width
+#import "media.typ"
 
 // export typst.ts variables again, don't use sys arguments directly
 #let get-page-width() = page-width

@@ -110,6 +110,10 @@ pub struct CompileArgs {
         action = ArgAction::Append,
     )]
     pub font_paths: Vec<PathBuf>,
+
+    /// Specify a filter to only load files with a specific extension.
+    #[clap(long, default_value = "^(player.bilibili.com)$")]
+    pub allowed_url_source: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, Parser)]
