@@ -29,6 +29,7 @@ clap_complete_fig.workspace = true
 comemo.workspace = true
 # chrono.workspace = true
 tokio.workspace = true
+indexmap = "2"
 include_dir.workspace = true
 
 serde.workspace = true

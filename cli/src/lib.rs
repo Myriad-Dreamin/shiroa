@@ -1,5 +1,7 @@
+mod debug_loc;
 pub mod error;
 pub mod meta;
+pub mod outline;
 pub mod project;
 pub mod render;
 pub mod theme;
@@ -7,9 +9,10 @@ pub mod utils;
 pub mod version;
 use version::VersionFormat;
 
+use core::fmt;
 use std::path::PathBuf;
 
-use clap::{ArgAction, Parser, Subcommand};
+use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Parser)]
 #[clap(name = "shiroa", version = "0.1.0")]
@@ -42,6 +45,27 @@ pub enum Subcommands {
     Serve(ServeArgs),
 }
 
+/// Determine the approach to retrieving metadata of a book project.
+#[derive(ValueEnum, Debug, Clone, Eq, PartialEq, Default)]
+#[value(rename_all = "kebab-case")]
+pub enum MetaSource {
+    /// Strictly retrieve the project's meta by label queries.
+    /// + retrieve the book meta from `<shiroa-book-meta>`
+    /// + retrieve the build meta from `<shiroa-build-meta>`
+    Strict,
+    /// Infer the project's meta from the outline of main file.
+    /// Note: if the main file also contains `<shiroa-book-meta>` or
+    /// `<shiroa-build-meta>`, the manual-set meta will be used first.
+    #[default]
+    Outline,
+}
+
+impl fmt::Display for MetaSource {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.to_possible_value().unwrap().get_name())
+    }
+}
+
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
 pub struct CompileArgs {
@@ -49,6 +73,10 @@ pub struct CompileArgs {
     /// (Defaults to the current directory when omitted)
     #[clap(default_value = "")]
     pub dir: String,
+
+    /// Determine the approach to retrieving metadata of the book project.
+    #[clap(long, default_value = "strict")]
+    pub meta_source: MetaSource,
 
     /// Root directory for the typst workspace, which is same as the
     /// `typst-cli`'s root. (Defaults to the root directory for the book
