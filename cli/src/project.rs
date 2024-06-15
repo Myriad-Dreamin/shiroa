@@ -72,7 +72,7 @@ impl Project {
             args.path_to_root.push('/');
         }
 
-        let meta_source = args.meta_source.clone().unwrap_or(MetaSource::Strict);
+        let meta_source = args.meta_source.clone();
 
         make_absolute(Path::new(&args.dir))
             .to_str()

@@ -46,28 +46,23 @@ pub enum Subcommands {
 }
 
 /// Determine the approach to retrieving metadata of a book project.
-#[derive(ValueEnum, Debug, Clone, Eq, PartialEq)]
+#[derive(ValueEnum, Debug, Clone, Eq, PartialEq, Default)]
 #[value(rename_all = "kebab-case")]
 pub enum MetaSource {
     /// Strictly retrieve the project's meta by label queries.
-    /// + retrieve the book meta from `<typst-book-book-meta>`
-    /// + retrieve the build meta from `<typst-book-build-meta>`
+    /// + retrieve the book meta from `<shiroa-book-meta>`
+    /// + retrieve the build meta from `<shiroa-build-meta>`
     Strict,
     /// Infer the project's meta from the outline of main file.
-    /// Note: if the main file also contains `<typst-book-book-meta>` or
-    /// `<typst-book-build-meta>`, the manual-set meta will be used first.
+    /// Note: if the main file also contains `<shiroa-book-meta>` or
+    /// `<shiroa-build-meta>`, the manual-set meta will be used first.
+    #[default]
     Outline,
 }
 
 impl fmt::Display for MetaSource {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.to_possible_value().unwrap().get_name())
-    }
-}
-
-impl Default for MetaSource {
-    fn default() -> Self {
-        Self::Strict
     }
 }
 
@@ -80,8 +75,8 @@ pub struct CompileArgs {
     pub dir: String,
 
     /// Determine the approach to retrieving metadata of the book project.
-    #[clap(long, default_value = "None")]
-    pub meta_source: Option<MetaSource>,
+    #[clap(long, default_value = "strict")]
+    pub meta_source: MetaSource,
 
     /// Root directory for the typst workspace, which is same as the
     /// `typst-cli`'s root. (Defaults to the root directory for the book
