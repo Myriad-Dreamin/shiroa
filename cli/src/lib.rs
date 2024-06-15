@@ -1,7 +1,7 @@
 mod debug_loc;
 pub mod error;
 pub mod meta;
-mod outline;
+pub mod outline;
 pub mod project;
 pub mod render;
 pub mod theme;

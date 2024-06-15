@@ -74,10 +74,10 @@ impl Project {
 
         let meta_source = args.meta_source.clone().unwrap_or(MetaSource::Strict);
 
-        args.dir = make_absolute(Path::new(&args.dir))
+        make_absolute(Path::new(&args.dir))
             .to_str()
             .unwrap()
-            .to_owned();
+            .clone_into(&mut args.dir);
 
         let dir = Path::new(&args.dir);
         let mut entry_file = None;
@@ -86,7 +86,8 @@ impl Project {
                 return Err(error_once!("project dir is a file", dir: dir.display()));
             }
             entry_file = Some(dir.to_owned());
-            args.dir = dir.parent().unwrap().to_str().unwrap().to_owned();
+            let w = dir.parent().unwrap().to_str().unwrap().to_owned();
+            args.dir = w;
         }
 
         if args.workspace.is_empty() {
