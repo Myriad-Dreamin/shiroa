@@ -31,7 +31,7 @@ use typst_ts_core::{
     },
     TakeAs, Transformer, TypstAbs, TypstDocument,
 };
-use typst_ts_svg_exporter::MultiVecDocument;
+use typst_ts_svg_exporter::{ir::ToItemMap, MultiVecDocument};
 // serialize_doc, LayoutRegionNode,
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
@@ -187,6 +187,71 @@ impl TypstRenderer {
         struct ModuleInterner {
             inner: Typst2VecPass,
             pages_list: Vec<Vec<usize>>,
+        }
+
+        impl ModuleInterner {
+            fn finalize(self, origin: &MultiVecDocument) -> MultiVecDocument {
+                let Self { inner, pages_list } = self;
+
+                let fonts = inner.glyphs.used_fonts;
+                let glyphs = inner.glyphs.used_glyphs;
+
+                let font_mapping = fonts
+                    .iter()
+                    .map(|e| (e.hash, origin.module.get_font(e)))
+                    .collect::<HashMap<_, _>>();
+
+                let glyphs = glyphs
+                    .into_iter()
+                    .flat_map(|k| {
+                        Some((k, {
+                            let font = (*(font_mapping.get(&k.font_hash)?))?;
+                            font.get_glyph(k.glyph_idx)?.as_ref().clone()
+                        }))
+                    })
+                    .collect();
+
+                // Keep all fonts so that we doesn't have to change the font indices
+                let fonts = origin.module.fonts.clone();
+
+                let module = Module {
+                    fonts,
+                    glyphs,
+                    items: inner.items.to_item_map(),
+                };
+
+                log::trace!(
+                    "module: {:?} {:?} {:?}",
+                    module.fonts.len(),
+                    module.glyphs.len(),
+                    module.items.len()
+                );
+
+                let mut pages_list = pages_list.into_iter();
+                let layouts = origin.layouts.iter().cloned().map(|l| {
+                    l.mutate_pages(&mut |(meta, pages)| {
+                        // delete outline
+                        for c in meta {
+                            if let PageMetadata::Custom(c) = c {
+                                c.retain(|(k, _)| k.as_ref() != "outline");
+                            }
+                        }
+
+                        let page_idxs = pages_list.next();
+                        if let Some(page_idxs) = page_idxs {
+                            *pages = page_idxs
+                                .into_iter()
+                                .map(|idx| pages[idx - 1].clone())
+                                .collect::<Vec<_>>();
+                        }
+                    })
+                });
+
+                MultiVecDocument {
+                    module,
+                    layouts: layouts.collect(),
+                }
+            }
         }
 
         #[derive(Debug)]
@@ -403,39 +468,6 @@ impl TypstRenderer {
         }
 
         impl SeparatedChapters {
-            fn finalize_chapter(
-                interner: ModuleInterner,
-                origin: &MultiVecDocument,
-            ) -> MultiVecDocument {
-                let ModuleInterner { inner, pages_list } = interner;
-                let mut pages_list = pages_list.into_iter();
-                let layouts = origin.layouts.iter().cloned().map(|l| {
-                    l.mutate_pages(&mut |(meta, pages)| {
-                        // delete outline
-                        for c in meta {
-                            if let PageMetadata::Custom(c) = c {
-                                c.retain(|(k, _)| k.as_ref() != "outline");
-                            }
-                        }
-
-                        let page_idxs = pages_list.next();
-                        if let Some(page_idxs) = page_idxs {
-                            *pages = page_idxs
-                                .into_iter()
-                                .map(|idx| pages[idx - 1].clone())
-                                .collect::<Vec<_>>();
-                        }
-                    })
-                });
-
-                // todo: deduplicate layout if possible
-                let _ = inner;
-                MultiVecDocument {
-                    module: origin.module.clone(),
-                    layouts: layouts.collect(),
-                }
-            }
-
             fn finalize(
                 &mut self,
                 origin: MultiVecDocument,
@@ -445,7 +477,7 @@ impl TypstRenderer {
                 if let Some(prefix) = outline.prefix {
                     self.content.insert(
                         format!("pre.{theme}.multi.sir.in", theme = self.theme),
-                        Self::finalize_chapter(prefix, &origin),
+                        prefix.finalize(&origin),
                     );
                     inferred.push(BookMetaElem::Chapter {
                         title: crate::meta::BookMetaContent::PlainText {
@@ -491,7 +523,7 @@ impl TypstRenderer {
                         let link_path = format!("{}", self.content.len());
                         self.content.insert(
                             format!("{link_path}.{theme}.multi.sir.in", theme = self.theme),
-                            Self::finalize_chapter(prefix, origin),
+                            prefix.finalize(origin),
                         );
                         *link = Some(format!("{}.typ", link_path));
                     }
