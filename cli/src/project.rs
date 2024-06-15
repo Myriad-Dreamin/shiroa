@@ -126,6 +126,11 @@ impl Project {
             include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/variables"),
         );
 
+        if matches!(proj.meta_source, MetaSource::Strict) {
+            assert!(entry_file.is_none());
+            proj.compile_meta()?;
+        }
+
         if final_dest_dir.is_empty() {
             if let Some(dest_dir) = proj.build_meta.as_ref().map(|b| b.dest_dir.clone()) {
                 final_dest_dir = dest_dir;
@@ -139,15 +144,9 @@ impl Project {
         proj.tr.fix_dest_dir(Path::new(&final_dest_dir));
         proj.dest_dir.clone_from(&proj.tr.dest_dir);
 
-        match proj.meta_source {
-            MetaSource::Strict => {
-                assert!(entry_file.is_none());
-                proj.compile_meta()?;
-            }
-            MetaSource::Outline => {
-                assert!(entry_file.is_some());
-                proj.infer_meta_by_outline(entry_file.unwrap())?;
-            }
+        if matches!(proj.meta_source, MetaSource::Outline) {
+            assert!(entry_file.is_some());
+            proj.infer_meta_by_outline(entry_file.unwrap())?;
         }
 
         Ok(proj)
