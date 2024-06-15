@@ -30,6 +30,7 @@ comemo.workspace = true
 # chrono.workspace = true
 tokio.workspace = true
 indexmap = "2"
+url = "2"
 include_dir.workspace = true
 
 serde.workspace = true

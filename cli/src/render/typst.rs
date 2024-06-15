@@ -1,10 +1,10 @@
 use std::{
     borrow::Cow,
     cell::RefCell,
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     path::{Path, PathBuf},
     rc::Rc,
-    sync::Arc,
+    sync::{Arc, OnceLock},
 };
 
 use crate::{
@@ -14,7 +14,8 @@ use crate::{
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
-use typst::diag::SourceResult;
+use serde::Deserialize;
+use typst::{diag::SourceResult, foundations::Regex};
 use typst_ts_compiler::{
     service::{
         features::WITH_COMPILING_STATUS_FEATURE, CompileDriver, CompileEnv, CompileReport,
@@ -24,14 +25,18 @@ use typst_ts_compiler::{
 };
 use typst_ts_core::{
     config::{compiler::EntryOpts, CompileOpts},
+    escape::{escape_str, AttributeEscapes},
     path::PathClean,
     vector::{
         ir::{LayoutRegionNode, Module, Page, PageMetadata},
         pass::Typst2VecPass,
     },
-    TakeAs, Transformer, TypstAbs, TypstDocument,
+    IntoTypst, TakeAs, Transformer, TypstAbs, TypstDocument,
 };
-use typst_ts_svg_exporter::{ir::ToItemMap, MultiVecDocument};
+use typst_ts_svg_exporter::{
+    ir::{HtmlItem, ToItemMap, VecItem},
+    MultiVecDocument,
+};
 // serialize_doc, LayoutRegionNode,
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
@@ -65,6 +70,10 @@ impl TypstRenderer {
         let driver = CompileDriver::new(world);
 
         let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
+        driver.set_command_executor(Box::new(ShiroaCommands(
+            args.allowed_url_source
+                .map(|s| Arc::new(Regex::new(&s).context("invalid regex").unwrap_or_exit())),
+        )));
         driver.set_extension("multi.sir.in".to_owned());
         driver.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).to_vec());
         let driver =
@@ -650,3 +659,129 @@ impl TypstRenderer {
         String::from_utf8(w).map_err(|e| error_once!("export text", error: format!("{e:?}")))
     }
 }
+
+struct ShiroaCommands(Option<Arc<Regex>>);
+
+impl typst_ts_core::vector::pass::CommandExecutor for ShiroaCommands {
+    fn execute(
+        &self,
+        cmd: typst::foundations::Bytes,
+        size: Option<typst::layout::Size>,
+    ) -> Option<VecItem> {
+        let text = std::str::from_utf8(cmd.as_slice()).ok()?;
+        // log::info!("executing svg: {}", text);
+
+        let content = text
+            .find("<!-- embedded-content")
+            .and_then(|start| {
+                let text = &text[start + "<!-- embedded-content".len()..];
+                text.find("embedded-content -->").map(|end| &text[0..end])
+            })?
+            .trim();
+        let (cmd, payload) = content.split_once(',')?;
+
+        match cmd {
+            "html" => {
+                let args = serde_json::from_str::<HtmlCommandArgs>(payload).ok()?;
+
+                // todo: disallow iframe?
+                let allowed_tags = TAGS_META.get_or_init(|| {
+                    HashMap::from_iter([
+                        (
+                            "iframe",
+                            (
+                                "",
+                                HashSet::from_iter([
+                                    "id",
+                                    "class",
+                                    "src",
+                                    "allowfullscreen",
+                                    "scrolling",
+                                    "framespacing",
+                                    "frameborder",
+                                    "border",
+                                    "width",
+                                    "height",
+                                ]),
+                            ),
+                        ),
+                        ("div", ("", HashSet::from_iter(["id", "class"]))),
+                        (
+                            "audio",
+                            (
+                                "audio.",
+                                HashSet::from_iter(["id", "class", "src", "controls"]),
+                            ),
+                        ),
+                        (
+                            "video",
+                            (
+                                "video.",
+                                HashSet::from_iter(["id", "class", "src", "controls"]),
+                            ),
+                        ),
+                    ])
+                });
+
+                let tag = args.tag;
+                let Some((hint, allowed_attrs)) = allowed_tags.get(tag.as_str()) else {
+                    log::warn!("disallowed tag: {tag}");
+                    return None;
+                };
+                let allow_attr = |k: &str| k.starts_with("data-") || allowed_attrs.contains(k);
+
+                let attributes = args.attributes;
+
+                let mut attrs = String::new();
+                for (k, v) in attributes {
+                    if k.contains(|c: char| !c.is_ascii_alphanumeric()) || !allow_attr(&k) {
+                        log::warn!("disallowed attribute: {k} on tag {tag}");
+                        return None;
+                    }
+
+                    if k == "src" {
+                        let Some(v) = url::Url::parse(&v).ok() else {
+                            log::warn!("invalid source url: {v} on tag {tag}");
+                            return None;
+                        };
+
+                        if v.scheme() != "http" && v.scheme() != "https" {
+                            log::warn!("invalid source url scheme: {v} on tag {tag}");
+                            return None;
+                        }
+
+                        let allowed = self
+                            .0
+                            .as_ref()
+                            .map(|re| v.host_str().is_some_and(|host| re.is_match(host)))
+                            .unwrap_or(false);
+                        if !allowed {
+                            log::warn!("disallowed source url: {v} on tag {tag}");
+                            return None;
+                        }
+                    }
+
+                    attrs.push_str(&format!(" {k}=\"{}\"", escape_str::<AttributeEscapes>(&v)));
+                }
+
+                let html = format!("<{tag}{attrs}>{hint}</{tag}>");
+                return Some(VecItem::Html(HtmlItem {
+                    html: html.into(),
+                    size: size.unwrap_or_default().into_typst(),
+                }));
+            }
+            "ping" => {}
+            _ => {}
+        }
+
+        None
+    }
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct HtmlCommandArgs {
+    tag: String,
+    attributes: HashMap<String, String>,
+}
+
+static TAGS_META: OnceLock<HashMap<&str, (&str, HashSet<&str>)>> = OnceLock::new();
