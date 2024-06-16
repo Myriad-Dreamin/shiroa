@@ -29,6 +29,7 @@
 /// Whether the current compilation is for _pdf_
 #let is-pdf-target() = target.starts-with("pdf")
 
+/// Derived book variables from `sys.args`
 #let book-sys = (
   target: target,
   page-width: page-width,
@@ -36,4 +37,5 @@
   is-pdf-target: is-pdf-target(),
 )
 
+/// Store the calculated metadata of the book.
 #let book-meta-state = state("book-meta", none)
