@@ -1,5 +1,5 @@
 
-#import "supports/text.typ": plain-text
+#import "supports-text.typ": plain-text
 
 #let _labeled-meta(label) = locate(loc => {
   let res = query(label, loc)
