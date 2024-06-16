@@ -1,6 +1,5 @@
 
-// #import "@preview/shiroa:0.1.0": *
-#import "/packages/shiroa/lib.typ": *
+#import "@preview/shiroa:0.1.0": *
 
 #show: book
 
