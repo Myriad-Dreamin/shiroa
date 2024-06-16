@@ -118,7 +118,7 @@ impl Project {
 
         release_packages(
             proj.tr.compiler.world_mut(),
-            include_dir!("$CARGO_MANIFEST_DIR/../contrib/typst/book"),
+            include_dir!("$CARGO_MANIFEST_DIR/../packages/shiroa"),
         );
 
         if matches!(proj.meta_source, MetaSource::Strict) {

@@ -1,4 +1,4 @@
-#import "/github-pages/docs/book.typ": book-page, cross-link, cross-link-path-label
+#import "/github-pages/docs/book.typ": book-page, cross-link
 
 #show: book-page.with(title: "Theme")
 
