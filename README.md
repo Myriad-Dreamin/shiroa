@@ -1,10 +1,10 @@
 # shiroa
 
-_shiroa_ (_Shiro A_, or _The White_, or _云笺_) is a simple tool for creating modern online (cloud) books in pure typst.
+[_shiroa_](https://github.com/Myriad-Dreamin/shiroa) (_Shiro A_, or _The White_, or _云笺_) is a simple tool for creating modern online (cloud) books in pure typst.
 
 ## Installation (shiroa CLI)
 
-There are multiple ways to install the shiroa CLI tool.
+There are multiple ways to install the [shiroa](https://github.com/Myriad-Dreamin/shiroa) CLI tool.
 Choose any one of the methods below that best suit your needs.
 
 ### Pre-compiled binaries
@@ -49,7 +49,7 @@ See the [Get-started](https://myriad-dreamin.github.io/shiroa/guide/get-started.
 
 We don't provide a watch command, but `shiroa` is designated to embracing all of the approaches to writing typst documents. It's feasible to preview your documents by following approaches (like previewing normal documents):
 
-- (Waiting for ready) once supporting local packages, you can write the book via [Official Web App](https://typst.app).
+- via [Official Web App](https://typst.app).
 
 - via VSCod(e,ium), see [Tinymist](https://marketplace.visualstudio.com/items?itemName=myriad-dreamin.tinymist) and [Typst Preview](https://marketplace.visualstudio.com/items?itemName=mgt19937.typst-preview).
 

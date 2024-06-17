@@ -1,6 +1,7 @@
 
 #import "utils.typ": _store-content
 #import "meta-and-state.typ": book-meta-state
+#import "supports-link.typ": link2page, cross-link-path-label
 
 /// Show template in [book.typ](https://myriad-dreamin.github.io/shiroa/format/book.html)
 ///
