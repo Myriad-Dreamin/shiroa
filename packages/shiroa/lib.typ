@@ -33,3 +33,6 @@
 #import "supports-text.typ" as text-support: plain-text
 #import "media.typ"
 #import "utils.typ": get-book-meta, get-build-meta
+
+// Part IV: Templates, todo: move me to a new package
+#import "templates.typ"

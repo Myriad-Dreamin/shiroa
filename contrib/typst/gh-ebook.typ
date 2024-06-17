@@ -8,12 +8,13 @@
 #let resolve-inclusion(inc) = _resolve-inclusion-state.update(it => inc)
 
 #let project(title: "", authors: (), spec: "", content) = {
+  // Set document metadata early
   set document(
     author: authors,
     title: title,
   )
 
-  // inherit from gh-pages
+  // Inherit from gh-pages
   show: _page-project
 
   if title != "" {
