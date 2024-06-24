@@ -56,7 +56,7 @@ async fn init(args: InitArgs) -> ZResult<()> {
     if dir.exists() {
         clap::Error::raw(
             clap::error::ErrorKind::ValueValidation,
-            format!("the init directory has already existed: {dir:?}"),
+            format!("the init directory already exists: {dir:?}\n"),
         )
         .exit()
     }
