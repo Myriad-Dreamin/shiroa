@@ -1,12 +1,12 @@
 use std::num::NonZeroUsize;
 
+use reflexo_typst::debug_loc::DocumentPosition;
+use reflexo_typst::TypstDocument;
 use serde::{Deserialize, Serialize};
 use typst::foundations::{Content, NativeElement, Packed, StyleChain};
 use typst::introspection::Introspector;
 use typst::model::HeadingElem;
 use typst::syntax::Span;
-use reflexo_typst::debug_loc::DocumentPosition;
-use reflexo_typst::TypstDocument;
 
 /// A heading in the outline panel.
 #[derive(Debug, Clone)]
@@ -348,8 +348,8 @@ fn outline_item(interner: &mut SpanInternerImpl, src: &HeadingNode, res: &mut Ve
 use std::{ops::DerefMut, sync::Arc};
 
 use indexmap::IndexSet;
-use tokio::sync::RwLock;
 use reflexo_typst::debug_loc::SourceSpan;
+use tokio::sync::RwLock;
 
 #[derive(Debug)]
 pub enum InternQuery<T> {
