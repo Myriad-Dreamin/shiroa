@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Parser)]
-#[clap(name = "shiroa", version = "0.1.0")]
+#[clap(name = "shiroa", version = "0.1.1")]
 pub struct Opts {
     /// Print Version
     #[arg(short = 'V', long, group = "version-dump")]
