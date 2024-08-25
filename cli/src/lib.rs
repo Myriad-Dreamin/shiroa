@@ -149,6 +149,6 @@ pub struct ServeArgs {
 }
 
 pub mod build_info {
-    /// The version of the typst-ts-core crate.
+    /// The version of the shiroa crate.
     pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 }

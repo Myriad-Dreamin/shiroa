@@ -1,11 +1,11 @@
 use core::fmt;
 use std::path::{Path, PathBuf};
 
+use include_dir::include_dir;
 use log::warn;
+use reflexo_typst::escape::{escape_str, AttributeEscapes};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use typst_ts_compiler::service::Compiler;
-use typst_ts_core::escape::{escape_str, AttributeEscapes};
 
 use crate::{
     error::prelude::*,
@@ -15,7 +15,6 @@ use crate::{
     utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
     CompileArgs, MetaSource,
 };
-use include_dir::include_dir;
 
 /// Typst content kind embedded in metadata nodes
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -117,7 +116,7 @@ impl Project {
         };
 
         release_packages(
-            proj.tr.compiler.world_mut(),
+            &mut proj.tr.universe_mut().snapshot(),
             include_dir!("$CARGO_MANIFEST_DIR/../packages/shiroa"),
         );
 
@@ -313,7 +312,7 @@ impl Project {
                 create_dirs(path.parent().unwrap())?;
                 write_file(path.with_extension("html"), &content)?;
                 if !write_index {
-                    write_file(&self.dest_dir.join("index.html"), content)?;
+                    write_file(self.dest_dir.join("index.html"), content)?;
                     write_index = true;
                 }
 

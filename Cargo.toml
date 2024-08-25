@@ -14,21 +14,23 @@ resolver = "2"
 members = ["cli", "tools/build-from-source"]
 
 [profile.release]
-debug = true
-
-[profile.release-stripped]
-inherits = "release"
+opt-level = 3
+lto = "fat"
 debug = false
 strip = true
+
+[profile.relwithdebinfo]
+inherits = "release"
+lto = "thin"
+debug = true
+strip = false
 
 [workspace.dependencies]
 
 typst = "0.11.1"
 typst-assets = "0.11.1"
-typst-ts-core = { version = "0.5.0-rc4" }
-typst-ts-compiler = { version = "0.5.0-rc4" }
-typst-ts-text-exporter = { version = "0.5.0-rc4" }
-typst-ts-svg-exporter = { version = "0.5.0-rc4", features = [
+reflexo-typst = { version = "0.5.0-rc7" }
+reflexo-vec2svg = { version = "0.5.0-rc7", features = [
     "experimental-ligature",
 ] }
 
@@ -70,14 +72,10 @@ pathdiff = "0.2.1"
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.11.1-content-hint" }
 typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.11.1-content-hint" }
-typst-ts-svg-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "b5371c5821b962617272b38b18cb2c1ee4110c99", package = "typst-ts-svg-exporter" }
-typst-ts-text-exporter = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "b5371c5821b962617272b38b18cb2c1ee4110c99", package = "typst-ts-text-exporter" }
-typst-ts-core = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "b5371c5821b962617272b38b18cb2c1ee4110c99", package = "typst-ts-core" }
-typst-ts-compiler = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "b5371c5821b962617272b38b18cb2c1ee4110c99", package = "typst-ts-compiler" }
+reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", tag = "v0.5.0-rc7", package = "reflexo-vec2svg" }
+reflexo-typst = { git = "https://github.com/Myriad-Dreamin/typst.ts", tag = "v0.5.0-rc7", package = "reflexo-typst" }
 
 # typst = { path = "../../../typst/crates/typst" }
 # typst-syntax = { path = "../../../typst/crates/typst-syntax" }
-# typst-ts-svg-exporter = { path = "../../exporter/svg" }
-# typst-ts-text-exporter = { path = "../../exporter/text" }
-# typst-ts-compiler = { path = "../../compiler" }
-# typst-ts-core = { path = "../../core" }
+# reflexo-vec2svg = { path = "../../exporter/svg" }
+# reflexo-typst = { path = "../../core" }

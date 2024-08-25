@@ -40,20 +40,14 @@ toml.workspace = true
 env_logger.workspace = true
 log.workspace = true
 
-# tracing.workspace = true
-# tracing-error.workspace = true
 # flate2.workspace = true
-# tracing-subscriber.workspace = true
 
 # codespan-reporting.workspace = true
 # human-panic.workspace = true
 
-typst-ts-core.workspace = true
-typst-ts-compiler.workspace = true
+reflexo-typst.workspace = true
+reflexo-vec2svg.workspace = true
 handlebars.workspace = true
-
-typst-ts-svg-exporter.workspace = true
-typst-ts-text-exporter.workspace = true
 pathdiff.workspace = true
 
 [build-dependencies]

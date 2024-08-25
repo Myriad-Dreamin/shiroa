@@ -1,1 +1,1 @@
-pub use typst_ts_core::error::*;
+pub use reflexo_typst::error::*;

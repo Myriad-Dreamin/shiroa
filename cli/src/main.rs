@@ -1,6 +1,7 @@
 use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
+use reflexo_typst::path::{unix_slash, PathClean};
 use shiroa_cli::{
     error::prelude::*,
     project::Project,
@@ -8,7 +9,6 @@ use shiroa_cli::{
     version::intercept_version,
     BuildArgs, InitArgs, Opts, ServeArgs, Subcommands,
 };
-use typst_ts_core::path::{unix_slash, PathClean};
 use warp::{http::Method, Filter};
 
 fn get_cli(sub_command_required: bool) -> Command {
@@ -27,7 +27,7 @@ fn main() {
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .filter_module("typst", log::LevelFilter::Warn)
-        .filter_module("typst_ts", log::LevelFilter::Info)
+        .filter_module("reflexo", log::LevelFilter::Info)
         .filter_module("tracing::", log::LevelFilter::Off)
         .init();
 

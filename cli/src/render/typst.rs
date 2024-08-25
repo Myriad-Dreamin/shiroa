@@ -14,32 +14,35 @@ use crate::{
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs,
 };
-use serde::Deserialize;
-use typst::{diag::SourceResult, foundations::Regex};
-use typst_ts_compiler::{
-    service::{
-        features::WITH_COMPILING_STATUS_FEATURE, CompileDriver, CompileEnv, CompileReport,
-        CompileReporter, Compiler, ConsoleDiagReporter, DynamicLayoutCompiler, FeatureSet,
-    },
-    TypstSystemWorld,
-};
-use typst_ts_core::{
-    config::{compiler::EntryOpts, CompileOpts},
+use reflexo_typst::{
+    config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
     path::PathClean,
     vector::{
         ir::{LayoutRegionNode, Module, Page, PageMetadata},
         pass::Typst2VecPass,
+        IntoTypst,
     },
-    IntoTypst, TakeAs, Transformer, TypstAbs, TypstDocument,
+    world::EntryOpts,
+    EntryReader, PureCompiler, SystemCompilerFeat, TakeAs, Transformer, TypstAbs, TypstDocument,
 };
-use typst_ts_svg_exporter::{
+use reflexo_typst::{
+    features::WITH_COMPILING_STATUS_FEATURE, CompileDriver, CompileEnv, CompileReport,
+    CompileReporter, Compiler, ConsoleDiagReporter, DynamicLayoutCompiler, FeatureSet,
+    TypstSystemUniverse, TypstSystemWorld,
+};
+use reflexo_vec2svg::{
     ir::{HtmlItem, ToItemMap, VecItem},
     MultiVecDocument,
 };
+use serde::Deserialize;
+use typst::{diag::SourceResult, foundations::Regex};
 // serialize_doc, LayoutRegionNode,
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
+
+type SystemDynamicLayoutCompiler =
+    DynamicLayoutCompiler<SystemCompilerFeat, PureCompiler<TypstSystemWorld>>;
 
 #[derive(Debug, Clone, Default)]
 pub struct CompilePageSetting {
@@ -48,7 +51,7 @@ pub struct CompilePageSetting {
 
 pub struct TypstRenderer {
     pub status_env: Arc<FeatureSet>,
-    pub compiler: CompileReporter<DynamicLayoutCompiler<CompileDriver>>,
+    pub compiler: CompileDriver<CompileReporter<SystemDynamicLayoutCompiler, TypstSystemWorld>>,
     pub root_dir: PathBuf,
     pub dest_dir: PathBuf,
 }
@@ -59,7 +62,7 @@ impl TypstRenderer {
         let root_dir = make_absolute(Path::new(&args.dir)).clean();
         let dest_dir = make_absolute_from(Path::new(&args.dest_dir), || root_dir.clone()).clean();
 
-        let world = TypstSystemWorld::new(CompileOpts {
+        let verse = TypstSystemUniverse::new(CompileOpts {
             entry: EntryOpts::new_workspace(workspace_dir.clone()),
             font_paths: args.font_paths.clone(),
             with_embedded_fonts: typst_assets::fonts().map(Cow::Borrowed).collect(),
@@ -67,30 +70,41 @@ impl TypstRenderer {
         })
         .unwrap_or_exit();
 
-        let driver = CompileDriver::new(world);
+        // let driver = CompileDriver::new(world);
+        let compiler = std::marker::PhantomData;
 
-        let mut driver = DynamicLayoutCompiler::new(driver, Default::default()).with_enable(true);
-        driver.set_command_executor(Box::new(ShiroaCommands(
+        let mut compiler = DynamicLayoutCompiler::new(compiler, Default::default());
+        compiler.set_command_executor(Arc::new(ShiroaCommands(
             args.allowed_url_source
                 .map(|s| Arc::new(Regex::new(&s).context("invalid regex").unwrap_or_exit())),
         )));
-        driver.set_extension("multi.sir.in".to_owned());
-        driver.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).to_vec());
-        let driver =
-            CompileReporter::new(driver).with_generic_reporter(ConsoleDiagReporter::default());
+        compiler.set_extension("multi.sir.in".to_owned());
+        compiler.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).into());
+        let compiler =
+            CompileReporter::new(compiler).with_generic_reporter(ConsoleDiagReporter::default());
+
+        let compiler = CompileDriver::new(compiler, verse);
 
         Self {
             status_env: Arc::new(
                 FeatureSet::default().configure(&WITH_COMPILING_STATUS_FEATURE, true),
             ),
-            compiler: driver,
+            compiler,
             root_dir,
             dest_dir,
         }
     }
 
-    fn compiler_layer_mut(&mut self) -> &mut DynamicLayoutCompiler<CompileDriver> {
-        &mut self.compiler.compiler
+    fn compiler_layer_mut(&mut self) -> &mut SystemDynamicLayoutCompiler {
+        &mut self.compiler.compiler.compiler
+    }
+
+    pub fn universe(&self) -> &TypstSystemUniverse {
+        self.compiler.universe()
+    }
+
+    pub fn universe_mut(&mut self) -> &mut TypstSystemUniverse {
+        self.compiler.universe_mut()
     }
 
     pub fn fix_dest_dir(&mut self, path: &Path) {
@@ -118,7 +132,9 @@ impl TypstRenderer {
             panic!("entry file must be relative to the workspace");
         }
         let entry = self.root_dir.join(path).clean().as_path().into();
-        let err = self.compiler_layer_mut().compiler.set_entry_file(entry);
+        let err = self
+            .universe_mut()
+            .increment_revision(|v| v.set_entry_file(entry));
         if err.is_err() {
             self.report(err);
             panic!("failed to set entry file");
@@ -137,25 +153,35 @@ impl TypstRenderer {
         }
     }
 
+    // todo: we should use same snapshot as that compiled documents
     pub fn report<T>(&self, may_value: SourceResult<T>) -> Option<T> {
         match may_value {
             Ok(v) => Some(v),
             Err(err) => {
-                let rep =
-                    CompileReport::CompileError(self.compiler.main_id(), err, Default::default());
+                let rep = CompileReport::CompileError(
+                    self.universe().main_id().unwrap(),
+                    err,
+                    Default::default(),
+                );
                 let rep = Arc::new((Default::default(), rep));
                 // we currently ignore export error here
-                let _ = self.compiler.reporter.export(self.compiler.world(), rep);
+                let _ = self
+                    .compiler
+                    .compiler
+                    .reporter
+                    .export(&self.universe().snapshot(), rep);
                 None
             }
         }
     }
 
+    // todo: we should use same snapshot as that compiled documents
     pub fn compile_book(&mut self, path: &Path) -> ZResult<Arc<TypstDocument>> {
         self.setup_entry(path);
         self.set_theme_target("");
 
-        let res = self.compiler.pure_compile(&mut self.fork_env::<true>());
+        let world = self.universe().snapshot();
+        let res = std::marker::PhantomData.compile(&world, &mut self.fork_env::<true>());
         let res = self.report(res);
 
         res.ok_or_else(|| error_once!("compile book.typ"))
@@ -648,10 +674,11 @@ impl TypstRenderer {
         any_doc.ok_or_else(|| error_once!("compile page.typ"))
     }
 
+    // todo: we should use same snapshot as that compiled documents
     pub fn generate_desc(&mut self, doc: &TypstDocument) -> ZResult<String> {
-        let e = typst_ts_text_exporter::TextExporter::default();
+        let e = reflexo_typst::TextExporter::default();
         let mut w = std::io::Cursor::new(Vec::new());
-        e.export(self.compiler.world(), (Arc::new(doc.clone()), &mut w))
+        e.export(&self.universe().snapshot(), (Arc::new(doc.clone()), &mut w))
             .map_err(|e| error_once!("export text", error: format!("{e:?}")))?;
 
         let w = w.into_inner();
@@ -662,7 +689,7 @@ impl TypstRenderer {
 
 struct ShiroaCommands(Option<Arc<Regex>>);
 
-impl typst_ts_core::vector::pass::CommandExecutor for ShiroaCommands {
+impl reflexo_typst::vector::pass::CommandExecutor for ShiroaCommands {
     fn execute(
         &self,
         cmd: typst::foundations::Bytes,

@@ -1,10 +1,10 @@
 use std::{fs::File, io::Read, path::Path};
 
+use include_dir::include_dir;
 use log::warn;
-use typst_ts_core::{error::prelude::*, ImmutPath};
+use reflexo_typst::{error::prelude::*, ImmutPath};
 
 use crate::utils::{self, copy_dir_embedded, write_file};
-use include_dir::include_dir;
 
 #[derive(Debug, PartialEq)]
 pub enum EmbeddedThemeAsset {
