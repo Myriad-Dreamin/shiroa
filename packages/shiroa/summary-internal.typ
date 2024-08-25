@@ -94,10 +94,6 @@
         // e.g. "1.2.3" -> (1, 2, 3)
         user-specified.split(".").map(int)
       } else if type(user-specified) == array {
-        if user-specified.len() <= 0 {
-          panic("invalid type of manual section specified " + repr(user-specified) + ", want non-empty array. You may want to use 'auto' instead.")
-        }
-
         for n in user-specified {
           assert(
             type(n) == int,
@@ -113,7 +109,6 @@
 
       // update cnt
       cnt = num.last() + 1
-      base = num.slice(0, -1)
     }
 
     // update section number
