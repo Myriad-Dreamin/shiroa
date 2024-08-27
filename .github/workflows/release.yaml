@@ -127,7 +127,7 @@ jobs:
           if-no-files-found: error
       - uses: actions/upload-artifact@v3
         with:
-          name: shiroa-${{ env.target }}-relwithdebuginfo
+          name: shiroa-${{ env.target }}-relwithdebinfo
           path: target/${{ matrix.rust-target }}/relwithdebinfo/shiroa*
           if-no-files-found: error
 
@@ -179,7 +179,7 @@ jobs:
           if-no-files-found: error
       - uses: actions/upload-artifact@v3
         with:
-          name: shiroa-${{ env.target }}-relwithdebuginfo
+          name: shiroa-${{ env.target }}-relwithdebinfo
           path: target/${{ matrix.rust-target }}/relwithdebinfo/shiroa*
           if-no-files-found: error
 
@@ -221,11 +221,11 @@ jobs:
       - name: build binaries
         run: |
           cargo build --release --manifest-path cli/Cargo.toml --target $RUST_TARGET --bin shiroa
-          cargo build --profile relwithdebuginfo --manifest-path cli/Cargo.toml --target $RUST_TARGET --bin shiroa
+          cargo build --profile relwithdebinfo --manifest-path cli/Cargo.toml --target $RUST_TARGET --bin shiroa
       - uses: actions/upload-artifact@v3
         with:
-          name: shiroa-${{ env.target }}-relwithdebuginfo
-          path: target/${{ env.RUST_TARGET }}/relwithdebuginfo/shiroa*
+          name: shiroa-${{ env.target }}-relwithdebinfo
+          path: target/${{ env.RUST_TARGET }}/relwithdebinfo/shiroa*
           if-no-files-found: error
       - uses: actions/upload-artifact@v3
         with:
@@ -271,7 +271,7 @@ jobs:
             tar czvf gh-release/$name.tar.gz -C release $name
            
             mkdir -p relwithdebinfo/$name/bin
-            cp artifacts/$src-relwithdebuginfo/shiroa* "relwithdebinfo/$name/bin/"
+            cp artifacts/$src-relwithdebinfo/shiroa* "relwithdebinfo/$name/bin/"
             cp -r CHANGELOG relwithdebinfo/$name/
             cp -r github-pages/docs relwithdebinfo/$name/
             cp README.md \
@@ -279,7 +279,7 @@ jobs:
               CHANGELOG.md \
               relwithdebinfo/$name/
             chmod +x relwithdebinfo/$name/bin/shiroa*
-            tar czvf gh-release/$name-relwithdebuginfo.tar.gz -C relwithdebinfo $name
+            tar czvf gh-release/$name-relwithdebinfo.tar.gz -C relwithdebinfo $name
           }
           pack_release win32-x64     x86_64-pc-windows-msvc
           pack_release win32-ia32    i686-pc-windows-msvc
