@@ -256,14 +256,13 @@ impl Project {
         let chapters = self.tr.compile_pages_by_outline(entry)?;
         self.chapters = self.generate_chapters(&chapters);
 
+        let info = &doc.info;
+        let title = info.title.as_ref().map(|t| t.as_str());
+        let authors = info.author.iter().map(|a| a.as_str().to_owned()).collect();
+
         self.book_meta = Some(BookMeta {
-            title: doc
-                .title
-                .as_ref()
-                .map(|t| t.as_str())
-                .unwrap_or("Typst Document")
-                .to_owned(),
-            authors: doc.author.iter().map(|a| a.as_str().to_owned()).collect(),
+            title: title.unwrap_or("Typst Document").to_owned(),
+            authors,
             language: "en".to_owned(),
             summary: chapters,
             ..Default::default()

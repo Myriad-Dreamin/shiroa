@@ -36,7 +36,10 @@ use reflexo_vec2svg::{
     MultiVecDocument,
 };
 use serde::Deserialize;
-use typst::{diag::SourceResult, foundations::Regex};
+use typst::{
+    diag::{SourceResult, Warned},
+    foundations::Regex,
+};
 // serialize_doc, LayoutRegionNode,
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
@@ -79,7 +82,7 @@ impl TypstRenderer {
                 .map(|s| Arc::new(Regex::new(&s).context("invalid regex").unwrap_or_exit())),
         )));
         compiler.set_extension("multi.sir.in".to_owned());
-        compiler.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::raw).into());
+        compiler.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::pt).into());
         let compiler =
             CompileReporter::new(compiler).with_generic_reporter(ConsoleDiagReporter::default());
 
@@ -155,24 +158,41 @@ impl TypstRenderer {
 
     // todo: we should use same snapshot as that compiled documents
     pub fn report<T>(&self, may_value: SourceResult<T>) -> Option<T> {
-        match may_value {
-            Ok(v) => Some(v),
+        self.report_with_warnings(may_value.map(|v| Warned {
+            output: v,
+            warnings: Default::default(),
+        }))
+    }
+
+    // todo: we should use same snapshot as that compiled documents
+    pub fn report_with_warnings<T>(&self, may_value: SourceResult<Warned<T>>) -> Option<T> {
+        let (res, rep) = match may_value {
+            Ok(v) => {
+                let rep = CompileReport::CompileSuccess(
+                    self.universe().main_id().unwrap(),
+                    v.warnings,
+                    Default::default(),
+                );
+
+                (Some(v.output), rep)
+            }
             Err(err) => {
                 let rep = CompileReport::CompileError(
                     self.universe().main_id().unwrap(),
                     err,
                     Default::default(),
                 );
-                let rep = Arc::new((Default::default(), rep));
-                // we currently ignore export error here
-                let _ = self
-                    .compiler
-                    .compiler
-                    .reporter
-                    .export(&self.universe().snapshot(), rep);
-                None
+                (None, rep)
             }
-        }
+        };
+        let rep = Arc::new((Default::default(), rep));
+        // we currently ignore export error here
+        let _ = self
+            .compiler
+            .compiler
+            .reporter
+            .export(&self.universe().snapshot(), rep);
+        res
     }
 
     // todo: we should use same snapshot as that compiled documents
@@ -182,7 +202,7 @@ impl TypstRenderer {
 
         let world = self.universe().snapshot();
         let res = std::marker::PhantomData.compile(&world, &mut self.fork_env::<true>());
-        let res = self.report(res);
+        let res = self.report_with_warnings(res);
 
         res.ok_or_else(|| error_once!("compile book.typ"))
     }
@@ -666,7 +686,7 @@ impl TypstRenderer {
 
             let res = self.compiler.compile(&mut self.fork_env::<true>());
             let doc = self
-                .report(res)
+                .report_with_warnings(res)
                 .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
             any_doc = Some(doc.clone());
         }
