@@ -49,6 +49,4 @@
 ]
 #res.push(t)
 
-#res.push(t)
-
 #res

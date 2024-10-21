@@ -17,7 +17,7 @@ Currently we have no much design on theme's html part. But you can still configu
 Your `book.typ` should at least provides a `book-meta`, as #t shown.
 
 ```typ
-#import "@preview/shiroa:0.1.1": *
+#import "@preview/shiroa:0.1.2": *
 #show: book
 
 #book-meta(
@@ -28,11 +28,10 @@ Your `book.typ` should at least provides a `book-meta`, as #t shown.
 )
 ```
 
-// todo: update it
-What is arguable, your `template.typ` must import and respect the `page-width` and `target` variable from `@preview/typst-ts-variables:0.1.1` to this time.
+To support specialized rendering for web pages and different page layouts, Your `template.typ` can import and respect the `page-width` and `target` variable from `@preview/shiroa:0.1.2` to this time.
 
 ```typ
-#import "@preview/typst-ts-variables:0.1.1": page-width, target
+#import "@preview/shiroa:0.1.2": page-width, target
 
 #let project(body) = {
   // set web/pdf page properties
