@@ -22,9 +22,9 @@
 #let main-font = (
   "Charter",
   "Source Han Serif SC",
-  "Source Han Serif TC",
+  // "Source Han Serif TC",
   // shiroa's embedded font
-  "Linux Libertine",
+  "Libertinus Serif",
 )
 #let code-font = (
   "BlexMono Nerd Font Mono",

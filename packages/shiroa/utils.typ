@@ -1,16 +1,18 @@
 
 #import "supports-text.typ": plain-text
 
-#let _labeled-meta(label) = locate(loc => {
-  let res = query(label, loc)
-  if res.len() <= 0 {
-    none
-  } else if res.len() == 1 {
-    res.at(0).value
-  } else {
-    res.map(it => it.value)
+#let _labeled-meta(label) = (
+  context {
+    let res = query(label)
+    if res.len() <= 0 {
+      none
+    } else if res.len() == 1 {
+      res.at(0).value
+    } else {
+      res.map(it => it.value)
+    }
   }
-})
+)
 
 #let _store-content(ct) = (
   kind: "plain-text",

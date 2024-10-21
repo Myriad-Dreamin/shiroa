@@ -33,15 +33,15 @@
   }
 
   assert(content != none, message: "invalid label content")
-  locate(loc => {
-    let link-result = link2page.final(loc)
+  context {
+    let link-result = link2page.final()
     if path-lbl in link-result {
       link((page: link-result.at(path-lbl), x: 0pt, y: 0pt), content)
       return
     }
 
     if reference != none {
-      let result = query(reference, loc)
+      let result = query(reference)
       // whether it is internal link
       if result.len() > 0 {
         link(reference, content)
@@ -61,5 +61,5 @@
       },
       content,
     )
-  })
+  }
 }
