@@ -3911,7 +3911,7 @@ checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 [[package]]
 name = "typst"
 version = "0.12.0"
-source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-2#14b66862f29157cc5f3915fa2c4372c9fd5d55fc"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-3#6c95f4c768c3bf7b83d1207cbc3a948c47c283a6"
 dependencies = [
  "arrayvec",
  "az",
@@ -3985,7 +3985,7 @@ checksum = "4fe00da1b24da2c4a7da532fc33d0c3bd43a902ca4c408ee2c36eabe70f2f4ba"
 [[package]]
 name = "typst-macros"
 version = "0.12.0"
-source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-2#14b66862f29157cc5f3915fa2c4372c9fd5d55fc"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-3#6c95f4c768c3bf7b83d1207cbc3a948c47c283a6"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -3996,7 +3996,7 @@ dependencies = [
 [[package]]
 name = "typst-syntax"
 version = "0.12.0"
-source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-2#14b66862f29157cc5f3915fa2c4372c9fd5d55fc"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-3#6c95f4c768c3bf7b83d1207cbc3a948c47c283a6"
 dependencies = [
  "ecow",
  "once_cell",
@@ -4013,7 +4013,7 @@ dependencies = [
 [[package]]
 name = "typst-timing"
 version = "0.12.0"
-source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-2#14b66862f29157cc5f3915fa2c4372c9fd5d55fc"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-3#6c95f4c768c3bf7b83d1207cbc3a948c47c283a6"
 dependencies = [
  "parking_lot",
  "serde",
@@ -4024,7 +4024,7 @@ dependencies = [
 [[package]]
 name = "typst-utils"
 version = "0.12.0"
-source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-2#14b66862f29157cc5f3915fa2c4372c9fd5d55fc"
+source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts/v0.5.0-rc8-3#6c95f4c768c3bf7b83d1207cbc3a948c47c283a6"
 dependencies = [
  "once_cell",
  "portable-atomic",
