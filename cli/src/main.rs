@@ -100,7 +100,7 @@ async fn init(args: InitArgs) -> ZResult<()> {
         dir.join("book.typ"),
         format!(
             r##"
-#import "@preview/shiroa:0.1.1": *
+#import "@preview/shiroa:0.1.2": *
 
 #show: book
 
@@ -135,7 +135,7 @@ Sample page
     write_file(
         dir.join("ebook.typ"),
         format!(
-            r##"#import "@preview/shiroa:0.1.1": *
+            r##"#import "@preview/shiroa:0.1.2": *
 
 #import "{ebook_template}"
 
