@@ -31,12 +31,12 @@ jobs:
         with:
           cmd: build
           dir: 'frontend'
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: typst-ts-dist
           path: frontend/node_modules/@myriaddreamin
           if-no-files-found: error
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-dist
           path: frontend/dist
@@ -120,12 +120,12 @@ jobs:
         run: |
           cargo build --release --manifest-path cli/Cargo.toml --target ${{ matrix.rust-target }} --bin shiroa
           cargo build --profile relwithdebinfo --manifest-path cli/Cargo.toml --target ${{ matrix.rust-target }} --bin shiroa
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-${{ env.target }}
           path: target/${{ matrix.rust-target }}/release/shiroa*
           if-no-files-found: error
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-${{ env.target }}-relwithdebinfo
           path: target/${{ matrix.rust-target }}/relwithdebinfo/shiroa*
@@ -149,7 +149,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
       - uses: dtolnay/rust-toolchain@stable
@@ -172,12 +172,12 @@ jobs:
           CARGO_TARGET: ${{ matrix.rust-target }}
           PKG_CONFIG_PATH: /usr/lib/riscv64-linux-gnu/pkgconfig
           PKG_CONFIG_ALLOW_CROSS: true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-${{ env.target }}
           path: target/${{ matrix.rust-target }}/release/shiroa*
           if-no-files-found: error
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-${{ env.target }}-relwithdebinfo
           path: target/${{ matrix.rust-target }}/relwithdebinfo/shiroa*
@@ -222,12 +222,12 @@ jobs:
         run: |
           cargo build --release --manifest-path cli/Cargo.toml --target $RUST_TARGET --bin shiroa
           cargo build --profile relwithdebinfo --manifest-path cli/Cargo.toml --target $RUST_TARGET --bin shiroa
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-${{ env.target }}-relwithdebinfo
           path: target/${{ env.RUST_TARGET }}/relwithdebinfo/shiroa*
           if-no-files-found: error
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: shiroa-${{ env.target }}
           path: target/${{ env.RUST_TARGET }}/release/shiroa*
@@ -243,7 +243,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
       - name: Display structure of downloaded files
@@ -294,7 +294,7 @@ jobs:
           pack_release alpine-x64    x86_64-unknown-linux-musl
       - name: Display structure of releasing files
         run: find gh-release
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: gh-release
           path: gh-release
