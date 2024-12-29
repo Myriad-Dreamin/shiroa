@@ -58,7 +58,7 @@ to be ignored at best, or may cause an error when attempting to build the book.
 )
 ```
 
-+ ***Prefix Chapter*** - Before the main numbered chapters, prefix chapters can be added
++ *Prefix Chapter* - Before the main numbered chapters, prefix chapters can be added
   that will not be numbered. This is useful for forewords,
   introductions, etc. There are, however, some constraints. Prefix chapters cannot be
   nested; they should all be on the root level. And you cannot add
@@ -68,7 +68,7 @@ to be ignored at best, or may cause an error when attempting to build the book.
   - #chapter("1.typ", section: "1")[First Chapter]
   ```
 
-+ ***Part Title*** - Headers can be used as a title for the following numbered
++ *Part Title* - Headers can be used as a title for the following numbered
   chapters. This can be used to logically separate different sections
   of the book. The title is rendered as unclickable text.
   Titles are optional, and the numbered chapters can be broken into as many
@@ -79,7 +79,7 @@ to be ignored at best, or may cause an error when attempting to build the book.
   - #chapter("1.typ", section: "1")[First Chapter]
   ```
 
-+ ***Numbered Chapter*** - Numbered chapters outline the main content of the book
++ *Numbered Chapter* - Numbered chapters outline the main content of the book
   and can be nested, resulting in a nice hierarchy
   (chapters, sub-chapters, etc.).
   ```typ
@@ -95,7 +95,7 @@ to be ignored at best, or may cause an error when attempting to build the book.
   ```
   Numbered chapters can be denoted either `-`.
 
-+ ***Suffix Chapter*** - Like prefix chapters, suffix chapters are unnumbered, but they come after
++ *Suffix Chapter* - Like prefix chapters, suffix chapters are unnumbered, but they come after
   numbered chapters.
   ```typ
   = Last Part
@@ -105,7 +105,7 @@ to be ignored at best, or may cause an error when attempting to build the book.
   #suffix-chapter("suf.typ")[Title of Suffix Chapter]
   ```
 
-+ ***Draft chapters*** - Draft chapters are chapters without a file and thus content.
++ *Draft chapters* - Draft chapters are chapters without a file and thus content.
   The purpose of a draft chapter is to signal future chapters still to be written.
   Or when still laying out the structure of the book to avoid creating the files
   while you are still changing the structure of the book a lot.
@@ -116,7 +116,7 @@ to be ignored at best, or may cause an error when attempting to build the book.
   #chapter(none, section: "5.2")[Draft Chapter]
   ```
 
-+ ***Separators*** - Separators can be added before, in between, and after any other element. They result
++ *Separators* - Separators can be added before, in between, and after any other element. They result
   in an HTML rendered line in the built table of contents. A separator is
   a line containing exclusively dashes and at least three of them: `---`.
   ```typ

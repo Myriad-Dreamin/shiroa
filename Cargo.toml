@@ -29,10 +29,8 @@ strip = false
 
 typst = "0.12.0"
 typst-assets = "0.12.0"
-reflexo-typst = { version = "0.5.0-rc8" }
-reflexo-vec2svg = { version = "0.5.0-rc8", features = [
-    "experimental-ligature",
-] }
+reflexo-typst = { version = "0.5.2" }
+reflexo-vec2svg = { version = "0.5.2", features = ["experimental-ligature"] }
 
 handlebars = "4.5"
 
@@ -70,10 +68,11 @@ include_dir = "0.7.3"
 pathdiff = "0.2.1"
 
 [patch.crates-io]
-typst = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.5.0-rc8-4" }
-typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", branch = "typst.ts-v0.5.0-rc8-4" }
-reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "c52a054ca31989e13eddc6f2cffb6db2ba5faa5d", package = "reflexo-vec2svg" }
-reflexo-typst = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "c52a054ca31989e13eddc6f2cffb6db2ba5faa5d", package = "reflexo-typst" }
+typst = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
+typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
+
+# reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "c52a054ca31989e13eddc6f2cffb6db2ba5faa5d", package = "reflexo-vec2svg" }
+# reflexo-typst = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "c52a054ca31989e13eddc6f2cffb6db2ba5faa5d", package = "reflexo-typst" }
 
 # typst = { path = "../typst/crates/typst" }
 # typst-syntax = { path = "../typst/crates/typst-syntax" }
