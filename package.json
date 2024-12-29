@@ -1,0 +1,17 @@
+{
+  "name": "shiroa",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "docs": "cargo run --release --bin shiroa -- serve --font-path ./assets/extra-fonts/ -w . github-pages/docs",
+    "generate-ci": "dist generate",
+    "draft-release": "node scripts/draft-release.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
