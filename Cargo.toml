@@ -1,7 +1,7 @@
 [workspace.package]
 description = "A simple tool for creating modern online books in pure typst."
 authors = ["shiroa Developers"]
-version = "0.1.5"
+version = "0.2.0-rc1"
 edition = "2021"
 readme = "README.md"
 license = "Apache-2.0"
