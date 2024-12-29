@@ -15,8 +15,7 @@ Give it the name of the directory that you want to create:
 shiroa init my-first-book
 ```
 
-It will ask a few questions before generating the book.
-After answering the questions, you can change the current directory into the new book:
+It will emit template files to the `my-first-book`. Then, you can change the current directory into the new book:
 
 ```sh
 cd my-first-book
