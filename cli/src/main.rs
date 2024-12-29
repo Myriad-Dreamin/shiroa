@@ -2,7 +2,7 @@ use std::{net::SocketAddr, path::Path, process::exit};
 
 use clap::{Args, Command, FromArgMatches};
 use reflexo_typst::path::{unix_slash, PathClean};
-use shiroa_cli::{
+use shiroa::{
     error::prelude::*,
     project::Project,
     utils::{async_continue, create_dirs, make_absolute, write_file, UnwrapOrExit},
