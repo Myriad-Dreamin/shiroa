@@ -3163,14 +3163,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "shiroa-build"
-version = "0.2.0-rc1"
-dependencies = [
- "anyhow",
-]
-
-[[package]]
-name = "shiroa-cli"
+name = "shiroa"
 version = "0.2.0-rc1"
 dependencies = [
  "anyhow",
@@ -3195,6 +3188,13 @@ dependencies = [
  "url",
  "vergen",
  "warp",
+]
+
+[[package]]
+name = "shiroa-build"
+version = "0.2.0-rc1"
+dependencies = [
+ "anyhow",
 ]
 
 [[package]]

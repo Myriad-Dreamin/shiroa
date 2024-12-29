@@ -1,5 +1,5 @@
 [package]
-name = "shiroa-cli"
+name = "shiroa"
 description = "Command line tool for shiroa."
 authors.workspace = true
 version.workspace = true
