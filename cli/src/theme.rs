@@ -72,20 +72,23 @@ impl Theme {
         // Check for individual files, if they exist copy them across
         {
             let files = vec![
-                (theme_dir.join("index.hbs"), &mut theme.index),
+                ("index.hbs", &mut theme.index),
+                ("head.hbs", &mut theme.head),
+                ("header.hbs", &mut theme.header),
                 (
-                    theme_dir.join("typst-load-trampoline.hbs"),
+                    "typst-load-trampoline.hbs",
                     &mut theme.typst_load_trampoline,
                 ),
             ];
 
-            let load_with_warn = |filename: &Path, dest: &mut Vec<u8>| {
-                if !filename.exists() {
+            let load_with_warn = |filename: &str, dest: &mut Vec<u8>| {
+                let file_path = theme_dir.join(filename);
+                if !file_path.exists() {
                     // Don't warn if the file doesn't exist.
                     return false;
                 }
-                if let Err(e) = load_file_contents(filename, dest) {
-                    warn!("Couldn't load custom file, {}: {}", filename.display(), e);
+                if let Err(e) = load_file_contents(&file_path, dest) {
+                    warn!("Couldn't load custom file, {}: {}", file_path.display(), e);
                     false
                 } else {
                     true
@@ -93,7 +96,7 @@ impl Theme {
             };
 
             for (filename, dest) in files {
-                load_with_warn(&filename, dest);
+                load_with_warn(filename, dest);
             }
         }
 
