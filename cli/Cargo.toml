@@ -53,6 +53,7 @@ pathdiff.workspace = true
 [build-dependencies]
 anyhow.workspace = true
 vergen.workspace = true
+vergen-gitcl.workspace = true
 
 [features]
 embedded-fonts = ["typst-assets/fonts"]

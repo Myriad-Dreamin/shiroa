@@ -55,13 +55,8 @@ env_logger = "0.11"
 log = "0.4.25"
 
 # misc
-vergen = { version = "8.2.5", features = [
-    "build",
-    "cargo",
-    "git",
-    "gitcl",
-    "rustc",
-] }
+vergen = { version = "9.0.4", features = ["build", "cargo", "rustc"] }
+vergen-gitcl = { version = "1.0.1" }
 include_dir = "0.7.3"
 pathdiff = "0.2.1"
 
