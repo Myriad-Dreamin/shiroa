@@ -322,6 +322,12 @@
 
         </div>
 
+        {{#if search_js}}
+        <script src="{{ path_to_root }}internal/elasticlunr.min.js"></script>
+        <script src="{{ path_to_root }}internal/mark.min.js"></script>
+        <script src="{{ path_to_root }}internal/searcher.js"></script>
+        {{/if}}
+
         <script src="{{ path_to_root }}internal/svg_utils.js"></script>
         {{!-- <script src="/dev/frontend/src/svg_utils.cjs"></script> --}}
         <script src="{{ path_to_root }}theme/index.js"></script>

@@ -1,9 +1,19 @@
+use std::borrow::Cow;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 use std::{fs, io};
 
 use reflexo_typst::error::prelude::*;
 use reflexo_typst::TypstSystemWorld;
+use regex::Regex;
 use tokio::runtime::Builder;
+
+/// Replaces multiple consecutive whitespace characters with a single space
+/// character.
+pub fn collapse_whitespace(text: &str) -> Cow<'_, str> {
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s\s+").unwrap());
+    RE.replace_all(text, " ")
+}
 
 pub fn async_continue<F: std::future::Future<Output = ()>>(f: F) -> ! {
     Builder::new_multi_thread()
