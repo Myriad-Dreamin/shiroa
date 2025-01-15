@@ -26,6 +26,8 @@ pub enum ThemeAsset {
 #[derive(Debug, PartialEq)]
 pub struct Theme {
     pub index: Vec<u8>,
+    pub head: Vec<u8>,
+    pub header: Vec<u8>,
     pub typst_load_trampoline: Vec<u8>,
 
     asset: ThemeAsset,
@@ -33,10 +35,17 @@ pub struct Theme {
 
 impl Default for Theme {
     fn default() -> Self {
+        macro_rules! default_theme_file {
+            ($file:literal) => {
+                include_bytes!(concat!("../../themes/mdbook/", $file)).to_vec()
+            };
+        }
+
         Self {
-            index: include_bytes!("../../themes/mdbook/index.hbs").to_vec(),
-            typst_load_trampoline: include_bytes!("../../themes/mdbook/typst-load-trampoline.hbs")
-                .to_vec(),
+            index: default_theme_file!("index.hbs"),
+            head: default_theme_file!("head.hbs"),
+            header: default_theme_file!("header.hbs"),
+            typst_load_trampoline: default_theme_file!("typst-load-trampoline.hbs"),
             asset: ThemeAsset::Static(EmbeddedThemeAsset::MdBook),
         }
     }

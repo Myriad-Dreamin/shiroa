@@ -1,4 +1,4 @@
-use handlebars::Handlebars;
+use handlebars::{Handlebars, RenderErrorReason};
 use log::debug;
 use serde_json::json;
 
@@ -14,15 +14,17 @@ impl HtmlRenderer {
         let mut handlebars = Handlebars::new();
 
         debug!("Register the index handlebars template");
-        handlebars
-            .register_template_string("index", String::from_utf8(theme.index.clone()).unwrap())
-            .unwrap();
-        handlebars
-            .register_template_string(
-                "typst_load_trampoline",
-                String::from_utf8(theme.typst_load_trampoline.clone()).unwrap(),
-            )
-            .unwrap();
+
+        for (name, partial) in [
+            ("index", &theme.index),
+            ("head", &theme.head),
+            ("header", &theme.header),
+            ("typst_load_trampoline", &theme.typst_load_trampoline),
+        ] {
+            handlebars
+                .register_template_string(name, String::from_utf8(partial.clone()).unwrap())
+                .unwrap();
+        }
 
         // todo: helpers
         // debug!("Register handlebars helpers");
@@ -89,8 +91,8 @@ pub struct RenderToc {
 impl HelperDef for RenderToc {
     fn call<'reg: 'rc, 'rc>(
         &self,
-        _h: &Helper<'reg, 'rc>,
-        _r: &'reg Handlebars<'_>,
+        _h: &Helper<'rc>,
+        _r: &'reg Handlebars<'reg>,
         ctx: &'rc Context,
         rc: &mut RenderContext<'reg, 'rc>,
         out: &mut dyn Output,
@@ -100,21 +102,21 @@ impl HelperDef for RenderToc {
         // param is the key of value you want to display
         let chapters = rc.evaluate(ctx, "@root/chapters").and_then(|c| {
             serde_json::value::from_value::<Vec<BTreeMap<String, String>>>(c.as_json().clone())
-                .map_err(|_| RenderError::new("Could not decode the JSON data"))
+                .map_err(|_| other_reason("Could not decode the JSON data"))
         })?;
 
         let path_to_root = rc
             .evaluate(ctx, "@root/path_to_root")?
             .as_json()
             .as_str()
-            .ok_or_else(|| RenderError::new("Type error for `path_to_root`, string expected"))?
+            .ok_or_else(|| other_reason("Type error for `path_to_root`, string expected"))?
             .replace('\"', "");
 
         let current_path = rc
             .evaluate(ctx, "@root/path")?
             .as_json()
             .as_str()
-            .ok_or_else(|| RenderError::new("Type error for `path`, string expected"))?
+            .ok_or_else(|| other_reason("Type error for `path`, string expected"))?
             .replace('\"', "");
 
         let current_section = rc
@@ -128,13 +130,13 @@ impl HelperDef for RenderToc {
             .evaluate(ctx, "@root/fold_enable")?
             .as_json()
             .as_bool()
-            .ok_or_else(|| RenderError::new("Type error for `fold_enable`, bool expected"))?;
+            .ok_or_else(|| other_reason("Type error for `fold_enable`, bool expected"))?;
 
         let fold_level = rc
             .evaluate(ctx, "@root/fold_level")?
             .as_json()
             .as_u64()
-            .ok_or_else(|| RenderError::new("Type error for `fold_level`, u64 expected"))?;
+            .ok_or_else(|| other_reason("Type error for `fold_level`, u64 expected"))?;
 
         out.write("<ol class=\"chapter\">")?;
 
@@ -270,6 +272,10 @@ impl HelperDef for RenderToc {
         out.write("</ol>")?;
         Ok(())
     }
+}
+
+fn other_reason(desc: &str) -> RenderError {
+    RenderErrorReason::Other(desc.to_string()).into()
 }
 
 fn write_li_open_tag(
