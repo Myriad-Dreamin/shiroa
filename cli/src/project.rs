@@ -405,22 +405,28 @@ impl Project {
     }
 
     pub fn compile_chapter(&mut self, _ch: DataDict, path: &str) -> ZResult<ChapterArtifact> {
-        let rel_data_path = std::path::Path::new(&self.path_to_root)
+        let file_name = std::path::Path::new(&self.path_to_root)
             .join(path)
-            .with_extension("")
+            .with_extension("");
+
+        // todo: description for single document
+        let mut full_digest = "".to_owned();
+        if self.need_compile() {
+            let doc = self.tr.compile_page(Path::new(path))?;
+            full_digest = self.tr.generate_desc(&doc)?;
+        }
+        let description = match full_digest.char_indices().nth(512) {
+            Some((idx, _)) => full_digest[..idx].to_owned(),
+            None => full_digest,
+        };
+
+        let rel_data_path = file_name
             .to_str()
             .ok_or_else(|| error_once!("path_to_root is not a valid utf-8 string"))?
             // windows
             .replace('\\', "/");
 
-        // todo: description for single document
-        let mut description = "".to_owned();
-        if self.need_compile() {
-            let doc = self.tr.compile_page(Path::new(path))?;
-            description = self.tr.generate_desc(&doc)?;
-        }
-
-        let dynamic_load_trampoline = self
+        let content = self
             .hr
             .handlebars
             .render(
@@ -434,45 +440,44 @@ impl Project {
             ))?;
 
         Ok(ChapterArtifact {
-            content: dynamic_load_trampoline.to_owned(),
-            description: escape_str::<AttributeEscapes>(
-                &description.chars().take(512).collect::<String>(),
-            )
-            .into_owned(),
+            content,
+            description,
         })
     }
 
     pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> ZResult<String> {
         let instant = std::time::Instant::now();
-        log::info!("rendering chapter {}", path);
-        // println!("RC = {:?}", rc);
+
+        let file_path = std::path::Path::new(&self.path_to_root)
+            .join(path)
+            .with_extension("");
+
+        log::info!("rendering chapter {path}");
+
+        // Compiles the chapter
+        let art = self.compile_chapter(chapter_data, path)?;
+        self.index_search(&art.description, &file_path.with_extension("html"));
+
+        // Creates the data to inject in the template
         let data = serde_json::to_value(self.book_meta.clone())
             .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
         let mut data: DataDict = serde_json::from_value(data)
             .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
 
-        // inject chapters
-        data.insert("chapters".to_owned(), json!(self.chapters));
-
+        // Injects module path
         let renderer_module = format!("{}internal/typst_ts_renderer_bg.wasm", self.path_to_root);
         data.insert("renderer_module".to_owned(), json!(renderer_module));
 
-        // inject content
+        // Injects description
+        let desc = escape_str::<AttributeEscapes>(&art.description).into_owned();
+        data.insert("description".to_owned(), serde_json::Value::String(desc));
 
-        let art = self.compile_chapter(chapter_data, path)?;
-
-        // inject content
-        data.insert(
-            "description".to_owned(),
-            serde_json::Value::String(art.description),
-        );
+        data.insert("chapters".to_owned(), json!(self.chapters));
         data.insert("content".to_owned(), serde_json::Value::String(art.content));
-
-        // inject path_to_root
         data.insert("path_to_root".to_owned(), json!(self.path_to_root));
 
         let index_html = self.hr.render_index(data, path);
-        log::info!("rendering chapter {} in {:?}", path, instant.elapsed());
+        log::info!("rendering chapter {path} in {:?}", instant.elapsed());
         Ok(index_html)
     }
 

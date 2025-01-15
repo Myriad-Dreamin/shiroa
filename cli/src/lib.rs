@@ -4,6 +4,7 @@ pub mod meta;
 pub mod outline;
 pub mod project;
 pub mod render;
+pub mod search;
 pub mod theme;
 pub mod utils;
 pub mod version;
