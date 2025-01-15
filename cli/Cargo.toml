@@ -27,7 +27,6 @@ clap_complete.workspace = true
 clap_complete_fig.workspace = true
 
 comemo.workspace = true
-# chrono.workspace = true
 tokio.workspace = true
 indexmap = "2"
 url = "2"
@@ -40,15 +39,12 @@ toml.workspace = true
 env_logger.workspace = true
 log.workspace = true
 
-# flate2.workspace = true
-
-# codespan-reporting.workspace = true
-# human-panic.workspace = true
-
 reflexo-typst.workspace = true
 reflexo-vec2svg.workspace = true
 handlebars.workspace = true
 pathdiff.workspace = true
+elasticlunr-rs.workspace = true
+regex.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true
