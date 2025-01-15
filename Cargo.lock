@@ -882,6 +882,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
+name = "elasticlunr-rs"
+version = "3.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41e83863a500656dfa214fee6682de9c5b9f03de6860fec531235ed2ae9f6571"
+dependencies = [
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
 name = "embedded-io"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3220,6 +3232,7 @@ dependencies = [
  "clap_complete",
  "clap_complete_fig",
  "comemo",
+ "elasticlunr-rs",
  "env_logger",
  "handlebars",
  "include_dir",
@@ -3228,6 +3241,7 @@ dependencies = [
  "pathdiff",
  "reflexo-typst",
  "reflexo-vec2svg",
+ "regex",
  "serde",
  "serde_json",
  "tokio",
