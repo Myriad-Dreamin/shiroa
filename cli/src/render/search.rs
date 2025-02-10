@@ -64,7 +64,7 @@ impl SearchRenderer {
         self.index.add_doc(&doc_ref, items);
     }
 
-    pub fn render_search_index(&mut self, dest_dir: &Path) -> ZResult<()> {
+    pub fn render_search_index(&mut self, dest_dir: &Path) -> Result<()> {
         let index = write_to_json(&self.index, &self.config, &self.doc_urls)?;
         if index.len() > 10_000_000 {
             log::warn!("searchindex.json is very large ({} bytes)", index.len());
@@ -90,7 +90,7 @@ impl Project {
     }
 }
 
-fn write_to_json(index: &Index, search_config: &Search, doc_urls: &Vec<String>) -> ZResult<String> {
+fn write_to_json(index: &Index, search_config: &Search, doc_urls: &Vec<String>) -> Result<String> {
     use elasticlunr::config::{SearchBool, SearchOptions, SearchOptionsField};
     use std::collections::BTreeMap;
 

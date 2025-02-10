@@ -50,7 +50,7 @@ fn main() {
     }
 }
 
-async fn init(args: InitArgs) -> ZResult<()> {
+async fn init(args: InitArgs) -> Result<()> {
     let dir = make_absolute(Path::new(&args.compile.dir)).clean();
 
     if dir.exists() {
@@ -100,7 +100,7 @@ async fn init(args: InitArgs) -> ZResult<()> {
         dir.join("book.typ"),
         format!(
             r##"
-#import "@preview/shiroa:0.1.2": *
+#import "@preview/shiroa:0.2.0": *
 
 #show: book
 
@@ -135,7 +135,7 @@ Sample page
     write_file(
         dir.join("ebook.typ"),
         format!(
-            r##"#import "@preview/shiroa:0.1.2": *
+            r##"#import "@preview/shiroa:0.2.0": *
 
 #import "{ebook_template}"
 
@@ -173,14 +173,14 @@ Sample page
     .await
 }
 
-fn build(args: BuildArgs) -> ZResult<()> {
+fn build(args: BuildArgs) -> Result<()> {
     let mut proj = Project::new(args.compile)?;
     proj.build()?;
 
     exit(0)
 }
 
-pub async fn serve(args: ServeArgs) -> ZResult<()> {
+pub async fn serve(args: ServeArgs) -> Result<()> {
     let mut proj = Project::new(args.compile)?;
 
     // Build the book if it hasn't been built yet

@@ -77,7 +77,7 @@ pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<
     Ok(())
 }
 
-pub fn create_dirs<P: AsRef<Path>>(path: P) -> ZResult<()> {
+pub fn create_dirs<P: AsRef<Path>>(path: P) -> Result<()> {
     let path = path.as_ref();
     if path.exists() {
         return Ok(());
@@ -86,7 +86,7 @@ pub fn create_dirs<P: AsRef<Path>>(path: P) -> ZResult<()> {
     fs::create_dir_all(path).map_err(error_once_map!("create_dirs"))
 }
 
-pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> ZResult<()> {
+pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<()> {
     let path = path.as_ref();
     if path.exists() {
         if !path.is_file() {
@@ -102,7 +102,7 @@ pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> ZResu
     fs::write(path, contents.as_ref()).map_err(error_once_map!("write_file: write"))
 }
 
-pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> ZResult<()> {
+pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> Result<()> {
     for entry in src.files() {
         let t = dst.as_ref().join(entry.path());
         create_dirs(t.parent().unwrap())?;

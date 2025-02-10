@@ -3,10 +3,8 @@
 
 /// Internal method to convert summary content nodes
 #let _convert-summary(elem) = {
-
   // The entry point of the metadata nodes
   if metadata == elem.func() {
-
     // convert any metadata elem to its value
     let node = elem.value
 
@@ -30,11 +28,10 @@
 
   // convert a (possibly nested) list to a part elem
   if list.item == elem.func() {
-
     // convert children first
     let maybe-children = _convert-summary(elem.body)
 
-    if type(maybe-children) == "array" {
+    if type(maybe-children) == array {
       // if the list-item has children, then process subchapters
 
       if maybe-children.len() <= 0 {
@@ -88,7 +85,6 @@
 
     // update section number if user specified it by str or array
     if user-specified != none and user-specified != auto {
-
       // update number
       num = if type(user-specified) == str {
         // e.g. "1.2.3" -> (1, 2, 3)

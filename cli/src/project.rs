@@ -3,7 +3,10 @@ use std::path::{Path, PathBuf};
 
 use include_dir::include_dir;
 use log::warn;
-use reflexo_typst::escape::{escape_str, AttributeEscapes};
+use reflexo_typst::{
+    escape::{escape_str, AttributeEscapes},
+    CompilerExt,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -60,7 +63,7 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new(mut args: CompileArgs) -> ZResult<Self> {
+    pub fn new(mut args: CompileArgs) -> Result<Self> {
         let mut final_dest_dir = args.dest_dir.clone();
         let path_to_root = args.path_to_root.clone();
 
@@ -149,7 +152,7 @@ impl Project {
         Ok(proj)
     }
 
-    pub fn compile_meta(&mut self) -> ZResult<()> {
+    pub fn compile_meta(&mut self) -> Result<()> {
         #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
         struct QueryItem<T> {
             pub value: T,
@@ -157,7 +160,7 @@ impl Project {
 
         type Json<T> = Vec<QueryItem<T>>;
 
-        let doc = self.tr.compile_book(Path::new("book.typ"))?;
+        let (graph, doc) = self.tr.compile_book(Path::new("book.typ"))?;
 
         #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
         pub enum InternalPackageMeta {
@@ -167,10 +170,7 @@ impl Project {
         }
 
         {
-            let res = self
-                .tr
-                .compiler
-                .query("<shiroa-internal-package-meta>".to_string(), &doc);
+            let res = graph.query("<shiroa-internal-package-meta>".to_string(), &doc);
             let res = self
                 .tr
                 .report(res)
@@ -186,21 +186,18 @@ impl Project {
 
             let package_meta = res
                 .first()
-                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/shiroa:0.1.2; or do you forget the show rule `#show: book`?)"))?;
+                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/shiroa:0.2.0; or do you forget the show rule `#show: book`?)"))?;
 
             let InternalPackageMeta::Package { version } = &package_meta.value;
-            if version != "0.1.2" {
+            if version != "0.2.0" {
                 return Err(error_once!(
-                    "outdated book package, please import @preview/shiroa:0.1.2", importing_version: version,
+                    "outdated book package, please import @preview/shiroa:0.2.0", importing_version: version,
                 ));
             }
         }
 
         {
-            let res = self
-                .tr
-                .compiler
-                .query("<shiroa-book-meta>".to_string(), &doc);
+            let res = graph.query("<shiroa-book-meta>".to_string(), &doc);
             let res = self
                 .tr
                 .report(res)
@@ -222,10 +219,7 @@ impl Project {
         }
 
         {
-            let res = self
-                .tr
-                .compiler
-                .query("<shiroa-build-meta>".to_string(), &doc);
+            let res = graph.query("<shiroa-build-meta>".to_string(), &doc);
             let res = self
                 .tr
                 .report(res)
@@ -248,10 +242,10 @@ impl Project {
         Ok(())
     }
 
-    pub fn infer_meta_by_outline(&mut self, entry: PathBuf) -> ZResult<()> {
+    pub fn infer_meta_by_outline(&mut self, entry: PathBuf) -> Result<()> {
         // println!("entry = {:?}, root = {:?}", entry, self.tr.root_dir);
         let entry = entry.strip_prefix(&self.tr.root_dir).unwrap_or_exit();
-        let doc = self.tr.compile_book(entry)?;
+        let (_, doc) = self.tr.compile_book(entry)?;
 
         // let outline = crate::outline::outline(&doc);
         // println!("outline: {:#?}", outline);
@@ -259,7 +253,7 @@ impl Project {
         let chapters = self.tr.compile_pages_by_outline(entry)?;
         self.chapters = self.generate_chapters(&chapters);
 
-        let info = &doc.info;
+        let info = &doc.info();
         let title = info.title.as_ref().map(|t| t.as_str());
         let authors = info.author.iter().map(|a| a.as_str().to_owned()).collect();
 
@@ -274,7 +268,7 @@ impl Project {
         Ok(())
     }
 
-    pub fn build(&mut self) -> ZResult<()> {
+    pub fn build(&mut self) -> Result<()> {
         let mut write_index = false;
 
         let themes = self.dest_dir.join("theme");
@@ -426,7 +420,7 @@ impl Project {
         chapters
     }
 
-    pub fn compile_chapter(&mut self, path: &str) -> ZResult<ChapterArtifact> {
+    pub fn compile_chapter(&mut self, path: &str) -> Result<ChapterArtifact> {
         let file_name = std::path::Path::new(&self.path_to_root)
             .join(path)
             .with_extension("");
@@ -467,7 +461,7 @@ impl Project {
         })
     }
 
-    pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> ZResult<String> {
+    pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> Result<String> {
         let instant = std::time::Instant::now();
 
         let file_path = std::path::Path::new(&self.path_to_root)

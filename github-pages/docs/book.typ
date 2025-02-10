@@ -1,5 +1,5 @@
 
-#import "@preview/shiroa:0.1.2": *
+#import "@preview/shiroa:0.2.0": *
 
 #show: book
 
@@ -10,7 +10,8 @@
   repository-edit: "https://github.com/Myriad-Dreamin/shiroa/edit/main/github-pages/docs/{path}",
   authors: ("Myriad-Dreamin", "7mile"),
   language: "en",
-  summary: [ // begin of summary
+  summary: [
+    // begin of summary
     #prefix-chapter("introduction.typ")[Introduction]
     = User Guide
     - #chapter("guide/installation.typ")[Installation]
@@ -28,9 +29,9 @@
       - #chapter("format/book.typ")[book.typ]
         - #chapter("format/book-meta.typ")[Book Metadata]
           - #chapter(none)[Draft chapter]
-          // - #chapter(none)[chapter with - markers]
-          // - #chapter(none, "= Introduction")
-          // - #chapter(none)[#text("= Introduction")]
+        // - #chapter(none)[chapter with - markers]
+        // - #chapter(none, "= Introduction")
+        // - #chapter(none)[#text("= Introduction")]
         - #chapter("format/build-meta.typ")[Build Metadata]
       - #chapter("format/theme.typ")[Theme]
       - #chapter("format/supports.typ")[Typst Support]

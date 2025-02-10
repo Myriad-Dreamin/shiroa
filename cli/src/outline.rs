@@ -138,7 +138,7 @@ pub struct OutlineItem {
 }
 
 pub fn outline(interner: &mut SpanInternerImpl, document: &TypstDocument) -> Outline {
-    let outline = get_outline(&document.introspector);
+    let outline = get_outline(document.introspector());
     let mut items = Vec::with_capacity(outline.as_ref().map_or(0, Vec::len));
 
     for heading in outline.iter().flatten() {

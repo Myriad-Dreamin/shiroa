@@ -55,7 +55,7 @@ impl Theme {
     /// Creates a `Theme` from the given `theme_dir`.
     /// If a file is found in the theme dir, it will override the default
     /// version.
-    pub fn new(theme_dir: &Path) -> ZResult<Self> {
+    pub fn new(theme_dir: &Path) -> Result<Self> {
         let mut theme = Self {
             asset: ThemeAsset::Dir(theme_dir.into()),
             ..Default::default()
@@ -110,7 +110,7 @@ impl Theme {
         matches!(self.asset, ThemeAsset::Static(_))
     }
 
-    pub fn copy_assets(&self, dest_dir: &Path) -> ZResult<()> {
+    pub fn copy_assets(&self, dest_dir: &Path) -> Result<()> {
         if !dest_dir.exists() {
             log::debug!(
                 "{} does not exist, creating the directory",

@@ -25,8 +25,9 @@ lto = "thin"
 
 [workspace.dependencies]
 
-typst = "0.12.0"
-typst-assets = "0.12.0"
+typst = "0.13.0"
+typst-eval = "0.13.0"
+typst-assets = { git = "https://github.com/typst/typst-assets", rev = "8cccef9" }
 reflexo-typst = { version = "0.5.4" }
 reflexo-vec2svg = { version = "0.5.4", features = ["experimental-ligature"] }
 

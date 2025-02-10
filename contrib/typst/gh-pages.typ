@@ -1,6 +1,6 @@
 // This is important for shiroa to produce a responsive layout
 // and multiple targets.
-#import "@preview/shiroa:0.1.2": get-page-width, target, is-web-target, is-pdf-target, plain-text, templates
+#import "@preview/shiroa:0.2.0": get-page-width, target, is-web-target, is-pdf-target, plain-text, templates
 #import templates: *
 
 // Metadata
@@ -45,7 +45,6 @@
 /// It takes your content and some metadata and formats it.
 /// Go ahead and customize it to your liking!
 #let project(title: "Typst Book", authors: (), kind: "page", body) = {
-
   // set basic document metadata
   set document(
     author: authors,
