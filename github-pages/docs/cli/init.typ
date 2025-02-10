@@ -50,8 +50,9 @@ Your `template.typ` must import and respect the `get-page-width` and `target` va
 
 // Metadata
 #let page-width = get-page-width()
+#let is-html-target = is-html-target() // target.starts-with("html")
 #let is-pdf-target = is-pdf-target() // target.starts-with("pdf")
-#let is-web-target = is-web-target() // target.starts-with("web")
+#let is-web-target = is-web-target() // target.starts-with("web") or target.starts-with("html")
 
 #let project(body) = {
   // set web/pdf page properties

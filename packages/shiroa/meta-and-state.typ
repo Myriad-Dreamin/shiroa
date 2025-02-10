@@ -8,7 +8,7 @@
 ///
 /// Example:
 /// ```typc
-/// #let is-web-target() = target.starts-with("web")
+/// #let is-web-target() = target.starts-with("web") or target.starts-with("html")
 /// #let is-pdf-target() = target.starts-with("pdf")
 /// ```
 #let target = target
@@ -24,8 +24,10 @@
 /// ```
 #let get-page-width() = page-width
 
+/// Whether the current compilation is for _html_
+#let is-html-target() = target.starts-with("html") or target.starts-with("html")
 /// Whether the current compilation is for _web_
-#let is-web-target() = target.starts-with("web")
+#let is-web-target() = target.starts-with("web") or target.starts-with("html")
 /// Whether the current compilation is for _pdf_
 #let is-pdf-target() = target.starts-with("pdf")
 
@@ -33,6 +35,7 @@
 #let book-sys = (
   target: target,
   page-width: page-width,
+  is-html-target: is-html-target(),
   is-web-target: is-web-target(),
   is-pdf-target: is-pdf-target(),
 )
