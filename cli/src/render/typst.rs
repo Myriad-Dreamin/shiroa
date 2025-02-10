@@ -12,7 +12,7 @@ use crate::{
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
-    CompileArgs,
+    CompileArgs, RenderMode,
 };
 use reflexo_typst::{
     config::CompileOpts,
@@ -25,8 +25,9 @@ use reflexo_typst::{
         IntoTypst,
     },
     world::EntryOpts,
-    DiagnosticHandler, DynSvgModuleExport, EntryReader, ExportDynSvgModuleTask, TakeAs, TextExport,
-    TypstAbs, TypstDocument, TypstPagedDocument,
+    CompilationTask, DiagnosticHandler, DynSvgModuleExport, EntryReader, ExportDynSvgModuleTask,
+    FlagTask, LazyHash, TakeAs, TaskInputs, TextExport, TypstAbs, TypstDict, TypstDocument,
+    TypstHtmlDocument, TypstPagedDocument,
 };
 use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
@@ -37,7 +38,7 @@ use serde::Deserialize;
 use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
-    foundations::Regex,
+    foundations::{IntoValue, Regex},
 };
 // serialize_doc, LayoutRegionNode,
 
@@ -55,6 +56,7 @@ pub struct TypstRenderer {
     pub compiler: ExportDynSvgModuleTask,
     pub root_dir: PathBuf,
     pub dest_dir: PathBuf,
+    static_html: bool,
     pub diag_handler: DiagnosticHandler,
 }
 
@@ -73,6 +75,10 @@ impl TypstRenderer {
         .unwrap_or_exit();
 
         let mut compiler = ExportDynSvgModuleTask::new();
+        compiler.html_format = matches!(
+            args.mode,
+            RenderMode::StaticHtmlDynPaged | RenderMode::StaticHtml
+        );
         compiler.set_command_executor(Arc::new(ShiroaCommands(
             args.allowed_url_source
                 .map(|s| Arc::new(Regex::new(&s).context("invalid regex").unwrap_or_exit())),
@@ -92,6 +98,7 @@ impl TypstRenderer {
             root_dir,
             dest_dir,
             extension: "multi.sir.in".into(),
+            static_html: args.mode == RenderMode::StaticHtml,
             diag_handler: DiagnosticHandler {
                 print_compile_status: true,
                 diagnostic_format: Default::default(),
@@ -119,10 +126,12 @@ impl TypstRenderer {
     }
 
     fn set_theme_target(&mut self, theme: &str) {
+        let prefix = if self.static_html { "html" } else { "web" };
+
         self.compiler.set_target(if theme.is_empty() {
-            "web".to_owned()
+            prefix.to_owned()
         } else {
-            format!("web-{theme}")
+            format!("{prefix}-{theme}")
         });
 
         self.extension = if theme.is_empty() {
@@ -615,18 +624,48 @@ impl TypstRenderer {
         self.compile_page_with(path, CompilePageSetting::default())
     }
 
+    fn pure_compile<D: typst::Document + Send + Sync + 'static>(
+        &self,
+        g: &Arc<SystemWorldComputeGraph>,
+    ) -> Result<Arc<D>> {
+        let _ = g.provide::<FlagTask<CompilationTask<D>>>(Ok(FlagTask::flag(true)));
+
+        let res = g.compute::<CompilationTask<D>>()?.as_ref().clone().unwrap();
+        self.report_with_warnings(res)
+            .ok_or_else(|| error_once!("compile page failed"))
+    }
+
     pub fn compile_page_with(
         &mut self,
         path: &Path,
         settings: CompilePageSetting,
     ) -> Result<TypstDocument> {
+        if self.static_html && settings.with_outline {
+            return Err(error_once!("outline is not supported in static paged mode"));
+        }
+
         self.setup_entry(path);
 
-        let graph = self.verse.computation();
-        let res = typst::compile::<TypstPagedDocument>(&graph.snap.world);
-        let doc = self
-            .report_with_warnings(res)
-            .ok_or_else(|| error_once!("compile page failed"))?;
+        let inputs = TaskInputs {
+            entry: None,
+            inputs: Some({
+                let mut dict = TypstDict::new();
+                self.set_theme_target("");
+                dict.insert("x-target".into(), self.compiler.target.clone().into_value());
+
+                Arc::new(LazyHash::new(dict))
+            }),
+        };
+        let graph = self.verse.computation_with(inputs);
+        let doc = if self.static_html {
+            TypstDocument::Html(self.pure_compile::<TypstHtmlDocument>(&graph)?)
+        } else {
+            TypstDocument::Paged(self.pure_compile::<TypstPagedDocument>(&graph)?)
+        };
+
+        if self.static_html {
+            return Ok(doc);
+        }
 
         for theme in THEME_LIST {
             self.set_theme_target(theme);
@@ -642,9 +681,9 @@ impl TypstRenderer {
 
                     let (mut meta, pages) = pages.take();
 
-                    let introspector = &doc.introspector;
+                    let introspector = &doc.introspector();
                     let labels = doc
-                        .introspector
+                        .introspector()
                         .all()
                         .flat_map(|elem| elem.label().zip(elem.location()))
                         .map(|(label, elem)| {
@@ -672,8 +711,7 @@ impl TypstRenderer {
                     if settings.with_outline {
                         let mut spans = SpanInternerImpl::default();
 
-                        let outline =
-                            crate::outline::outline(&mut spans, &TypstDocument::Paged(doc));
+                        let outline = crate::outline::outline(&mut spans, &doc);
                         let outline = serde_json::to_vec(&outline).unwrap_or_exit();
                         let outline_meta = ("outline".into(), outline.into());
                         custom.push(outline_meta);
@@ -692,13 +730,11 @@ impl TypstRenderer {
             }
         }
 
-        // Ok(any_doc)
-
-        Ok(TypstDocument::Paged(Arc::new(doc)))
+        Ok(doc)
     }
 
     // todo: we should use same snapshot as that compiled documents
-    pub fn generate_desc(&mut self, doc: &TypstDocument) -> Result<String> {
+    pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
         TextExport::run_on_doc(doc).context("export text for html description")
     }
 }

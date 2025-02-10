@@ -28,7 +28,7 @@ lto = "thin"
 typst = "0.13.0"
 typst-eval = "0.13.0"
 typst-assets = { git = "https://github.com/typst/typst-assets", rev = "8cccef9" }
-reflexo-typst = { version = "0.5.4" }
+reflexo-typst = { version = "0.5.4", features = ["html"] }
 reflexo-vec2svg = { version = "0.5.4", features = ["experimental-ligature"] }
 
 handlebars = "6.3.0"
@@ -66,13 +66,31 @@ include_dir = "0.7.3"
 pathdiff = "0.2.1"
 
 [patch.crates-io]
-typst = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
-typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
+# typst = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
+# typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
 
 # reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "c52a054ca31989e13eddc6f2cffb6db2ba5faa5d", package = "reflexo-vec2svg" }
 # reflexo-typst = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "c52a054ca31989e13eddc6f2cffb6db2ba5faa5d", package = "reflexo-typst" }
 
 # typst = { path = "../typst/crates/typst" }
 # typst-syntax = { path = "../typst/crates/typst-syntax" }
-# reflexo-vec2svg = { path = "../typst.ts/crates/conversion/vec2svg" }
-# reflexo-typst = { path = "../typst.ts/crates/reflexo-typst" }
+reflexo-vec2svg = { path = "../typst.ts/crates/conversion/vec2svg" }
+reflexo-typst = { path = "../typst.ts/crates/reflexo-typst" }
+
+# comemo = { path = "../comemo" }
+typst = { path = "../typst/crates/typst" }
+typst-syntax = { path = "../typst/crates/typst-syntax" }
+typst-render = { path = "../typst/crates/typst-render" }
+typst-svg = { path = "../typst/crates/typst-svg" }
+typst-pdf = { path = "../typst/crates/typst-pdf" }
+typst-eval = { path = "../typst/crates/typst-eval" }
+typst-html = { path = "../typst/crates/typst-html" }
+
+# fontdb = { path = "../fontdb" }
+
+[patch."https://github.com/Myriad-Dreamin/tinymist.git"]
+typst-shim = { path = "../tinymist/crates/typst-shim" }
+tinymist-analysis = { path = "../tinymist/crates/tinymist-analysis" }
+tinymist-std = { path = "../tinymist/crates/tinymist-std" }
+tinymist-task = { path = "../tinymist/crates/tinymist-task" }
+tinymist-world = { path = "../tinymist/crates/tinymist-world" }

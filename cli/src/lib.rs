@@ -66,6 +66,15 @@ impl fmt::Display for MetaSource {
     }
 }
 
+#[derive(ValueEnum, Debug, Clone, Eq, PartialEq, Default)]
+#[value(rename_all = "kebab-case")]
+pub enum RenderMode {
+    #[default]
+    DynPaged,
+    StaticHtmlDynPaged,
+    StaticHtml,
+}
+
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
 pub struct CompileArgs {
@@ -77,6 +86,19 @@ pub struct CompileArgs {
     /// Determine the approach to retrieving metadata of the book project.
     #[clap(long, default_value = "strict")]
     pub meta_source: MetaSource,
+
+    /// The mode to render typst document.
+    ///
+    /// + `dynamic-paged`: dynamically render as paged document.
+    /// + `static-html-static-paged`: statically render html parts as much as
+    ///   possible, and leave frames rendered dynamically.
+    /// + `static-html`: statically render the whole document, the embedded
+    ///   frames are not resizable.
+    ///
+    /// The dynamically rendering means that some elements will be rendered by a
+    /// wasm module in the browser.
+    #[clap(long, default_value = "dyn-paged")]
+    pub mode: RenderMode,
 
     /// Root directory for the typst workspace, which is same as the
     /// `typst-cli`'s root. (Defaults to the root directory for the book
