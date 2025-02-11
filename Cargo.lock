@@ -2691,6 +2691,7 @@ dependencies = [
 [[package]]
 name = "reflexo"
 version = "0.5.4"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=827a4fecb76cd88482642734b1349df570a19336#827a4fecb76cd88482642734b1349df570a19336"
 dependencies = [
  "base64 0.22.1",
  "bitvec",
@@ -2716,6 +2717,7 @@ dependencies = [
 [[package]]
 name = "reflexo-typst"
 version = "0.5.4"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=827a4fecb76cd88482642734b1349df570a19336#827a4fecb76cd88482642734b1349df570a19336"
 dependencies = [
  "codespan-reporting",
  "comemo",
@@ -2749,6 +2751,7 @@ dependencies = [
 [[package]]
 name = "reflexo-typst2vec"
 version = "0.5.4"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=827a4fecb76cd88482642734b1349df570a19336#827a4fecb76cd88482642734b1349df570a19336"
 dependencies = [
  "bitvec",
  "comemo",
@@ -2773,6 +2776,7 @@ dependencies = [
 [[package]]
 name = "reflexo-vec2svg"
 version = "0.5.4"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=827a4fecb76cd88482642734b1349df570a19336#827a4fecb76cd88482642734b1349df570a19336"
 dependencies = [
  "base64 0.22.1",
  "comemo",
@@ -3267,7 +3271,7 @@ dependencies = [
  "tokio",
  "toml",
  "typst",
- "typst-assets 0.12.0 (git+https://github.com/typst/typst-assets?rev=8cccef9)",
+ "typst-assets",
  "url",
  "vergen",
  "vergen-gitcl",
@@ -3564,7 +3568,7 @@ dependencies = [
  "getrandom",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3694,6 +3698,7 @@ dependencies = [
 [[package]]
 name = "tinymist-analysis"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "ecow",
  "lsp-types",
@@ -3706,6 +3711,7 @@ dependencies = [
 [[package]]
 name = "tinymist-derive"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "quote",
  "syn 2.0.96",
@@ -3714,6 +3720,7 @@ dependencies = [
 [[package]]
 name = "tinymist-std"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3749,6 +3756,7 @@ dependencies = [
 [[package]]
 name = "tinymist-task"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3772,7 +3780,7 @@ dependencies = [
  "tokio",
  "toml",
  "typst",
- "typst-assets 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "typst-assets",
  "typst-eval",
  "typst-html",
  "typst-pdf",
@@ -3784,6 +3792,7 @@ dependencies = [
 [[package]]
 name = "tinymist-vfs"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "comemo",
  "indexmap 2.7.0",
@@ -3801,6 +3810,7 @@ dependencies = [
 [[package]]
 name = "tinymist-world"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3827,7 +3837,7 @@ dependencies = [
  "tinymist-std",
  "tinymist-vfs",
  "typst",
- "typst-assets 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "typst-assets",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -4069,6 +4079,7 @@ checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 [[package]]
 name = "typst"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "comemo",
  "ecow",
@@ -4086,17 +4097,12 @@ dependencies = [
 [[package]]
 name = "typst-assets"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fe00da1b24da2c4a7da532fc33d0c3bd43a902ca4c408ee2c36eabe70f2f4ba"
-
-[[package]]
-name = "typst-assets"
-version = "0.12.0"
 source = "git+https://github.com/typst/typst-assets?rev=8cccef9#8cccef93b5da73a1c80389722cf2b655b624f577"
 
 [[package]]
 name = "typst-eval"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "comemo",
  "ecow",
@@ -4115,6 +4121,7 @@ dependencies = [
 [[package]]
 name = "typst-html"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "comemo",
  "ecow",
@@ -4129,6 +4136,7 @@ dependencies = [
 [[package]]
 name = "typst-layout"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "az",
  "bumpalo",
@@ -4144,7 +4152,7 @@ dependencies = [
  "rustybuzz",
  "smallvec",
  "ttf-parser",
- "typst-assets 0.12.0 (git+https://github.com/typst/typst-assets?rev=8cccef9)",
+ "typst-assets",
  "typst-library",
  "typst-macros",
  "typst-syntax",
@@ -4159,6 +4167,7 @@ dependencies = [
 [[package]]
 name = "typst-library"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "az",
  "bitflags 2.8.0",
@@ -4201,7 +4210,7 @@ dependencies = [
  "ttf-parser",
  "two-face",
  "typed-arena",
- "typst-assets 0.12.0 (git+https://github.com/typst/typst-assets?rev=8cccef9)",
+ "typst-assets",
  "typst-macros",
  "typst-syntax",
  "typst-timing",
@@ -4217,6 +4226,7 @@ dependencies = [
 [[package]]
 name = "typst-macros"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -4227,6 +4237,7 @@ dependencies = [
 [[package]]
 name = "typst-pdf"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "arrayvec",
  "base64 0.22.1",
@@ -4241,7 +4252,7 @@ dependencies = [
  "subsetter",
  "svg2pdf",
  "ttf-parser",
- "typst-assets 0.12.0 (git+https://github.com/typst/typst-assets?rev=8cccef9)",
+ "typst-assets",
  "typst-library",
  "typst-macros",
  "typst-syntax",
@@ -4253,6 +4264,7 @@ dependencies = [
 [[package]]
 name = "typst-realize"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "arrayvec",
  "bumpalo",
@@ -4269,6 +4281,7 @@ dependencies = [
 [[package]]
 name = "typst-render"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "bytemuck",
  "comemo",
@@ -4285,6 +4298,7 @@ dependencies = [
 [[package]]
 name = "typst-shim"
 version = "0.12.19-rc4"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06#5b15ca2ddb43b25b7f0cd35358e5e9df70b0de06"
 dependencies = [
  "cfg-if",
  "comemo",
@@ -4296,6 +4310,7 @@ dependencies = [
 [[package]]
 name = "typst-svg"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "base64 0.22.1",
  "comemo",
@@ -4313,6 +4328,7 @@ dependencies = [
 [[package]]
 name = "typst-syntax"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "ecow",
  "serde",
@@ -4329,6 +4345,7 @@ dependencies = [
 [[package]]
 name = "typst-timing"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "parking_lot",
  "serde",
@@ -4338,6 +4355,7 @@ dependencies = [
 [[package]]
 name = "typst-utils"
 version = "0.13.0"
+source = "git+https://github.com/ParaN3xus/typst.git?tag=tinymist-nightly-v0.12.19-rc2-content-hint#af49797ee72c87c6b2cf7005740c5c8ebded16e5"
 dependencies = [
  "once_cell",
  "portable-atomic",
