@@ -29,6 +29,7 @@ pub struct Theme {
     pub head: Vec<u8>,
     pub header: Vec<u8>,
     pub typst_load_trampoline: Vec<u8>,
+    pub typst_load_html_trampoline: Vec<u8>,
 
     asset: ThemeAsset,
 }
@@ -46,6 +47,7 @@ impl Default for Theme {
             head: default_theme_file!("head.hbs"),
             header: default_theme_file!("header.hbs"),
             typst_load_trampoline: default_theme_file!("typst-load-trampoline.hbs"),
+            typst_load_html_trampoline: default_theme_file!("typst-load-html-trampoline.hbs"),
             asset: ThemeAsset::Static(EmbeddedThemeAsset::MdBook),
         }
     }
@@ -78,6 +80,10 @@ impl Theme {
                 (
                     "typst-load-trampoline.hbs",
                     &mut theme.typst_load_trampoline,
+                ),
+                (
+                    "typst-load-html-trampoline.hbs",
+                    &mut theme.typst_load_html_trampoline,
                 ),
             ];
 

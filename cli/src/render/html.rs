@@ -20,6 +20,10 @@ impl HtmlRenderer {
             ("head", &theme.head),
             ("header", &theme.header),
             ("typst_load_trampoline", &theme.typst_load_trampoline),
+            (
+                "typst_load_html_trampoline",
+                &theme.typst_load_html_trampoline,
+            ),
         ] {
             handlebars
                 .register_template_string(name, String::from_utf8(partial.clone()).unwrap())

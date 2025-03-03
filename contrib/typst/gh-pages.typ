@@ -7,6 +7,8 @@
   is-pdf-target,
   is-html-target,
   plain-text,
+  raw-support,
+  shiroa-sys-target,
   templates,
 )
 #import templates: *
@@ -16,6 +18,10 @@
 #let is-html-target = is-html-target()
 #let is-pdf-target = is-pdf-target()
 #let is-web-target = is-web-target()
+#let sys-is-html-target = ("target" in dictionary(std))
+
+/// Creates an embedded block typst frame.
+#let div-frame(content, attrs: (:)) = html.elem("div", html.frame(content), attrs: attrs)
 
 // Theme (Colors)
 #let (
@@ -65,7 +71,7 @@
     numbering: none,
     number-align: center,
     width: page-width,
-  ) if not is-html-target
+  ) if not (sys-is-html-target or is-html-target)
 
   // remove margins for web target
   set page(
@@ -127,26 +133,56 @@
 
   // math setting
   show math.equation: set text(weight: 400)
+  show math.equation: context if shiroa-sys-target() == "html" {
+    div-frame.with(attrs: ("style": "display: flex; justify-content: center; overflow-x: auto;"))
+  } else {
+    it => it
+  }
+
+  let supports-raw = raw-support()
+
+  /// HTML code block supported by zebraw.
+  show: if is-dark-theme {
+    supports-raw.zebraw-init.with(
+      // should vary by theme
+      background-color: if code-extra-colors.bg != none {
+        (code-extra-colors.bg, code-extra-colors.bg)
+      },
+      highlight-color: rgb("#3d59a1"),
+      comment-color: rgb("#394b70"),
+      lang-color: rgb("#3d59a1"),
+      lang: false,
+    )
+  } else {
+    supports-raw.zebraw-init.with(lang: false)
+  }
 
   // code block setting
-  show raw: it => {
+  set raw(theme: theme-style.code-theme) if theme-style.code-theme.len() > 0
+  show raw.where(block: false): set text(font: code-font)
+  show raw.where(block: true): it => context if shiroa-sys-target() == "paged" {
     set text(font: code-font)
-    if "block" in it.fields() and it.block {
-      rect(
-        width: 100%,
-        inset: (x: 4pt, y: 5pt),
-        radius: 4pt,
-        fill: code-extra-colors.bg,
-        [
-          #set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
-          #set par(justify: false)
-          // #place(right, text(luma(110), it.lang))
-          #it
-        ],
-      )
-    } else {
-      it
-    }
+    rect(
+      width: 100%,
+      inset: (x: 4pt, y: 5pt),
+      radius: 4pt,
+      fill: code-extra-colors.bg,
+      [
+        #set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
+        #set par(justify: false)
+        // #place(right, text(luma(110), it.lang))
+        #it
+      ],
+    )
+  } else {
+    set text(font: code-font)
+    set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
+    supports-raw.zebraw-html(
+      block-width: 100%,
+      line-width: 100%,
+      wrap: false,
+      it,
+    )
   }
 
   // Main body.

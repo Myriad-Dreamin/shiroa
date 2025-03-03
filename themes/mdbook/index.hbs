@@ -93,6 +93,7 @@
 
         var rendererWasmModule = fetch('{{ renderer_module }}');
         {{!-- var rendererWasmModule = fetch('/dev/frontend/node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm'); --}}
+        window.typstBookJsLoaded = typstBookJsLoaded;
         window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
             var typstRenderModule = window.typstRenderModule =
                 window.TypstRenderModule.createTypstRenderer();
