@@ -446,6 +446,12 @@ impl Project {
             })
         };
 
+        let rel_data_path = file_name
+            .to_str()
+            .ok_or_else(|| error_once!("path_to_root is not a valid utf-8 string"))?
+            // windows
+            .replace('\\', "/");
+
         let (description, content) = match self.render_mode.clone() {
             RenderMode::StaticHtml => {
                 let doc = doc
@@ -456,21 +462,34 @@ impl Project {
                     _ => bail!("doc is not Html"),
                 };
 
+                let content = self
+                    .hr
+                    .handlebars
+                    .render(
+                        "typst_load_html_trampoline",
+                        &json!({
+                            "rel_data_path": rel_data_path,
+                        }),
+                    )
+                    .map_err(map_string_err(
+                        "render typst_load_html_trampoline for compile_chapter",
+                    ))?;
+
                 let res = self
                     .tr
                     .report(static_html(html_doc))
                     .expect("failed to render static html");
 
                 let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
-                (description.unwrap_or_else(auto_description)?, res.body)
+                (
+                    description.unwrap_or_else(auto_description)?,
+                    format!(
+                        r#"{content}<div class="typst-preload-content" style="display: none">{}</div>"#,
+                        res.body
+                    ),
+                )
             }
             RenderMode::DynPaged | RenderMode::StaticHtmlDynPaged => {
-                let rel_data_path = file_name
-                    .to_str()
-                    .ok_or_else(|| error_once!("path_to_root is not a valid utf-8 string"))?
-                    // windows
-                    .replace('\\', "/");
-
                 let content = self
                     .hr
                     .handlebars

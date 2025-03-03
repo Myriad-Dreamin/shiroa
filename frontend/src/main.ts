@@ -162,6 +162,54 @@ const findAncestor = (el: Element, cls: string) => {
   return el;
 };
 
+// todo: split html frontend js and paged frontend js
+window.typstBookRenderHtmlPage = function (
+  relPath: string,
+  appContainer: HTMLDivElement | undefined,
+) {
+  // todo: preload artifact
+  const getTheme = () => window.getTypstTheme();
+  let currTheme = getTheme();
+
+  async function reloadArtifact(theme: string) {
+    const preloadContent = appContainer?.querySelector('.typst-preload-content')!;
+    if (!preloadContent) {
+      console.error('no preload content found');
+      return;
+    }
+
+    preloadContent.innerHTML = '';
+    // todo: don't modify this attribute here, instead hide detail in typst.ts
+    preloadContent.removeAttribute('data-applied-width');
+
+    const artifactData = await fetch(`${relPath}.${theme}.html`).then(response => response.text());
+
+    const themePreloadContent = document.createElement('div');
+    themePreloadContent.className = 'typst-preload-content';
+    themePreloadContent.innerHTML = artifactData;
+
+    preloadContent.replaceWith(themePreloadContent);
+    themePreloadContent.style.display = 'block';
+  }
+
+  reloadArtifact(currTheme).then(() => {
+    let base: Promise<any> = Promise.resolve();
+
+    window.typstChangeTheme = () => {
+      const nextTheme = getTheme();
+      if (nextTheme === currTheme) {
+        return base;
+      }
+      currTheme = nextTheme;
+
+      return reloadArtifact(currTheme);
+    };
+
+    // trigger again to regard user changed theme during first reloading
+    window.typstChangeTheme();
+  });
+};
+
 window.typstBookRenderPage = function (
   plugin: TypstRenderer,
   relPath: string,

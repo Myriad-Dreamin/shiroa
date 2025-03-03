@@ -18,6 +18,7 @@ use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
     path::PathClean,
+    static_html,
     system::SystemWorldComputeGraph,
     vector::{
         ir::{LayoutRegionNode, Module, Page, PageMetadata},
@@ -134,10 +135,18 @@ impl TypstRenderer {
             format!("{prefix}-{theme}")
         });
 
-        self.extension = if theme.is_empty() {
-            "multi.sir.in".into()
+        if self.static_html {
+            self.extension = if theme.is_empty() {
+                "html".into()
+            } else {
+                format!("{theme}.html").into()
+            };
         } else {
-            format!("{theme}.multi.sir.in").into()
+            self.extension = if theme.is_empty() {
+                "multi.sir.in".into()
+            } else {
+                format!("{theme}.multi.sir.in").into()
+            };
         };
     }
 
@@ -417,19 +426,13 @@ impl TypstRenderer {
                 items: Vec<OutlineItemRef>,
             ) {
                 if items.len() != chapters.len() {
-                    panic!(
-                        "cannot merge outline with different chapter
-        count"
-                    );
+                    panic!("cannot merge outline with different chapter count");
                 }
                 for (idx, item) in items.into_iter().enumerate() {
                     let chapter = &mut chapters[idx];
 
                     if chapter.item != item.item {
-                        panic!(
-                            "cannot merge outline with different
-        chapter"
-                        );
+                        panic!("cannot merge outline with different chapter");
                     }
 
                     Self::intern_pages(
@@ -663,74 +666,109 @@ impl TypstRenderer {
             TypstDocument::Paged(self.pure_compile::<TypstPagedDocument>(&graph)?)
         };
 
-        if self.static_html {
-            return Ok(doc);
-        }
-
         for theme in THEME_LIST {
-            self.set_theme_target(theme);
-
-            // let path = path.clone().to_owned();
-            self.compiler
-                .set_post_process_layout(move |_m, doc, layout| {
-                    // println!("post process {}", path.display());
-
-                    let LayoutRegionNode::Pages(pages) = layout else {
-                        unreachable!();
-                    };
-
-                    let (mut meta, pages) = pages.take();
-
-                    let introspector = &doc.introspector();
-                    let labels = doc
-                        .introspector()
-                        .all()
-                        .flat_map(|elem| elem.label().zip(elem.location()))
-                        .map(|(label, elem)| {
-                            (label.resolve().to_owned(), introspector.position(elem))
-                        })
-                        .map(|(label, pos)| {
-                            (
-                                label,
-                                format!(
-                                    "p{}x{:.2}y{:.2}",
-                                    pos.page,
-                                    pos.point.x.to_pt(),
-                                    pos.point.y.to_pt()
-                                ),
-                            )
-                        })
-                        .collect::<Vec<_>>();
-                    // println!("{:#?}", labels);
-
-                    let labels = serde_json::to_vec(&labels).unwrap_or_exit();
-                    let sema_label_meta = ("sema-label".into(), labels.into());
-
-                    let mut custom = vec![sema_label_meta];
-
-                    if settings.with_outline {
-                        let mut spans = SpanInternerImpl::default();
-
-                        let outline = crate::outline::outline(&mut spans, &doc);
-                        let outline = serde_json::to_vec(&outline).unwrap_or_exit();
-                        let outline_meta = ("outline".into(), outline.into());
-                        custom.push(outline_meta);
-                    }
-
-                    meta.push(PageMetadata::Custom(custom));
-
-                    LayoutRegionNode::Pages(Arc::new((meta, pages)))
-                });
-
-            let res = DynSvgModuleExport::run(&graph, &self.compiler)?;
-            if let Some(doc) = res {
-                let content = doc.to_bytes();
-                let dest = self.module_dest_path();
-                std::fs::write(&dest, content).unwrap_or_exit();
+            if self.static_html {
+                self.compile_html_page_with(theme)?;
+            } else {
+                self.compile_paged_page_with(theme, &graph, settings.clone())?;
             }
         }
 
         Ok(doc)
+    }
+
+    pub fn compile_html_page_with(&mut self, theme: &str) -> Result<TypstDocument> {
+        let inputs = TaskInputs {
+            entry: None,
+            inputs: Some({
+                let mut dict = TypstDict::new();
+                self.set_theme_target(theme);
+                dict.insert("x-target".into(), self.compiler.target.clone().into_value());
+
+                Arc::new(LazyHash::new(dict))
+            }),
+        };
+        let graph = self.verse.computation_with(inputs);
+        let doc = self.pure_compile::<TypstHtmlDocument>(&graph)?;
+
+        let html_doc = doc.as_ref();
+
+        let res = self
+            .report(static_html(html_doc))
+            .expect("failed to render static html");
+
+        let dest = self.module_dest_path();
+        std::fs::write(&dest, res.body).unwrap_or_exit();
+
+        Ok(TypstDocument::Html(doc.clone()))
+    }
+
+    pub fn compile_paged_page_with(
+        &mut self,
+        theme: &str,
+        graph: &Arc<SystemWorldComputeGraph>,
+        settings: CompilePageSetting,
+    ) -> Result<()> {
+        self.set_theme_target(theme);
+
+        // let path = path.clone().to_owned();
+        self.compiler
+            .set_post_process_layout(move |_m, doc, layout| {
+                // println!("post process {}", path.display());
+
+                let LayoutRegionNode::Pages(pages) = layout else {
+                    unreachable!();
+                };
+
+                let (mut meta, pages) = pages.take();
+
+                let introspector = &doc.introspector();
+                let labels = doc
+                    .introspector()
+                    .all()
+                    .flat_map(|elem| elem.label().zip(elem.location()))
+                    .map(|(label, elem)| (label.resolve().to_owned(), introspector.position(elem)))
+                    .map(|(label, pos)| {
+                        (
+                            label,
+                            format!(
+                                "p{}x{:.2}y{:.2}",
+                                pos.page,
+                                pos.point.x.to_pt(),
+                                pos.point.y.to_pt()
+                            ),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                // println!("{:#?}", labels);
+
+                let labels = serde_json::to_vec(&labels).unwrap_or_exit();
+                let sema_label_meta = ("sema-label".into(), labels.into());
+
+                let mut custom = vec![sema_label_meta];
+
+                if settings.with_outline {
+                    let mut spans = SpanInternerImpl::default();
+
+                    let outline = crate::outline::outline(&mut spans, &doc);
+                    let outline = serde_json::to_vec(&outline).unwrap_or_exit();
+                    let outline_meta = ("outline".into(), outline.into());
+                    custom.push(outline_meta);
+                }
+
+                meta.push(PageMetadata::Custom(custom));
+
+                LayoutRegionNode::Pages(Arc::new((meta, pages)))
+            });
+
+        let res = DynSvgModuleExport::run(graph, &self.compiler)?;
+        if let Some(doc) = res {
+            let content = doc.to_bytes();
+            let dest = self.module_dest_path();
+            std::fs::write(&dest, content).unwrap_or_exit();
+        }
+
+        Ok(())
     }
 
     // todo: we should use same snapshot as that compiled documents

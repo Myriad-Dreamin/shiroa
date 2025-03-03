@@ -1,5 +1,6 @@
 
 #import "supports-text.typ": plain-text
+#import "meta-and-state.typ": shiroa-sys-target
 
 #let make-unique-label(it, disambiguator: 1) = label({
   let k = plain-text(it).trim()
@@ -24,20 +25,18 @@
   if title != none {
     let title = title.trim()
     update-label-disambiguator(title)
-    context (
-      {
-        let loc = here()
-        let dest = get-label-disambiguator(loc, title)
-        let h = measure(it.body).height
-        place(
-          left,
-          dx: -20pt,
-          [
-            #set text(fill: hash-color)
-            #link(loc)[\#] #dest
-          ],
-        )
-      }
-    )
+    context if shiroa-sys-target() == "paged" {
+      let loc = here()
+      let dest = get-label-disambiguator(loc, title)
+      let h = measure(it.body).height
+      place(
+        left,
+        dx: -20pt,
+        [
+          #set text(fill: hash-color)
+          #link(loc)[\#] #dest
+        ],
+      )
+    }
   }
 }

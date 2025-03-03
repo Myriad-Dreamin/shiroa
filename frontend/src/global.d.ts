@@ -13,6 +13,7 @@ declare global {
     debounce<T extends { (...args: any[]): void }>(fn: T, delay = 200): T;
     assignSemaHash: (u: number, x: number, y: number) => void;
     typstProcessSvg: any;
+    typstBookRenderHtmlPage(relPath: string, appContainer: HTMLDivElement | undefined);
     typstBookRenderPage(
       plugin: TypstSvgRenderer,
       relPath: string,

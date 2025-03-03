@@ -3,6 +3,7 @@
 
 // Export typst.ts variables again, don't use sys arguments directly
 
+// todo: deprecate me which is conflict with sys.target
 /// The default target is _pdf_.
 /// `typst.ts` will set it to _web_ when rendering a dynamic layout.
 ///
@@ -35,6 +36,7 @@
 #let book-sys = (
   target: target,
   page-width: page-width,
+  sys-is-html-target: ("target" in dictionary(std)),
   is-html-target: is-html-target(),
   is-web-target: is-web-target(),
   is-pdf-target: is-pdf-target(),
@@ -42,3 +44,10 @@
 
 /// Store the calculated metadata of the book.
 #let book-meta-state = state("book-meta", none)
+
+
+#let shiroa-sys-target() = if book-sys.sys-is-html-target {
+  std.target()
+} else {
+  "paged"
+}
