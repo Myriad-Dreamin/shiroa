@@ -39,7 +39,7 @@ toml.workspace = true
 env_logger.workspace = true
 log.workspace = true
 
-reflexo-typst.workspace = true
+reflexo-typst = { workspace = true, features = ["dynamic-layout", "svg"] }
 reflexo-vec2svg.workspace = true
 handlebars.workspace = true
 pathdiff.workspace = true

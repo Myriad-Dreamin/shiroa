@@ -32,7 +32,7 @@ shiroa build my-book/ # memoryized dest-dir
 The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #cross-link("/guide/get-started.typ")[Get Started] shown.
 
 ```typ
-#import "@preview/shiroa:0.1.2": *
+#import "@preview/shiroa:0.2.0": *
 #show: book
 
 #book-meta(
@@ -43,15 +43,16 @@ The harder way, by creating the book without `init` command, your `book.typ` sho
 )
 ```
 
-Your `template.typ` must import and respect the `get-page-width` and `target` variable from `@preview/shiroa:0.1.2` to this time. The two variables will be used by the tool for rendering responsive layout and multiple targets.
+Your `template.typ` must import and respect the `get-page-width` and `target` variable from `@preview/shiroa:0.2.0` to this time. The two variables will be used by the tool for rendering responsive layout and multiple targets.
 
 ```typ
-#import "@preview/shiroa:0.1.2": get-page-width, target, is-web-target, is-pdf-target
+#import "@preview/shiroa:0.2.0": get-page-width, target, is-web-target, is-pdf-target
 
 // Metadata
 #let page-width = get-page-width()
+#let is-html-target = is-html-target() // target.starts-with("html")
 #let is-pdf-target = is-pdf-target() // target.starts-with("pdf")
-#let is-web-target = is-web-target() // target.starts-with("web")
+#let is-web-target = is-web-target() // target.starts-with("web") or target.starts-with("html")
 
 #let project(body) = {
   // set web/pdf page properties

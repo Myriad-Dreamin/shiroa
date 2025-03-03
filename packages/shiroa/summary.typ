@@ -3,7 +3,7 @@
 #import "meta-and-state.typ": book-meta-state
 #import "supports-link.typ": link2page, cross-link-path-label
 
-/// Show template in [book.typ](https://myriad-dreamin.github.io/shiroa/format/book.html)
+/// Show template in #link("https://myriad-dreamin.github.io/shiroa/format/book.html")[book.typ]
 ///
 /// Example:
 /// ```typ
@@ -20,7 +20,7 @@
   content
 }
 
-/// Book metadata in [book.typ](https://myriad-dreamin.github.io/shiroa/format/book.html)
+/// Book metadata in #link("https://myriad-dreamin.github.io/shiroa/format/book.html")[book.typ]
 ///
 /// - title (str): The title of the book.
 /// - authors (array | str): The author(s) of the book.
@@ -29,17 +29,17 @@
 /// - repository-edit (str): The github repository editing template for the book.
 ///   Example: `https://github.com/Me/Book/edit/main/path/to/book/{path}`
 /// - language: The main language of the book, which is used as a language attribute
-///   <html lang="en"> for example.
+///   `<html lang="en">` for example.
 ///   Example: `en`, `zh`, `fr`, etc.
-/// - summary: Content summary of the book. Please see [Book Metadata's Summary Field](https://myriad-dreamin.github.io/shiroa/format/book-meta.html#label-summary%20%20(required)%20content) for details.
+/// - summary: Content summary of the book. Please see #link("https://myriad-dreamin.github.io/shiroa/format/book-meta.html#label-summary%20%20(required)%20content")[Book Metadata's Summary Field] for details.
 #let book-meta(
-    title: "",
-    description: "",
-    repository: "",
-    repository-edit: "",
-    authors: (), // array of string
-    language: "", // default "en"
-    summary: none,
+  title: "",
+  description: "",
+  repository: "",
+  repository-edit: "",
+  authors: (), // array of string
+  language: "", // default "en"
+  summary: none,
 ) = [
   #let raw-meta = (
     kind: "book",
@@ -64,7 +64,7 @@
   #metadata(raw-meta) <shiroa-raw-book-meta>
 ]
 
-/// Build metadata in [book.typ](https://myriad-dreamin.github.io/shiroa/format/book.html)
+/// Build metadata in #link("https://myriad-dreamin.github.io/shiroa/format/book.html")[book.typ]
 ///
 /// - dest-dir: The directory to put the rendered book in. By default this is `book/` in the book's root directory. This can overridden with the `--dest-dir` CLI option.
 #let build-meta(
@@ -169,7 +169,6 @@
     if "sub" in x {
       x.sub.map(it => visit-summary(it, visit)).sum()
     }
-
   } else if x.at("kind") == "part" {
     // todo: more than plain text
     visit.at("part")(x.at("title").at("content"))

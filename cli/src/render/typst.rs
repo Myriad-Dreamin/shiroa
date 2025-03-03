@@ -12,40 +12,37 @@ use crate::{
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
-    CompileArgs,
+    CompileArgs, RenderMode,
 };
 use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
     path::PathClean,
+    system::SystemWorldComputeGraph,
     vector::{
         ir::{LayoutRegionNode, Module, Page, PageMetadata},
         pass::Typst2VecPass,
         IntoTypst,
     },
     world::EntryOpts,
-    EntryReader, PureCompiler, SystemCompilerFeat, TakeAs, Transformer, TypstAbs, TypstDocument,
+    CompilationTask, DiagnosticHandler, DynSvgModuleExport, EntryReader, ExportDynSvgModuleTask,
+    FlagTask, LazyHash, TakeAs, TaskInputs, TextExport, TypstAbs, TypstDict, TypstDocument,
+    TypstHtmlDocument, TypstPagedDocument,
 };
-use reflexo_typst::{
-    features::WITH_COMPILING_STATUS_FEATURE, CompileDriver, CompileEnv, CompileReport,
-    CompileReporter, Compiler, ConsoleDiagReporter, DynamicLayoutCompiler, FeatureSet,
-    TypstSystemUniverse, TypstSystemWorld,
-};
+use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
-    ir::{HtmlItem, ToItemMap, VecItem},
+    ir::{SizedRawHtmlItem, ToItemMap, VecItem},
     MultiVecDocument,
 };
 use serde::Deserialize;
 use typst::{
     diag::{SourceResult, Warned},
-    foundations::Regex,
+    ecow::{EcoString, EcoVec},
+    foundations::{IntoValue, Regex},
 };
 // serialize_doc, LayoutRegionNode,
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
-
-type SystemDynamicLayoutCompiler =
-    DynamicLayoutCompiler<SystemCompilerFeat, PureCompiler<TypstSystemWorld>>;
 
 #[derive(Debug, Clone, Default)]
 pub struct CompilePageSetting {
@@ -53,10 +50,14 @@ pub struct CompilePageSetting {
 }
 
 pub struct TypstRenderer {
-    pub status_env: Arc<FeatureSet>,
-    pub compiler: CompileDriver<CompileReporter<SystemDynamicLayoutCompiler, TypstSystemWorld>>,
+    pub verse: TypstSystemUniverse,
+    pub extension: EcoString,
+    pub output: PathBuf,
+    pub compiler: ExportDynSvgModuleTask,
     pub root_dir: PathBuf,
     pub dest_dir: PathBuf,
+    static_html: bool,
+    pub diag_handler: DiagnosticHandler,
 }
 
 impl TypstRenderer {
@@ -73,41 +74,44 @@ impl TypstRenderer {
         })
         .unwrap_or_exit();
 
-        // let driver = CompileDriver::new(world);
-        let compiler = std::marker::PhantomData;
-
-        let mut compiler = DynamicLayoutCompiler::new(compiler, Default::default());
+        let mut compiler = ExportDynSvgModuleTask::new();
+        compiler.html_format = matches!(
+            args.mode,
+            RenderMode::StaticHtmlDynPaged | RenderMode::StaticHtml
+        );
         compiler.set_command_executor(Arc::new(ShiroaCommands(
             args.allowed_url_source
                 .map(|s| Arc::new(Regex::new(&s).context("invalid regex").unwrap_or_exit())),
         )));
-        compiler.set_extension("multi.sir.in".to_owned());
+        // compiler.set_extension("multi.sir.in".to_owned());
         compiler.set_layout_widths([750., 650., 550., 450., 350.].map(TypstAbs::pt).into());
-        let compiler =
-            CompileReporter::new(compiler).with_generic_reporter(ConsoleDiagReporter::default());
+        // let compiler =
+        //     CompileReporter::new(compiler).
+        // with_generic_reporter(ConsoleDiagReporter::default());
 
-        let compiler = CompileDriver::new(compiler, verse);
+        // let compiler = CompileDriver::new(compiler, verse);
 
         Self {
-            status_env: Arc::new(
-                FeatureSet::default().configure(&WITH_COMPILING_STATUS_FEATURE, true),
-            ),
+            output: dest_dir.clone(),
+            verse,
             compiler,
             root_dir,
             dest_dir,
+            extension: "multi.sir.in".into(),
+            static_html: args.mode == RenderMode::StaticHtml,
+            diag_handler: DiagnosticHandler {
+                print_compile_status: true,
+                diagnostic_format: Default::default(),
+            },
         }
     }
 
-    fn compiler_layer_mut(&mut self) -> &mut SystemDynamicLayoutCompiler {
-        &mut self.compiler.compiler.compiler
-    }
-
     pub fn universe(&self) -> &TypstSystemUniverse {
-        self.compiler.universe()
+        &self.verse
     }
 
     pub fn universe_mut(&mut self) -> &mut TypstSystemUniverse {
-        self.compiler.universe_mut()
+        &mut self.verse
     }
 
     pub fn fix_dest_dir(&mut self, path: &Path) {
@@ -115,19 +119,26 @@ impl TypstRenderer {
         self.dest_dir = dest_dir;
     }
 
+    fn module_dest_path(&self) -> PathBuf {
+        self.dest_dir
+            .join(&self.output)
+            .with_extension(self.extension.as_str())
+    }
+
     fn set_theme_target(&mut self, theme: &str) {
-        self.compiler_layer_mut().set_target(if theme.is_empty() {
-            "web".to_owned()
+        let prefix = if self.static_html { "html" } else { "web" };
+
+        self.compiler.set_target(if theme.is_empty() {
+            prefix.to_owned()
         } else {
-            format!("web-{theme}")
+            format!("{prefix}-{theme}")
         });
 
-        self.compiler_layer_mut()
-            .set_extension(if theme.is_empty() {
-                "multi.sir.in".to_owned()
-            } else {
-                format!("{theme}.multi.sir.in")
-            });
+        self.extension = if theme.is_empty() {
+            "multi.sir.in".into()
+        } else {
+            format!("{theme}.multi.sir.in").into()
+        };
     }
 
     fn setup_entry(&mut self, path: &Path) {
@@ -144,70 +155,66 @@ impl TypstRenderer {
         }
         let output_path = self.dest_dir.join(path).with_extension("").clean();
         std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
-        self.compiler_layer_mut().set_output(output_path);
-    }
-
-    pub fn fork_env<const REPORT_STATUS: bool>(&self) -> CompileEnv {
-        let res = CompileEnv::default();
-        if REPORT_STATUS {
-            res.configure_shared(self.status_env.clone())
-        } else {
-            res
-        }
+        self.output = output_path;
     }
 
     // todo: we should use same snapshot as that compiled documents
     pub fn report<T>(&self, may_value: SourceResult<T>) -> Option<T> {
-        self.report_with_warnings(may_value.map(|v| Warned {
-            output: v,
+        self.report_with_warnings(Warned {
+            output: may_value,
             warnings: Default::default(),
-        }))
+        })
     }
 
     // todo: we should use same snapshot as that compiled documents
-    pub fn report_with_warnings<T>(&self, may_value: SourceResult<Warned<T>>) -> Option<T> {
-        let (res, rep) = match may_value {
+    pub fn report_with_warnings<T>(&self, may_value: Warned<SourceResult<T>>) -> Option<T> {
+        let (res, diag, rep) = match may_value.output {
             Ok(v) => {
                 let rep = CompileReport::CompileSuccess(
                     self.universe().main_id().unwrap(),
-                    v.warnings,
+                    may_value.warnings.len(),
                     Default::default(),
                 );
 
-                (Some(v.output), rep)
+                (Some(v), EcoVec::default(), rep)
             }
             Err(err) => {
                 let rep = CompileReport::CompileError(
                     self.universe().main_id().unwrap(),
-                    err,
+                    err.len(),
                     Default::default(),
                 );
-                (None, rep)
+                (None, err, rep)
             }
         };
-        let rep = Arc::new((Default::default(), rep));
         // we currently ignore export error here
-        let _ = self
-            .compiler
-            .compiler
-            .reporter
-            .export(&self.universe().snapshot(), rep);
+        // todo: use same world as the reportee
+        let world = self.verse.snapshot();
+        self.diag_handler
+            .report(&world, diag.iter().chain(may_value.warnings.iter()));
+        self.diag_handler.status(&rep);
         res
     }
 
     // todo: we should use same snapshot as that compiled documents
-    pub fn compile_book(&mut self, path: &Path) -> ZResult<Arc<TypstDocument>> {
+    pub fn compile_book(
+        &mut self,
+        path: &Path,
+    ) -> Result<(Arc<SystemWorldComputeGraph>, TypstDocument)> {
         self.setup_entry(path);
         self.set_theme_target("");
 
-        let world = self.universe().snapshot();
-        let res = std::marker::PhantomData.compile(&world, &mut self.fork_env::<true>());
-        let res = self.report_with_warnings(res);
+        let graph = self.universe().computation();
+        let res = typst::compile::<TypstPagedDocument>(&graph.snap.world);
+        let res = self
+            .report_with_warnings(res)
+            .map(Arc::new)
+            .map(TypstDocument::Paged);
 
-        res.ok_or_else(|| error_once!("compile book.typ"))
+        Ok((graph, res.ok_or_else(|| error_once!("compile book.typ"))?))
     }
 
-    pub fn compile_pages_by_outline(&mut self, path: &Path) -> ZResult<Vec<BookMetaElem>> {
+    pub fn compile_pages_by_outline(&mut self, path: &Path) -> Result<Vec<BookMetaElem>> {
         // compile entry file as a single webpage
         self.compile_page_with(path, CompilePageSetting { with_outline: true })?;
         self.setup_entry(path);
@@ -224,9 +231,9 @@ impl TypstRenderer {
         res.ok_or_else(|| error_once!("compile pages by outline"))
     }
 
-    fn compile_pages_by_outline_(&mut self, theme: &'static str) -> ZResult<Vec<BookMetaElem>> {
+    fn compile_pages_by_outline_(&mut self, theme: &'static str) -> Result<Vec<BookMetaElem>> {
         // read ir from disk
-        let module_output = self.compiler_layer_mut().module_dest_path();
+        let module_output = self.module_dest_path();
         let module_bin = std::fs::read(module_output).unwrap_or_exit();
 
         let doc = MultiVecDocument::from_slice(&module_bin);
@@ -613,24 +620,58 @@ impl TypstRenderer {
         Ok(inferred)
     }
 
-    pub fn compile_page(&mut self, path: &Path) -> ZResult<Arc<TypstDocument>> {
+    pub fn compile_page(&mut self, path: &Path) -> Result<TypstDocument> {
         self.compile_page_with(path, CompilePageSetting::default())
+    }
+
+    fn pure_compile<D: typst::Document + Send + Sync + 'static>(
+        &self,
+        g: &Arc<SystemWorldComputeGraph>,
+    ) -> Result<Arc<D>> {
+        let _ = g.provide::<FlagTask<CompilationTask<D>>>(Ok(FlagTask::flag(true)));
+
+        let res = g.compute::<CompilationTask<D>>()?.as_ref().clone().unwrap();
+        self.report_with_warnings(res)
+            .ok_or_else(|| error_once!("compile page failed"))
     }
 
     pub fn compile_page_with(
         &mut self,
         path: &Path,
         settings: CompilePageSetting,
-    ) -> ZResult<Arc<TypstDocument>> {
+    ) -> Result<TypstDocument> {
+        if self.static_html && settings.with_outline {
+            return Err(error_once!("outline is not supported in static paged mode"));
+        }
+
         self.setup_entry(path);
 
-        let mut any_doc = None;
+        let inputs = TaskInputs {
+            entry: None,
+            inputs: Some({
+                let mut dict = TypstDict::new();
+                self.set_theme_target("");
+                dict.insert("x-target".into(), self.compiler.target.clone().into_value());
+
+                Arc::new(LazyHash::new(dict))
+            }),
+        };
+        let graph = self.verse.computation_with(inputs);
+        let doc = if self.static_html {
+            TypstDocument::Html(self.pure_compile::<TypstHtmlDocument>(&graph)?)
+        } else {
+            TypstDocument::Paged(self.pure_compile::<TypstPagedDocument>(&graph)?)
+        };
+
+        if self.static_html {
+            return Ok(doc);
+        }
 
         for theme in THEME_LIST {
             self.set_theme_target(theme);
 
             // let path = path.clone().to_owned();
-            self.compiler_layer_mut()
+            self.compiler
                 .set_post_process_layout(move |_m, doc, layout| {
                     // println!("post process {}", path.display());
 
@@ -640,16 +681,13 @@ impl TypstRenderer {
 
                     let (mut meta, pages) = pages.take();
 
-                    let introspector = &doc.introspector;
+                    let introspector = &doc.introspector();
                     let labels = doc
-                        .introspector
+                        .introspector()
                         .all()
                         .flat_map(|elem| elem.label().zip(elem.location()))
                         .map(|(label, elem)| {
-                            (
-                                label.clone().as_str().to_owned(),
-                                introspector.position(elem),
-                            )
+                            (label.resolve().to_owned(), introspector.position(elem))
                         })
                         .map(|(label, pos)| {
                             (
@@ -684,26 +722,20 @@ impl TypstRenderer {
                     LayoutRegionNode::Pages(Arc::new((meta, pages)))
                 });
 
-            let res = self.compiler.compile(&mut self.fork_env::<true>());
-            let doc = self
-                .report_with_warnings(res)
-                .ok_or_else(|| error_once!("compile page theme", theme: theme))?;
-            any_doc = Some(doc.clone());
+            let res = DynSvgModuleExport::run(&graph, &self.compiler)?;
+            if let Some(doc) = res {
+                let content = doc.to_bytes();
+                let dest = self.module_dest_path();
+                std::fs::write(&dest, content).unwrap_or_exit();
+            }
         }
 
-        any_doc.ok_or_else(|| error_once!("compile page.typ"))
+        Ok(doc)
     }
 
     // todo: we should use same snapshot as that compiled documents
-    pub fn generate_desc(&mut self, doc: &TypstDocument) -> ZResult<String> {
-        let e = reflexo_typst::TextExporter::default();
-        let mut w = std::io::Cursor::new(Vec::new());
-        e.export(&self.universe().snapshot(), (Arc::new(doc.clone()), &mut w))
-            .map_err(|e| error_once!("export text", error: format!("{e:?}")))?;
-
-        let w = w.into_inner();
-
-        String::from_utf8(w).map_err(|e| error_once!("export text", error: format!("{e:?}")))
+    pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
+        TextExport::run_on_doc(doc).context("export text for html description")
     }
 }
 
@@ -812,7 +844,7 @@ impl reflexo_typst::vector::pass::CommandExecutor for ShiroaCommands {
                 }
 
                 let html = format!("<{tag}{attrs}>{hint}</{tag}>");
-                return Some(VecItem::Html(HtmlItem {
+                return Some(VecItem::SizedRawHtml(SizedRawHtmlItem {
                     html: html.into(),
                     size: size.unwrap_or_default().into_typst(),
                 }));
