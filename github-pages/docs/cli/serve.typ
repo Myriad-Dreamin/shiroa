@@ -16,7 +16,7 @@ shiroa serve
 // re-creating deleted files still mentioned in `book.typ`! A websocket
 // connection is used to trigger the client-side refresh.
 
-***Note:*** *The `serve` command is for testing a book's HTML output, and is not
+*Note:* *The `serve` command is for testing a book's HTML output, and is not
 intended to be a complete HTTP server for a website.*
 
 == Specify a directory

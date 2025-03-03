@@ -42,5 +42,5 @@
     "</svg>"
   }
 
-  image.decode(html-embed, alt: "!typst-embed-command")
+  image(bytes(html-embed), format: "svg", alt: "!typst-embed-command")
 }
