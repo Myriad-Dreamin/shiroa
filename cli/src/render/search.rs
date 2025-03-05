@@ -53,7 +53,7 @@ impl SearchRenderer {
     /// to the given index.
     fn add_doc(&mut self, anchor_base: &str, section_id: &Option<String>, items: &[&str]) {
         let url = if let Some(ref id) = *section_id {
-            Cow::Owned(format!("{}#{}", anchor_base, id))
+            Cow::Owned(format!("{anchor_base}#{id}"))
         } else {
             Cow::Borrowed(anchor_base)
         };
