@@ -106,4 +106,16 @@ shiroa build
 This will generate a directory named `book` which contains the HTML content of your book.
 You can then place this directory on any web server to host it.
 
+== (Experimental) Using Typst v0.13.0's HTML Export
+
+You don't have to change the default template, which already handles the HTML export. Simply set the `mode` to `static-html` to export the book as Static HTML files:
+
+```sh
+shiroa build --mode static-html
+```
+
+See the #link("https://myriad-dreamin.github.io/shiroa/html/")[HTML version of shiroa's documentation] to see the result of the HTML export.
+
+There is still some known issues, for example, typst hasn't support labels in the HTML export yet.
+
 // For more information about publishing and deploying, check out the [Continuous Integration chapter](../continuous-integration.typ) for more.
