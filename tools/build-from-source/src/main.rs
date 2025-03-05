@@ -40,6 +40,12 @@ fn main() -> anyhow::Result<()> {
     let dst = project.join("assets/artifacts/book.mjs");
     std::fs::copy(src, dst)?;
 
+    // copy typst ts renderer wasm module
+    let src =
+        project.join("node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm");
+    let dst = project.join("assets/artifacts/typst_ts_renderer_bg.wasm");
+    std::fs::copy(src, dst)?;
+
     println!("Running cargo build...");
     let mut cmd = Command::new("cargo");
     cmd.args(["build", "--release"]);
