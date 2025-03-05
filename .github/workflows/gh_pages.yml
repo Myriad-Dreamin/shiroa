@@ -45,7 +45,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Build Book (HTML Target)
         run: |
-          cargo run --release --bin shiroa -- build --path-to-root /shiroa/html/ -w . github-pages/docs --mode static-html
+          cargo run --release --bin shiroa -- build --font-path assets/fonts --path-to-root /shiroa/html/ -w . github-pages/docs --mode static-html
           mv ./github-pages/dist/ ./github-pages/dist-html/
           mkdir -p ./github-pages/dist/
           mv ./github-pages/dist-html ./github-pages/dist/html
