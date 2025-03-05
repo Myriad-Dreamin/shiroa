@@ -3,7 +3,7 @@ import fs from 'fs';
 
 const versionToUpload = process.argv[2];
 
-const changelogPath = './CHANGELOG/CHANGELOG-0.2.md';
+const changelogPath = './CHANGELOG/CHANGELOG-0.3.md';
 
 const DIST_CMD = "dist";
 // const DIST_CMD = "cargo run --manifest-path ../cargo-dist/cargo-dist/Cargo.toml --bin dist --";
