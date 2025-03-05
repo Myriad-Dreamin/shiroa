@@ -31,11 +31,6 @@
 // Part III: Supports
 #import "supports-link.typ" as link-support: cross-link
 #import "supports-text.typ" as text-support: plain-text
-// This is a vendored of zebraw-html, which is not the part of shiroa
-#let raw-support() = {
-  import "supports-raw.typ"
-  supports-raw
-}
 #import "media.typ"
 #import "utils.typ": get-book-meta, get-build-meta
 

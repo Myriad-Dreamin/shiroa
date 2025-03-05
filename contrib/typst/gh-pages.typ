@@ -7,11 +7,11 @@
   is-pdf-target,
   is-html-target,
   plain-text,
-  raw-support,
   shiroa-sys-target,
   templates,
 )
 #import templates: *
+#import "@preview/zebraw:0.4.5": zebraw-init, zebraw-html
 
 // Metadata
 #let page-width = get-page-width()
@@ -139,11 +139,9 @@
     it => it
   }
 
-  let supports-raw = raw-support()
-
   /// HTML code block supported by zebraw.
   show: if is-dark-theme {
-    supports-raw.zebraw-init.with(
+    zebraw-init.with(
       // should vary by theme
       background-color: if code-extra-colors.bg != none {
         (code-extra-colors.bg, code-extra-colors.bg)
@@ -154,14 +152,13 @@
       lang: false,
     )
   } else {
-    supports-raw.zebraw-init.with(lang: false)
+    zebraw-init.with(lang: false)
   }
 
   // code block setting
   set raw(theme: theme-style.code-theme) if theme-style.code-theme.len() > 0
-  show raw.where(block: false): set text(font: code-font)
+  show raw: set text(font: code-font)
   show raw.where(block: true): it => context if shiroa-sys-target() == "paged" {
-    set text(font: code-font)
     rect(
       width: 100%,
       inset: (x: 4pt, y: 5pt),
@@ -175,9 +172,9 @@
       ],
     )
   } else {
-    set text(font: code-font)
     set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
-    supports-raw.zebraw-html(
+    set par(justify: false)
+    zebraw-html(
       block-width: 100%,
       line-width: 100%,
       wrap: false,
