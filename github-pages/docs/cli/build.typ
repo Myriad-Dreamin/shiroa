@@ -59,7 +59,26 @@ When your website's root is not exact serving the book, use `--path-to-root` to 
 shiroa build --path-to-root /shiroa/ book-project1
 ```
 
-// #line(length: 100%)
+=== --mode
+
+The `--mode` option allows you to specify the mode of rendering typst document. The default mode is `normal`.
+- (Default) `dynamic-paged`: dynamically render as paged document.
+- (Experimental) `static-html`: statically render the whole document, the embedded
+  frames are not resizable.
+- (Todo) `static-html-static-paged`: statically render html parts as much as
+  possible, and leave frames rendered dynamically.
+
+The dynamically rendering means that some elements will be rendered by a wasm renderer in the browser.
+
+=== --theme
+
+Specify a theme directory to copy recursively. This allows you to use custom themes.
+
+The files will be copied to the `theme/` in the output directory.
+
+The default theme is located at #link("https://github.com/Myriad-Dreamin/shiroa/tree/main/themes/mdbook")[`themes/mdbook`]. You can start by copying this theme and modifying it to your needs.
+
+Currently, no interface is designed for custom themes, i.e. everything is working occasionally. If you have any questions, design or feature requests about theming, please open an issue in the repository.
 
 // todo: copy all rest files
 // ***Note:*** *The build command copies all files (excluding files with `.typ` extension) from the source directory into the build directory.*
