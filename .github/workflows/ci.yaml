@@ -28,5 +28,8 @@ jobs:
       - name: Build Book
         run: |
           cargo run --release --bin shiroa -- build --path-to-root /shiroa/ -w . github-pages/docs
+      - name: Build Book (HTML Target)
+        run: |
+          cargo run --release --bin shiroa -- build --path-to-root /shiroa/ -w . github-pages/docs --mode static-html
       - name: Test
         run: cargo test --workspace --no-fail-fast
