@@ -14,7 +14,7 @@ WORKDIR /app
 COPY --from=build-yarn /app/frontend /app/frontend
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 RUN apt-get install -y git \
-    && cargo build -p shiroa-cli --release
+    && cargo build -p shiroa --release
 
 FROM debian:11
 WORKDIR /root/
