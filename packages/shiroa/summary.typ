@@ -153,12 +153,13 @@
 
       show: it => {
         let abs-link = cross-link-path-label("/" + link)
-        locate(loc => {
+        context {
+          let page-num = here().page()
           link2page.update(it => {
-            it.insert(abs-link, loc.page())
+            it.insert(abs-link, page-num)
             it
           })
-        })
+        }
 
         it
       }

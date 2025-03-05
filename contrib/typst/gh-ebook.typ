@@ -21,17 +21,17 @@
     heading(title)
   }
 
-  locate(loc => {
-    let inc = _resolve-inclusion-state.final(loc)
+  context {
+    let inc = _resolve-inclusion-state.final()
     external-book(spec: inc(spec))
 
-    let mt = book-meta-state.final(loc)
+    let mt = book-meta-state.final()
     let styles = (inc: inc, part: part-style, chapter: it => it)
 
     if mt != none {
       mt.summary.map(it => visit-summary(it, styles)).sum()
     }
-  })
+  }
 
   content
 }
