@@ -425,9 +425,7 @@ impl Project {
     }
 
     pub fn compile_chapter(&mut self, path: &str) -> Result<ChapterArtifact> {
-        let file_name = std::path::Path::new(&self.path_to_root)
-            .join(path)
-            .with_extension("");
+        let file_name = Path::new(&self.path_to_root).join(path).with_extension("");
 
         // todo: description for single document
         let doc = if self.need_compile() {
@@ -516,9 +514,7 @@ impl Project {
     pub fn render_chapter(&mut self, chapter_data: DataDict, path: &str) -> Result<String> {
         let instant = std::time::Instant::now();
 
-        let file_path = std::path::Path::new(&self.path_to_root)
-            .join(path)
-            .with_extension("");
+        let search_path = Path::new(path).with_extension("html");
 
         log::info!("rendering chapter {path}");
 
@@ -529,7 +525,7 @@ impl Project {
             .get("name")
             .and_then(|t| t.as_str())
             .ok_or_else(|| error_once!("no name in chapter data"))?;
-        self.index_search(&file_path.with_extension("html"), title, &art.description);
+        self.index_search(&search_path, title, &art.description);
 
         // Creates the data to inject in the template
         let data = serde_json::to_value(self.book_meta.clone())
