@@ -4,8 +4,8 @@ members = ["cargo:."]
 # Config for 'dist'
 [dist]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.26.1-tinymist.6"
-cargo-dist-url-override = "https://github.com/Myriad-Dreamin/cargo-dist/releases/download/v0.26.1-tinymist.6"
+cargo-dist-version = "0.28.0-tinymist.2"
+cargo-dist-url-override = "https://github.com/Myriad-Dreamin/cargo-dist/releases/download/v0.28.0-tinymist.2"
 # CI backends to support
 ci = "github"
 # The installers to generate for each app
@@ -52,4 +52,16 @@ install-updater = false
 install-path = ["$XDG_BIN_HOME/", "$XDG_DATA_HOME/../bin", "~/.local/bin"]
 
 [dist.github-custom-runners]
+global = "ubuntu-22.04"
 aarch64-pc-windows-msvc = "windows-latest"
+aarch64-unknown-linux-gnu = "ubuntu-22.04"
+aarch64-unknown-linux-musl = "ubuntu-22.04"
+arm-unknown-linux-musleabihf = "ubuntu-22.04"
+armv7-unknown-linux-gnueabihf = "ubuntu-22.04"
+armv7-unknown-linux-musleabihf = "ubuntu-22.04"
+x86_64-unknown-linux-gnu = "ubuntu-22.04"
+x86_64-unknown-linux-musl = "ubuntu-22.04"
+# riscv64gc-unknown-linux-gnu = "ubuntu-22.04"
+riscv64gc-unknown-linux-musl = "ubuntu-22.04"
+loongarch64-unknown-linux-gnu = "ubuntu-22.04"
+loongarch64-unknown-linux-musl = "ubuntu-22.04"
