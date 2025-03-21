@@ -1,52 +1,32 @@
-#import "../shiroa/summary-internal.typ": *
-#import "../shiroa/lib.typ": *
+#import "@preview/shiroa:0.2.0": *
 
 
-#let test(inp) = {
-  let s = _convert-summary(metadata((kind: "book", summary: inp)))
-  _numbering-sections(s.summary)
-}
+#let harness(inp) = book-meta(summary: inp)
 
-#let res = ()
-
-#let t = test[
+#let test-empty() = harness[
   = Test
 ]
-#res.push(t)
 
-#let t = test[
+#let test-chapter() = harness[
   = Test
   - #chapter("chapter1.typ")["Chapter 1"]
 ]
-#res.push(t)
 
-#let t = test[
+#let test-subchapter() = harness[
   = Test
   - #chapter("chapterN.typ", section: "3")["Chapter 3"]
     - #chapter("chapterN.typ")["Chapter 3.1"]
 ]
-#res.push(t)
 
-#let t = test[
+#let test-multiple-chapters() = harness[
   = Test
   - #chapter("chapterN.typ", section: "3")["Chapter 3"]
   - #chapter("chapterN.typ")["Chapter 4"]
 ]
-#res.push(t)
 
-#let t = test[
+#let test-multiple-subchapters() = harness[
   = Test
   - #chapter("chapterN.typ")["Chapter 3"]
     - #chapter("chapterN.typ", section: "3.1")["Chapter 3.1"]
     - #chapter("chapterN.typ")["Chapter 3.2"]
 ]
-#res.push(t)
-
-#let t = test[
-  = Test
-  - #chapter("chapterN.typ", section: "3")["Chapter 3"]
-  - #chapter("chapterN.typ")["Chapter 4"]
-]
-#res.push(t)
-
-#res
