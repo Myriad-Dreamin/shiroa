@@ -8,7 +8,7 @@
     "frontend"
   ],
   "scripts": {
-    "docs": "cargo run --release --bin shiroa -- serve --font-path ./assets/extra-fonts/ -w . github-pages/docs",
+    "docs": "cargo run --release --bin shiroa -- serve --font-path ./assets/fonts/ -w . github-pages/docs",
     "docs:html": "yarn docs --mode static-html",
     "generate-ci": "dist generate",
     "draft-release": "node scripts/draft-release.mjs"
