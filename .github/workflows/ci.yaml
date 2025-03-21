@@ -46,4 +46,4 @@ jobs:
           TINYMIST_VERRION: v0.13.10-rc1
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Myriad-Dreamin/tinymist/releases/download/${TINYMIST_VERRION}/tinymist-installer.sh | sh
       - name: Test
-        run: tinymist test packages/shiroa-tests/main.typ --root . --font-path ./assets/extra-fonts/ --coverage --print-coverage=full
+        run: tinymist test packages/shiroa-tests/main.typ --root . --ignore-system-fonts --font-path ./assets/extra-fonts/ --coverage --print-coverage=full
