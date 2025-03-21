@@ -5,11 +5,11 @@ env:
   RUSTFLAGS: '-Dwarnings'
 
 jobs:
-  ci:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Download Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Install Rust
@@ -33,3 +33,17 @@ jobs:
           cargo run --release --bin shiroa -- build --path-to-root /shiroa/ -w . github-pages/docs --mode static-html
       - name: Test
         run: cargo test --workspace --no-fail-fast
+
+  package-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Tinymist
+        env:
+          TINYMIST_VERRION: v0.13.10-rc1
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Myriad-Dreamin/tinymist/releases/download/${TINYMIST_VERRION}/tinymist-installer.sh | sh
+      - name: Test
+        run: tinymist test packages/shiroa-tests/main.typ --root . --font-path ./assets/extra-fonts/ --coverage --print-coverage=full

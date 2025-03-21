@@ -1,4 +1,4 @@
-name: typst_ts::release::gh_pages
+name: shiroa::gh_pages
 
 on:
   # Runs on pushes targeting the default branch
