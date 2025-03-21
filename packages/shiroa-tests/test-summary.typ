@@ -1,12 +1,7 @@
-#import "../shiroa/summary-internal.typ": *
-#import "../shiroa/lib.typ": *
+#import "@preview/shiroa:0.2.0": *
 
 
-#let harness(inp) = {
-  let s = _convert-summary(metadata((kind: "book", summary: inp)))
-  _numbering-sections(s.summary)
-}
-
+#let harness(inp) = book-meta(summary: inp)
 
 #let test-empty() = harness[
   = Test
