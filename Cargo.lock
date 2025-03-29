@@ -3341,7 +3341,7 @@ dependencies = [
 
 [[package]]
 name = "shiroa"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -3375,7 +3375,7 @@ dependencies = [
 
 [[package]]
 name = "shiroa-build"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
 ]

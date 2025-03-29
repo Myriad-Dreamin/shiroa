@@ -8,8 +8,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Package
 
-- (Fixed) Corrected show rule for equations in https://github.com/Myriad-Dreamin/shiroa/pull/120
-- (Fixed) Strengthened `plain-text` implementation in https://github.com/Myriad-Dreamin/shiroa/pull/122
+- (Fix) Corrected show rule for equations in https://github.com/Myriad-Dreamin/shiroa/pull/120
+- (Fix) Strengthened `plain-text` implementation in https://github.com/Myriad-Dreamin/shiroa/pull/122
 - Set up package tests in https://github.com/Myriad-Dreamin/shiroa/pull/121
 
 ### CLI
