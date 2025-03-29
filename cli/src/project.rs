@@ -214,12 +214,12 @@ impl Project {
 
             let package_meta = res
                 .first()
-                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/shiroa:0.2.0; or do you forget the show rule `#show: book`?)"))?;
+                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/shiroa:0.2.1; or do you forget the show rule `#show: book`?)"))?;
 
             let InternalPackageMeta::Package { version } = &package_meta.value;
-            if version != "0.2.0" {
+            if version != "0.2.1" {
                 return Err(error_once!(
-                    "outdated book package, please import @preview/shiroa:0.2.0", importing_version: version,
+                    "outdated book package, please import @preview/shiroa:0.2.1", importing_version: version,
                 ));
             }
         }
