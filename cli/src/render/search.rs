@@ -1,14 +1,12 @@
-use std::{borrow::Cow, path::Path};
+use std::{borrow::Cow, path::Path, sync::Mutex};
 
 use elasticlunr::{Index, IndexBuilder};
 use reflexo_typst::{error::prelude::*, path::unix_slash};
 use serde::Serialize;
+use typst::ecow::EcoString;
 
-use crate::{
-    meta::Search,
-    project::Project,
-    utils::{collapse_whitespace, write_file},
-};
+use crate::meta::Search;
+use crate::utils::{collapse_whitespace, write_file};
 
 const MAX_WORD_LENGTH_TO_INDEX: usize = 80;
 
@@ -78,15 +76,42 @@ impl SearchRenderer {
 
         Ok(())
     }
+
+    pub fn build(&mut self, items: &[SearchItem]) -> Result<()> {
+        for item in items {
+            let title = item.title.as_str();
+            let desc = item.desc.as_str();
+            let dest = item.anchor_base.as_str();
+
+            // , &breadcrumbs.join(" » ")
+            // todo: currently, breadcrumbs is title it self
+            self.add_doc(dest, &None, &[title, desc, title]);
+        }
+
+        Ok(())
+    }
 }
 
-impl Project {
-    pub fn index_search(&mut self, dest: &Path, title: &str, desc: &str) {
+pub struct SearchItem {
+    anchor_base: String,
+    title: EcoString,
+    desc: EcoString,
+}
+
+pub struct SearchCtx<'a> {
+    pub config: &'a Search,
+    pub items: Mutex<Vec<SearchItem>>,
+}
+
+impl SearchCtx<'_> {
+    pub fn index_search(&self, dest: &Path, title: EcoString, desc: EcoString) {
         let anchor_base = unix_slash(dest);
 
-        // , &breadcrumbs.join(" » ")
-        // todo: currently, breadcrumbs is title it self
-        self.sr.add_doc(&anchor_base, &None, &[title, desc, title]);
+        self.items.lock().unwrap().push(SearchItem {
+            anchor_base,
+            title,
+            desc,
+        });
     }
 }
 
