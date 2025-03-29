@@ -206,9 +206,12 @@ impl TypstRenderer {
         // todo: merge to upstream
         // self.diag_handler
         //     .report(&world, diag.iter().chain(may_value.warnings.iter()));
+
+        let diag = diag.iter().chain(may_value.warnings.iter());
+        let diagnostics = diag.filter(no_foreign_obj_diag);
         let _ = print_diagnostics(
             &world,
-            diag.iter().chain(may_value.warnings.iter()),
+            diagnostics,
             DiagnosticFormat::Human,
             &mut crate::tui::out().lock(),
         );
@@ -914,3 +917,11 @@ struct HtmlCommandArgs {
 }
 
 static TAGS_META: OnceLock<HashMap<&str, (&str, HashSet<&str>)>> = OnceLock::new();
+
+fn no_foreign_obj_diag(diag: &&typst::diag::SourceDiagnostic) -> bool {
+    if diag.severity == typst::diag::Severity::Error {
+        return true;
+    }
+
+    !diag.message.contains("image contains foreign object")
+}

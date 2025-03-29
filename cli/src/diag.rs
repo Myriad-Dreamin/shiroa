@@ -9,7 +9,7 @@ use typst::{World, WorldExt};
 /// Prints diagnostic messages to the terminal.
 pub fn print_diagnostics<'d, 'files, W: World + Files<'files, FileId = FileId>>(
     world: &'files W,
-    errors: impl Iterator<Item = &'d SourceDiagnostic>,
+    diagnostics: impl Iterator<Item = &'d SourceDiagnostic>,
     diagnostic_format: DiagnosticFormat,
     w: &mut dyn WriteColor,
 ) -> Result<(), codespan_reporting::files::Error> {
@@ -21,7 +21,7 @@ pub fn print_diagnostics<'d, 'files, W: World + Files<'files, FileId = FileId>>(
         config.display_style = term::DisplayStyle::Short;
     }
 
-    for diagnostic in errors {
+    for diagnostic in diagnostics {
         let diag = match diagnostic.severity {
             Severity::Error => Diagnostic::error(),
             Severity::Warning => Diagnostic::warning(),
