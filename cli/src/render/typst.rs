@@ -28,9 +28,10 @@ use reflexo_typst::{
         IntoTypst,
     },
     world::EntryOpts,
-    CompilationTask, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport, EntryReader,
-    ExportDynSvgModuleTask, FlagTask, LazyHash, TakeAs, TaskInputs, TextExport, TypstAbs,
-    TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument, TypstSystemWorld,
+    CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
+    EntryReader, ExportDynSvgModuleTask, FlagTask, LazyHash, SystemCompilerFeat, TakeAs,
+    TaskInputs, TextExport, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument,
+    TypstPagedDocument, TypstSystemWorld,
 };
 use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
@@ -54,6 +55,7 @@ pub struct CompilePageSetting {
 
 pub struct TypstRenderer {
     pub verse: TypstSystemUniverse,
+    pub snapshot: OnceLock<CompileSnapshot<SystemCompilerFeat>>,
     pub ctx: RenderContext,
 }
 
@@ -90,6 +92,7 @@ impl TypstRenderer {
 
         Self {
             verse,
+            snapshot: OnceLock::new(),
             ctx: RenderContext {
                 output: dest_dir.clone(),
                 compiler,
@@ -115,6 +118,15 @@ impl TypstRenderer {
 
     pub fn spawn(&self, path: &Path) -> Result<TypstRenderTask> {
         self.spawn_with_theme(path, "")
+    }
+
+    pub fn reset_snapshot(&mut self) {
+        self.snapshot = OnceLock::new();
+    }
+
+    pub fn snapshot(&self) -> &CompileSnapshot<SystemCompilerFeat> {
+        self.snapshot
+            .get_or_init(|| CompileSnapshot::from_world(self.verse.snapshot()))
     }
 
     pub fn spawn_with_theme(&self, path: &Path, theme: &str) -> Result<TypstRenderTask> {
@@ -143,7 +155,7 @@ impl TypstRenderer {
                 Arc::new(LazyHash::new(dict))
             }),
         };
-        let graph = self.universe().computation_with(inputs);
+        let graph = SystemWorldComputeGraph::new(self.snapshot().clone().task(inputs));
 
         Ok(TypstRenderTask { graph, ctx })
     }
