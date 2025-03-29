@@ -5,6 +5,7 @@ use reflexo_typst::path::{unix_slash, PathClean};
 use shiroa::{
     error::prelude::*,
     project::Project,
+    tui_hint,
     utils::{async_continue, create_dirs, make_absolute, write_file, UnwrapOrExit},
     version::intercept_version,
     BuildArgs, InitArgs, Opts, ServeArgs, Subcommands,
@@ -24,12 +25,18 @@ fn help_sub_command() -> ! {
 fn main() {
     let opts = Opts::from_arg_matches(&get_cli(false).get_matches()).unwrap_or_exit();
 
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .filter_module("typst", log::LevelFilter::Warn)
-        .filter_module("reflexo", log::LevelFilter::Info)
-        .filter_module("tracing::", log::LevelFilter::Off)
-        .init();
+    if opts.verbose {
+        env_logger::builder()
+            .filter_level(log::LevelFilter::Info)
+            .filter_module("typst", log::LevelFilter::Warn)
+            .filter_module("reflexo", log::LevelFilter::Info)
+            .filter_module("tracing::", log::LevelFilter::Off)
+            .init();
+    } else {
+        env_logger::builder()
+            .filter_level(log::LevelFilter::Warn)
+            .init();
+    }
 
     intercept_version(opts.version, opts.vv);
 
@@ -208,7 +215,10 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
             .with(warp::compression::gzip())
     });
 
-    server.run(http_addr).await;
+    let (addr, fut) = server.bind_ephemeral(http_addr);
+    tui_hint!("Server started at http://{addr}");
+
+    fut.await;
 
     exit(0);
 }

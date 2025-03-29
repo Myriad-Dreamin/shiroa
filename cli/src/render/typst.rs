@@ -8,6 +8,7 @@ use std::{
 };
 
 use crate::{
+    diag::print_diagnostics,
     error::prelude::*,
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
@@ -26,9 +27,9 @@ use reflexo_typst::{
         IntoTypst,
     },
     world::EntryOpts,
-    CompilationTask, DiagnosticHandler, DynSvgModuleExport, EntryReader, ExportDynSvgModuleTask,
-    FlagTask, LazyHash, TakeAs, TaskInputs, TextExport, TypstAbs, TypstDict, TypstDocument,
-    TypstHtmlDocument, TypstPagedDocument,
+    CompilationTask, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport, EntryReader,
+    ExportDynSvgModuleTask, FlagTask, LazyHash, TakeAs, TaskInputs, TextExport, TypstAbs,
+    TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
 };
 use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
@@ -196,11 +197,22 @@ impl TypstRenderer {
                 (None, err, rep)
             }
         };
-        // we currently ignore export error here
+
         // todo: use same world as the reportee
         let world = self.verse.snapshot();
-        self.diag_handler
-            .report(&world, diag.iter().chain(may_value.warnings.iter()));
+
+        // We currently ignore export error here
+        // We lock it once to avoid concurrent write
+        // todo: merge to upstream
+        // self.diag_handler
+        //     .report(&world, diag.iter().chain(may_value.warnings.iter()));
+        let _ = print_diagnostics(
+            &world,
+            diag.iter().chain(may_value.warnings.iter()),
+            DiagnosticFormat::Human,
+            &mut crate::tui::out().lock(),
+        );
+
         self.diag_handler.status(&rep);
         res
     }
