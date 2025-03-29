@@ -1,4 +1,3 @@
-mod debug_loc;
 pub mod error;
 pub mod meta;
 pub mod outline;
@@ -7,12 +6,17 @@ pub mod render;
 pub mod theme;
 pub mod utils;
 pub mod version;
-use version::VersionFormat;
+
+mod debug_loc;
+mod diag;
+pub mod tui;
 
 use core::fmt;
 use std::path::PathBuf;
 
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
+
+use crate::version::VersionFormat;
 
 #[derive(Debug, Parser)]
 #[clap(name = "shiroa", version = "0.3.0")]
@@ -24,6 +28,10 @@ pub struct Opts {
     /// Print Version in format
     #[arg(long = "VV", alias = "version-fmt", group = "version-dump", default_value_t = VersionFormat::None)]
     pub vv: VersionFormat,
+
+    /// Print Verbose Log
+    #[arg(short = 'v', long, global = true)]
+    pub verbose: bool,
 
     #[clap(subcommand)]
     pub sub: Option<Subcommands>,

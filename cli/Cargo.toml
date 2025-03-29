@@ -45,6 +45,9 @@ handlebars.workspace = true
 pathdiff.workspace = true
 elasticlunr-rs.workspace = true
 regex.workspace = true
+termcolor.workspace = true
+rayon.workspace = true
+codespan-reporting.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true

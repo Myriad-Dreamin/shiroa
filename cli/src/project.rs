@@ -15,6 +15,7 @@ use crate::{
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
     render::{DataDict, HtmlRenderer, SearchRenderer, TypstRenderer},
     theme::Theme,
+    tui_error, tui_info,
     utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
     CompileArgs, MetaSource, RenderMode,
 };
@@ -355,18 +356,23 @@ impl Project {
         Ok(())
     }
 
-    pub fn evaluate_content(&self, title: &BookMetaContent) -> String {
-        match title {
-            BookMetaContent::PlainText { content } => content.clone(),
-            BookMetaContent::Raw { content } => {
-                if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
-                    return format!("{}", c);
-                }
-
-                warn!("unevaluated {content:#?}");
-                "unevaluated title".to_owned()
+    pub fn prepare_chapters(&mut self) {
+        match self.meta_source {
+            MetaSource::Strict => {
+                self.chapters = self.generate_chapters(&self.book_meta.as_ref().unwrap().summary)
             }
+            MetaSource::Outline => {}
         }
+    }
+
+    pub fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<DataDict> {
+        let mut chapters = vec![];
+
+        for item in meta.iter() {
+            self.iter_chapters_dfs(item, &mut chapters);
+        }
+
+        chapters
     }
 
     fn iter_chapters_dfs(&self, elem: &BookMetaElem, chapters: &mut Vec<DataDict>) {
@@ -415,26 +421,35 @@ impl Project {
         }
     }
 
-    pub fn prepare_chapters(&mut self) {
-        match self.meta_source {
-            MetaSource::Strict => {
-                self.chapters = self.generate_chapters(&self.book_meta.as_ref().unwrap().summary)
+    pub fn evaluate_content(&self, title: &BookMetaContent) -> String {
+        match title {
+            BookMetaContent::PlainText { content } => content.clone(),
+            BookMetaContent::Raw { content } => {
+                if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
+                    return format!("{}", c);
+                }
+
+                warn!("unevaluated {content:#?}");
+                "unevaluated title".to_owned()
             }
-            MetaSource::Outline => {}
         }
-    }
-
-    pub fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<DataDict> {
-        let mut chapters = vec![];
-
-        for item in meta.iter() {
-            self.iter_chapters_dfs(item, &mut chapters);
-        }
-
-        chapters
     }
 
     pub fn compile_chapter(&mut self, path: &str) -> Result<ChapterArtifact> {
+        tui_info!(h "Compiling", "{path}");
+        let instant = std::time::Instant::now();
+        let res = self.compile_chapter_(path);
+        let elapsed = instant.elapsed();
+        if let Err(e) = &res {
+            tui_error!("{path}: compile error: {e}");
+        } else {
+            tui_info!(h "Finished", "{path} in {elapsed:.3?}");
+        }
+
+        res
+    }
+
+    pub fn compile_chapter_(&mut self, path: &str) -> Result<ChapterArtifact> {
         let file_name = Path::new(&self.path_to_root).join(path).with_extension("");
 
         // todo: description for single document
