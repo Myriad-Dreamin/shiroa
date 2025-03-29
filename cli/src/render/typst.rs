@@ -15,6 +15,7 @@ use crate::{
     utils::{make_absolute, make_absolute_from, UnwrapOrExit},
     CompileArgs, RenderMode,
 };
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
@@ -29,7 +30,7 @@ use reflexo_typst::{
     world::EntryOpts,
     CompilationTask, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport, EntryReader,
     ExportDynSvgModuleTask, FlagTask, LazyHash, TakeAs, TaskInputs, TextExport, TypstAbs,
-    TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
+    TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument, TypstSystemWorld,
 };
 use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
@@ -53,13 +54,7 @@ pub struct CompilePageSetting {
 
 pub struct TypstRenderer {
     pub verse: TypstSystemUniverse,
-    pub extension: EcoString,
-    pub output: PathBuf,
-    pub compiler: ExportDynSvgModuleTask,
-    pub root_dir: PathBuf,
-    pub dest_dir: PathBuf,
-    static_html: bool,
-    pub diag_handler: DiagnosticHandler,
+    pub ctx: RenderContext,
 }
 
 impl TypstRenderer {
@@ -94,16 +89,18 @@ impl TypstRenderer {
         // let compiler = CompileDriver::new(compiler, verse);
 
         Self {
-            output: dest_dir.clone(),
             verse,
-            compiler,
-            root_dir,
-            dest_dir,
-            extension: "multi.sir.in".into(),
-            static_html: args.mode == RenderMode::StaticHtml,
-            diag_handler: DiagnosticHandler {
-                print_compile_status: true,
-                diagnostic_format: Default::default(),
+            ctx: RenderContext {
+                output: dest_dir.clone(),
+                compiler,
+                root_dir,
+                dest_dir,
+                extension: "multi.sir.in".into(),
+                static_html: args.mode == RenderMode::StaticHtml,
+                diag_handler: DiagnosticHandler {
+                    print_compile_status: true,
+                    diagnostic_format: Default::default(),
+                },
             },
         }
     }
@@ -116,15 +113,157 @@ impl TypstRenderer {
         &mut self.verse
     }
 
+    pub fn spawn(&self, path: &Path) -> Result<TypstRenderTask> {
+        self.spawn_with_theme(path, "")
+    }
+
+    pub fn spawn_with_theme(&self, path: &Path, theme: &str) -> Result<TypstRenderTask> {
+        // self.setup_entry(path);
+        if path.is_absolute() {
+            panic!("entry file must be relative to the workspace");
+        }
+
+        let entry = self.ctx.root_dir.join(path).clean();
+
+        let mut ctx = self.ctx.clone();
+        ctx.setup_entry(path);
+        ctx.set_theme_target(theme);
+
+        let entry = self
+            .verse
+            .entry_state()
+            .try_select_path_in_workspace(&entry)
+            .context("cannot select entry file out of workspace")?
+            .context("failed to determine root")?;
+        let inputs = TaskInputs {
+            entry: Some(entry),
+            inputs: Some({
+                let mut dict = TypstDict::new();
+                dict.insert("x-target".into(), ctx.compiler.target.clone().into_value());
+                Arc::new(LazyHash::new(dict))
+            }),
+        };
+        let graph = self.universe().computation_with(inputs);
+
+        Ok(TypstRenderTask { graph, ctx })
+    }
+
+    pub fn report<T>(&self, may_value: SourceResult<T>) -> Option<T> {
+        match may_value {
+            Ok(v) => Some(v),
+            Err(err) => {
+                // todo: heavy snapshot here
+                let task = TypstRenderTask {
+                    graph: self.verse.computation(),
+                    ctx: self.ctx.clone(),
+                };
+
+                task.report(Err(err))
+            }
+        }
+    }
+
+    pub fn compile_book(&mut self, path: &Path) -> Result<(TypstRenderTask, TypstDocument)> {
+        let entry = self.ctx.root_dir.join(path).clean();
+        self.ctx.setup_entry(&entry);
+
+        let task = self.spawn(path)?;
+
+        let res = typst::compile::<TypstPagedDocument>(task.world());
+        let res: Option<TypstDocument> = task
+            .report_with_warnings(res)
+            .map(Arc::new)
+            .map(TypstDocument::Paged);
+
+        Ok((task, res.ok_or_else(|| error_once!("compile book.typ"))?))
+    }
+
+    pub fn compile_pages_by_outline(&self, path: &Path) -> Result<Vec<BookMetaElem>> {
+        // compile entry file as a single webpage
+        self.compile_page_with(path, CompilePageSetting { with_outline: true })?;
+
+        let res = THEME_LIST
+            .into_par_iter()
+            .map(|theme| {
+                let mut task = self.spawn_with_theme(path, theme)?;
+                task.compile_pages_by_outline_(theme)
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        let res = res.into_iter().next();
+        res.ok_or_else(|| error_once!("compile pages by outline"))
+    }
+
+    pub fn compile_page(&self, path: &Path) -> Result<TypstDocument> {
+        self.compile_page_with(path, CompilePageSetting::default())
+    }
+
+    pub fn compile_page_with(
+        &self,
+        path: &Path,
+        settings: CompilePageSetting,
+    ) -> Result<TypstDocument> {
+        if self.ctx.static_html && settings.with_outline {
+            return Err(error_once!("outline is not supported in static paged mode"));
+        }
+
+        let task = self.spawn(path)?;
+
+        let doc = if self.ctx.static_html {
+            TypstDocument::Html(task.pure_compile::<TypstHtmlDocument>()?)
+        } else {
+            TypstDocument::Paged(task.pure_compile::<TypstPagedDocument>()?)
+        };
+
+        THEME_LIST
+            .into_par_iter()
+            .map(|theme| {
+                let mut task = self.spawn_with_theme(path, theme).unwrap_or_exit();
+                if task.ctx.static_html {
+                    task.compile_html_page_with().unwrap_or_exit();
+                } else {
+                    task.compile_paged_page_with(settings.clone())
+                        .unwrap_or_exit();
+                }
+                let mut task = self.spawn_with_theme(path, theme)?;
+
+                if self.ctx.static_html {
+                    task.compile_html_page_with()?;
+                } else {
+                    task.compile_paged_page_with(settings.clone())?;
+                }
+
+                Ok(())
+            })
+            .collect::<Result<()>>()?;
+
+        Ok(doc)
+    }
+
+    pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
+        TextExport::run_on_doc(doc).context("export text for html description")
+    }
+}
+
+#[derive(Clone)]
+pub struct RenderContext {
+    pub extension: EcoString,
+    pub output: PathBuf,
+    pub compiler: ExportDynSvgModuleTask,
+    pub root_dir: PathBuf,
+    pub dest_dir: PathBuf,
+    static_html: bool,
+    pub diag_handler: DiagnosticHandler,
+}
+
+impl RenderContext {
     pub fn fix_dest_dir(&mut self, path: &Path) {
         let dest_dir = make_absolute_from(path, || self.root_dir.clone()).clean();
         self.dest_dir = dest_dir;
     }
 
     fn module_dest_path(&self) -> PathBuf {
-        self.dest_dir
-            .join(&self.output)
-            .with_extension(self.extension.as_str())
+        self.output.with_extension(self.extension.as_str())
     }
 
     fn set_theme_target(&mut self, theme: &str) {
@@ -152,23 +291,22 @@ impl TypstRenderer {
     }
 
     fn setup_entry(&mut self, path: &Path) {
-        if path.is_absolute() {
-            panic!("entry file must be relative to the workspace");
-        }
-        let entry = self.root_dir.join(path).clean().as_path().into();
-        let err = self
-            .universe_mut()
-            .increment_revision(|v| v.set_entry_file(entry));
-        if err.is_err() {
-            self.report(err);
-            panic!("failed to set entry file");
-        }
         let output_path = self.dest_dir.join(path).with_extension("").clean();
         std::fs::create_dir_all(output_path.parent().unwrap()).unwrap_or_exit();
         self.output = output_path;
     }
+}
 
-    // todo: we should use same snapshot as that compiled documents
+pub struct TypstRenderTask {
+    pub graph: Arc<SystemWorldComputeGraph>,
+    pub ctx: RenderContext,
+}
+
+impl TypstRenderTask {
+    pub fn world(&self) -> &TypstSystemWorld {
+        &self.graph.snap.world
+    }
+
     pub fn report<T>(&self, may_value: SourceResult<T>) -> Option<T> {
         self.report_with_warnings(Warned {
             output: may_value,
@@ -176,12 +314,11 @@ impl TypstRenderer {
         })
     }
 
-    // todo: we should use same snapshot as that compiled documents
     pub fn report_with_warnings<T>(&self, may_value: Warned<SourceResult<T>>) -> Option<T> {
         let (res, diag, rep) = match may_value.output {
             Ok(v) => {
                 let rep = CompileReport::CompileSuccess(
-                    self.universe().main_id().unwrap(),
+                    self.world().main_id().unwrap(),
                     may_value.warnings.len(),
                     Default::default(),
                 );
@@ -190,16 +327,13 @@ impl TypstRenderer {
             }
             Err(err) => {
                 let rep = CompileReport::CompileError(
-                    self.universe().main_id().unwrap(),
+                    self.world().main_id().unwrap(),
                     err.len(),
                     Default::default(),
                 );
                 (None, err, rep)
             }
         };
-
-        // todo: use same world as the reportee
-        let world = self.verse.snapshot();
 
         // We currently ignore export error here
         // We lock it once to avoid concurrent write
@@ -210,54 +344,19 @@ impl TypstRenderer {
         let diag = diag.iter().chain(may_value.warnings.iter());
         let diagnostics = diag.filter(no_foreign_obj_diag);
         let _ = print_diagnostics(
-            &world,
+            self.world(),
             diagnostics,
             DiagnosticFormat::Human,
             &mut crate::tui::out().lock(),
         );
 
-        self.diag_handler.status(&rep);
+        self.ctx.diag_handler.status(&rep);
         res
-    }
-
-    // todo: we should use same snapshot as that compiled documents
-    pub fn compile_book(
-        &mut self,
-        path: &Path,
-    ) -> Result<(Arc<SystemWorldComputeGraph>, TypstDocument)> {
-        self.setup_entry(path);
-        self.set_theme_target("");
-
-        let graph = self.universe().computation();
-        let res = typst::compile::<TypstPagedDocument>(&graph.snap.world);
-        let res = self
-            .report_with_warnings(res)
-            .map(Arc::new)
-            .map(TypstDocument::Paged);
-
-        Ok((graph, res.ok_or_else(|| error_once!("compile book.typ"))?))
-    }
-
-    pub fn compile_pages_by_outline(&mut self, path: &Path) -> Result<Vec<BookMetaElem>> {
-        // compile entry file as a single webpage
-        self.compile_page_with(path, CompilePageSetting { with_outline: true })?;
-        self.setup_entry(path);
-
-        let mut res = None;
-        for theme in THEME_LIST {
-            self.set_theme_target(theme);
-            let incoming = self.compile_pages_by_outline_(theme)?;
-
-            // todo: compare incoming with res
-            res = Some(incoming);
-        }
-
-        res.ok_or_else(|| error_once!("compile pages by outline"))
     }
 
     fn compile_pages_by_outline_(&mut self, theme: &'static str) -> Result<Vec<BookMetaElem>> {
         // read ir from disk
-        let module_output = self.module_dest_path();
+        let module_output = self.ctx.module_dest_path();
         let module_bin = std::fs::read(module_output).unwrap_or_exit();
 
         let doc = MultiVecDocument::from_slice(&module_bin);
@@ -630,7 +729,7 @@ impl TypstRenderer {
 
         // write multiple files to disk
         for chp in separated_chapters.content {
-            let mut path = self.dest_dir.clone();
+            let mut path = self.ctx.dest_dir.clone();
             path.push(chp.0);
             std::fs::write(path, chp.1.to_bytes()).unwrap_or_exit();
         }
@@ -638,14 +737,8 @@ impl TypstRenderer {
         Ok(inferred)
     }
 
-    pub fn compile_page(&mut self, path: &Path) -> Result<TypstDocument> {
-        self.compile_page_with(path, CompilePageSetting::default())
-    }
-
-    fn pure_compile<D: typst::Document + Send + Sync + 'static>(
-        &self,
-        g: &Arc<SystemWorldComputeGraph>,
-    ) -> Result<Arc<D>> {
+    fn pure_compile<D: typst::Document + Send + Sync + 'static>(&self) -> Result<Arc<D>> {
+        let g = &self.graph;
         let _ = g.provide::<FlagTask<CompilationTask<D>>>(Ok(FlagTask::flag(true)));
 
         let res = g.compute::<CompilationTask<D>>()?.as_ref().clone().unwrap();
@@ -653,58 +746,8 @@ impl TypstRenderer {
             .ok_or_else(|| error_once!("compile page failed"))
     }
 
-    pub fn compile_page_with(
-        &mut self,
-        path: &Path,
-        settings: CompilePageSetting,
-    ) -> Result<TypstDocument> {
-        if self.static_html && settings.with_outline {
-            return Err(error_once!("outline is not supported in static paged mode"));
-        }
-
-        self.setup_entry(path);
-
-        let inputs = TaskInputs {
-            entry: None,
-            inputs: Some({
-                let mut dict = TypstDict::new();
-                self.set_theme_target("");
-                dict.insert("x-target".into(), self.compiler.target.clone().into_value());
-
-                Arc::new(LazyHash::new(dict))
-            }),
-        };
-        let graph = self.verse.computation_with(inputs);
-        let doc = if self.static_html {
-            TypstDocument::Html(self.pure_compile::<TypstHtmlDocument>(&graph)?)
-        } else {
-            TypstDocument::Paged(self.pure_compile::<TypstPagedDocument>(&graph)?)
-        };
-
-        for theme in THEME_LIST {
-            if self.static_html {
-                self.compile_html_page_with(theme)?;
-            } else {
-                self.compile_paged_page_with(theme, &graph, settings.clone())?;
-            }
-        }
-
-        Ok(doc)
-    }
-
-    pub fn compile_html_page_with(&mut self, theme: &str) -> Result<TypstDocument> {
-        let inputs = TaskInputs {
-            entry: None,
-            inputs: Some({
-                let mut dict = TypstDict::new();
-                self.set_theme_target(theme);
-                dict.insert("x-target".into(), self.compiler.target.clone().into_value());
-
-                Arc::new(LazyHash::new(dict))
-            }),
-        };
-        let graph = self.verse.computation_with(inputs);
-        let doc = self.pure_compile::<TypstHtmlDocument>(&graph)?;
+    pub fn compile_html_page_with(&mut self) -> Result<TypstDocument> {
+        let doc = self.pure_compile::<TypstHtmlDocument>()?;
 
         let html_doc = doc.as_ref();
 
@@ -712,22 +755,16 @@ impl TypstRenderer {
             .report(static_html(html_doc))
             .expect("failed to render static html");
 
-        let dest = self.module_dest_path();
+        let dest = self.ctx.module_dest_path();
         std::fs::write(&dest, res.body).unwrap_or_exit();
 
         Ok(TypstDocument::Html(doc.clone()))
     }
 
-    pub fn compile_paged_page_with(
-        &mut self,
-        theme: &str,
-        graph: &Arc<SystemWorldComputeGraph>,
-        settings: CompilePageSetting,
-    ) -> Result<()> {
-        self.set_theme_target(theme);
-
+    pub fn compile_paged_page_with(&mut self, settings: CompilePageSetting) -> Result<()> {
         // let path = path.clone().to_owned();
-        self.compiler
+        self.ctx
+            .compiler
             .set_post_process_layout(move |_m, doc, layout| {
                 // println!("post process {}", path.display());
 
@@ -776,19 +813,14 @@ impl TypstRenderer {
                 LayoutRegionNode::Pages(Arc::new((meta, pages)))
             });
 
-        let res = DynSvgModuleExport::run(graph, &self.compiler)?;
+        let res = DynSvgModuleExport::run(&self.graph, &self.ctx.compiler)?;
         if let Some(doc) = res {
             let content = doc.to_bytes();
-            let dest = self.module_dest_path();
+            let dest = self.ctx.module_dest_path();
             std::fs::write(&dest, content).unwrap_or_exit();
         }
 
         Ok(())
-    }
-
-    // todo: we should use same snapshot as that compiled documents
-    pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
-        TextExport::run_on_doc(doc).context("export text for html description")
     }
 }
 

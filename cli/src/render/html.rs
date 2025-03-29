@@ -42,7 +42,7 @@ impl HtmlRenderer {
         Self { handlebars }
     }
 
-    pub fn render_index(&mut self, mut data: DataDict, path: &str) -> String {
+    pub fn render_index(&self, mut data: DataDict, path: &str) -> String {
         // inject path (for current document)
         data.insert("path".to_owned(), json!(path));
 
