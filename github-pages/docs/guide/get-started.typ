@@ -47,7 +47,7 @@ Before a chapter can be viewed, it must be added to this list.
 Here's a basic summary file with a few chapters:
 
 ```typ
-#import "@preview/shiroa:0.2.0": *
+#import "@preview/shiroa:0.2.1": *
 #show: book
 
 #book-meta( // put metadata of your book like book.toml of mdbook
