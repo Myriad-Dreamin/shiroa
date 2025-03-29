@@ -273,14 +273,18 @@ impl Project {
     }
 
     pub fn build(&mut self) -> Result<()> {
-        let mut write_index = false;
+        self.extract_assets()?;
+        self.compile_once()?;
 
-        let themes = self.dest_dir.join("theme");
+        Ok(())
+    }
 
+    fn extract_assets(&mut self) -> Result<()> {
         // Always update the theme if it is static
         // Or copy on first build
+        let themes = self.dest_dir.join("theme");
         if self.theme.is_static() || !themes.exists() {
-            log::info!("copying theme assets to {:?}", themes);
+            log::info!("copying theme assets to {themes:?}");
             self.theme.copy_assets(&themes)?;
         }
 
@@ -313,6 +317,12 @@ impl Project {
                 include_bytes!("../../assets/artifacts/elasticlunr.min.js"),
             )?;
         }
+
+        Ok(())
+    }
+
+    fn compile_once(&mut self) -> Result<()> {
+        let mut write_index = false;
 
         self.prepare_chapters();
         for ch in self.chapters.clone() {
