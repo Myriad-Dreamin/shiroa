@@ -190,33 +190,31 @@ fn build(args: BuildArgs) -> Result<()> {
 pub async fn serve(args: ServeArgs) -> Result<()> {
     let mut proj = Project::new(args.compile)?;
 
-    // Build the book if it hasn't been built yet
-    if !args.no_build {
-        proj.build()?;
-
-        // since we don't need the compilation cache anymore, we can evict it
-        comemo::evict(0);
-    }
-
     let http_addr: SocketAddr = args
         .addr
         .clone()
         .parse()
         .map_err(map_string_err("ParseServeAddr"))?;
 
+    let dest_dir = proj.dest_dir.clone();
     let server = warp::serve({
         let cors =
             warp::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE, Method::HEAD]);
 
         let dev = warp::path("dev").and(warp::fs::dir(""));
 
-        dev.or(warp::fs::dir(proj.dest_dir))
+        dev.or(warp::fs::dir(dest_dir))
             .with(cors)
             .with(warp::compression::gzip())
     });
 
     let (addr, fut) = server.bind_ephemeral(http_addr);
     tui_hint!("Server started at http://{addr}");
+
+    // Build the book if it hasn't been built yet
+    if !args.no_build {
+        tokio::spawn(async move { proj.watch(Some(addr)).await });
+    };
 
     fut.await;
 

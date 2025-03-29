@@ -1,5 +1,6 @@
 use core::fmt;
 use std::{
+    net::SocketAddr,
     path::{Path, PathBuf},
     sync::Mutex,
 };
@@ -9,17 +10,20 @@ use log::warn;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
     escape::{escape_str, AttributeEscapes},
-    static_html, CompilerExt, TypstDocument,
+    static_html,
+    vfs::{notify::NotifyMessage, FsProvider},
+    watch_deps, CompilerExt, TypstDocument, WorldDeps,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tokio::sync::mpsc;
 
 use crate::{
     error::prelude::*,
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
     render::{DataDict, HtmlRenderer, SearchCtx, SearchRenderer, TypstRenderer},
     theme::Theme,
-    tui_error, tui_info,
+    tui, tui_error, tui_hint, tui_info,
     utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
     CompileArgs, MetaSource, RenderMode,
 };
@@ -64,13 +68,13 @@ pub struct Project {
     pub chapters: Vec<DataDict>,
 
     pub dest_dir: PathBuf,
+    pub args: CompileArgs,
     pub path_to_root: String,
     pub meta_source: MetaSource,
 }
 
 impl Project {
     pub fn new(mut args: CompileArgs) -> Result<Self> {
-        let mut final_dest_dir = args.dest_dir.clone();
         let path_to_root = args.path_to_root.clone();
 
         if !path_to_root.starts_with('/') {
@@ -90,12 +94,10 @@ impl Project {
             .clone_into(&mut args.dir);
 
         let dir = Path::new(&args.dir);
-        let mut entry_file = None;
         if dir.is_file() {
             if meta_source == MetaSource::Strict {
                 return Err(error_once!("project dir is a file", dir: dir.display()));
             }
-            entry_file = Some(dir.to_owned());
             let w = dir.parent().unwrap().to_str().unwrap().to_owned();
             args.dir = w;
         }
@@ -109,11 +111,13 @@ impl Project {
             None => Theme::default(),
         };
 
+        let raw_args = args.clone();
         let tr = TypstRenderer::new(args);
         let hr = HtmlRenderer::new(&theme);
 
         let mut proj = Self {
             dest_dir: tr.ctx.dest_dir.clone(),
+            args: raw_args,
 
             theme,
             tr,
@@ -132,13 +136,31 @@ impl Project {
             include_dir!("$CARGO_MANIFEST_DIR/../packages/shiroa"),
         );
 
-        if matches!(proj.meta_source, MetaSource::Strict) {
+        proj.build_meta()?;
+        Ok(proj)
+    }
+
+    pub fn build_meta(&mut self) -> Result<()> {
+        let args = &self.args;
+        let meta_source = args.meta_source.clone();
+        let mut final_dest_dir = args.dest_dir.clone();
+
+        let dir = Path::new(&args.dir);
+        let mut entry_file = None;
+        if dir.is_file() {
+            if meta_source == MetaSource::Strict {
+                return Err(error_once!("project dir is a file", dir: dir.display()));
+            }
+            entry_file = Some(dir.to_owned());
+        }
+
+        if matches!(self.meta_source, MetaSource::Strict) {
             assert!(entry_file.is_none());
-            proj.compile_meta()?;
+            self.compile_meta()?;
         }
 
         if final_dest_dir.is_empty() {
-            if let Some(dest_dir) = proj.build_meta.as_ref().map(|b| b.dest_dir.clone()) {
+            if let Some(dest_dir) = self.build_meta.as_ref().map(|b| b.dest_dir.clone()) {
                 final_dest_dir = dest_dir;
             }
         }
@@ -147,15 +169,15 @@ impl Project {
             "dist".clone_into(&mut final_dest_dir);
         }
 
-        proj.tr.ctx.fix_dest_dir(Path::new(&final_dest_dir));
-        proj.dest_dir.clone_from(&proj.tr.ctx.dest_dir);
+        self.tr.ctx.fix_dest_dir(Path::new(&final_dest_dir));
+        self.dest_dir.clone_from(&self.tr.ctx.dest_dir);
 
-        if matches!(proj.meta_source, MetaSource::Outline) {
+        if matches!(self.meta_source, MetaSource::Outline) {
             assert!(entry_file.is_some());
-            proj.infer_meta_by_outline(entry_file.unwrap())?;
+            self.infer_meta_by_outline(entry_file.unwrap())?;
         }
 
-        Ok(proj)
+        Ok(())
     }
 
     pub fn compile_meta(&mut self) -> Result<()> {
@@ -274,6 +296,52 @@ impl Project {
         Ok(())
     }
 
+    pub async fn watch(&mut self, addr: Option<SocketAddr>) {
+        let _ = self.build();
+        let (dep_tx, dep_rx) = mpsc::unbounded_channel();
+        let (fs_tx, mut fs_rx) = mpsc::unbounded_channel();
+        tokio::spawn(watch_deps(dep_rx, move |event| {
+            fs_tx.send(event).unwrap();
+        }));
+        loop {
+            // Notify the new file dependencies.
+            let mut deps = vec![];
+            let snap = self.tr.snapshot();
+            let mut world = snap.world.clone();
+            world.iter_dependencies(&mut |dep| {
+                if let Ok(x) = world.file_path(dep).and_then(|e| e.to_err()) {
+                    deps.push(x.into())
+                }
+            });
+            tui_info!("Watching {} files for changes...", deps.len());
+            if let Some(addr) = &addr {
+                tui_hint!("Server started at http://{addr}");
+            }
+
+            let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
+
+            if self.need_compile() {
+                comemo::evict(10);
+                world.evict_source_cache(30);
+                world.evict_vfs(60);
+            }
+
+            let Some(event) = fs_rx.recv().await else {
+                break;
+            };
+
+            let _ = tui::clear();
+
+            // todo: reset_snapshot looks not good
+            self.tr.reset_snapshot();
+            self.tr.universe_mut().increment_revision(|verse| {
+                verse.vfs().notify_fs_event(event);
+            });
+            let _ = self.build_meta();
+            let _ = self.compile_once(SearchRenderer::default());
+        }
+    }
+
     pub fn build(&mut self) -> Result<()> {
         let sr = SearchRenderer::default();
         self.extract_assets(&sr)?;
@@ -361,11 +429,6 @@ impl Project {
 
         if sr.config.copy_js {
             sr.render_search_index(&self.dest_dir)?;
-        }
-
-        if self.need_compile() {
-            // cleanup cache
-            comemo::evict(5);
         }
 
         Ok(())
