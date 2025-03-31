@@ -19,11 +19,8 @@
   - Add prev/next buttons
   - initialize a book project interactively
 - Writer experience:
-  - Multimedia html elements
   - Book specific helper functions
   - Customize Favicon
-- Developer experience:
-  - Continuous CI testing for `shiroa`
 
 Hence you may meet many problems. We are active to receive questions and bugs in #link("https://github.com/Myriad-Dreamin/shiroa/issues")[Github Issues] and please feel free to open issues. If you'd like to contribute, please consider opening a #link("https://github.com/Myriad-Dreamin/shiroa/pulls")[pull request].
 
