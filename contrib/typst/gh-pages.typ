@@ -134,7 +134,7 @@
   // math setting
   show math.equation: set text(weight: 400)
   show math.equation: it => context if shiroa-sys-target() == "html" {
-    div-frame.with(attrs: ("style": "display: flex; justify-content: center; overflow-x: auto;"), it)
+    div-frame(attrs: ("style": "display: flex; justify-content: center; overflow-x: auto;"), it)
   } else {
     it
   }
