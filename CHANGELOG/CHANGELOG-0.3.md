@@ -6,11 +6,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## v0.3.1 - [2025-03-30]
 
+- Bumped shiroa package to v0.2.2 in https://github.com/Myriad-Dreamin/shiroa/pull/131
+
 ### Package
 
 - (Fix) Corrected show rule for equations in https://github.com/Myriad-Dreamin/shiroa/pull/120
 - (Fix) Strengthened `plain-text` implementation in https://github.com/Myriad-Dreamin/shiroa/pull/122
 - Set up package tests in https://github.com/Myriad-Dreamin/shiroa/pull/121
+- Supported `cross-link` in HTML export in https://github.com/Myriad-Dreamin/shiroa/pull/130
 
 ### CLI
 
