@@ -1,6 +1,6 @@
 {
   "name": "shiroa",
-  "version": "0.3.0",
+  "version": "0.3.1-rc1",
   "description": "Typst Book.",
   "main": "dist/main.js",
   "repository": "https://github.com/Myriad-Dreamin/shiroa",
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "typescript": "^5.3.3",
-    "vite": "^5.4.2",
-    "vite-plugin-singlefile": "^2.0.2"
+    "vite": "^6.1.0",
+    "vite-plugin-singlefile": "^2.2.0"
   }
 }
