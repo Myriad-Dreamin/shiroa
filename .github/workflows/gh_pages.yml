@@ -46,7 +46,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Build Book (Paged Target)
         run: |
-          cargo run --release --bin shiroa -- build --font-path assets/fonts --path-to-root /shiroa/html/ -w . github-pages/docs
+          cargo run --release --bin shiroa -- build --font-path assets/fonts --path-to-root /shiroa/paged/ -w . github-pages/docs
           mv ./github-pages/dist/ ./github-pages/dist-paged/
           mkdir -p ./github-pages/dist/
           mv ./github-pages/dist-paged ./github-pages/dist/paged
