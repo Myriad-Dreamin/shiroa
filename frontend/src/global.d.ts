@@ -19,6 +19,7 @@ declare global {
       relPath: string,
       appContainer: HTMLDivElement | undefined,
     );
+    updateHovers: (elem: Element[]) => void;
     typstBindSvgDom(elem: HTMLDivElement, dom: SVGSVGElement);
     TypstRenderModule: any;
   }

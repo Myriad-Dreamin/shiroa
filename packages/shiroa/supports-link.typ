@@ -1,4 +1,6 @@
 
+#import "meta-and-state.typ": shiroa-sys-target
+
 #let link2page = state("shiroa-link2page", (:))
 
 #let encode-url-component(s) = {
@@ -50,16 +52,19 @@
     }
     // assert(read(path) != none, message: "no such file")
 
-    link(
-      {
-        "cross-link://jump?path-label="
-        path-lbl
-        if reference != none {
-          "&label="
-          encode-url-component(str(reference))
-        }
-      },
-      content,
-    )
+    let href = {
+      "cross-link://jump?path-label="
+      path-lbl
+      if reference != none {
+        "&label="
+        encode-url-component(str(reference))
+      }
+    }
+
+    if shiroa-sys-target() == "html" {
+      html.elem("a", content, attrs: (class: "typst-content-link", href: href))
+    } else {
+      link(href, content)
+    }
   }
 }
