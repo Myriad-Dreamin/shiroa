@@ -6,7 +6,7 @@ In this section you will learn how to:
 
 - Make a cross reference in the same page or to other pages.
 - Embed HTML elements into the pages:
-  - `html-ext.iframe` corresponds to a ```html <iframe/>``` element
+  - ```typc media.iframe``` corresponds to a ```html <iframe/>``` element
   - Specifically, embed multimedia elements:
-    - `html-ext.video` corresponds to a ```html <video/>``` element
-    - `html-ext.audio` corresponds to a ```html <audio/>``` element
+    - ```typc media.video``` corresponds to a ```html <video/>``` element
+    - ```typc media.audio``` corresponds to a ```html <audio/>``` element
