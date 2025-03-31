@@ -11,26 +11,11 @@ window.TypstRenderModule = {
   createTypstRenderer,
 };
 
-// window.debounce = function debounce<T extends { (...args: any[]): void }>(fn: T, delay = 200) {
-//   let timer: number;
-
-//   return ((...args: any[]) => {
-//     clearTimeout(timer);
-//     timer = setTimeout(() => {
-//       fn(...args);
-//     }, delay);
-//   }) as unknown as T;
-// };
 let initialRender = true;
 let jumppedCrossLink = false;
 function postProcessCrossLinks(appElem: HTMLDivElement, reEnters: number) {
-  const links = appElem.querySelectorAll('.typst-content-link');
-  if (links.length === 0) {
-    console.log('no links found, probe after a while');
-    setTimeout(() => postProcessCrossLinks(appElem, reEnters * 1.5), reEnters);
-    return;
-  }
-  links.forEach(a => {
+  function processLink(a: Element) {
+    //  The Guard is to detect whether we are in a SVG document
     if (origin) {
       const onclick = a.getAttribute('onclick');
       if (onclick === null) {
@@ -76,6 +61,21 @@ function postProcessCrossLinks(appElem: HTMLDivElement, reEnters: number) {
         })
         .join('');
     const href = a.getAttribute('href')! || a.getAttribute('xlink:href')!;
+
+    if (href == null && a.tagName !== 'A') {
+      const sub = a.getElementsByTagName('a');
+      if (sub.length > 0) {
+        for (const s of sub) {
+          processLink(s);
+        }
+      }
+      return;
+    }
+
+    if (!href) {
+      return;
+    }
+
     if (href.startsWith('cross-link')) {
       const url = new URL(href);
       const pathLabelUnicodes = url.searchParams.get('path-label')!;
@@ -88,9 +88,25 @@ function postProcessCrossLinks(appElem: HTMLDivElement, reEnters: number) {
       }
       a.setAttribute('href', absolutePath);
       a.setAttribute('xlink:href', absolutePath);
-      // todo: label handling
     }
-  });
+
+    const onclick = a.getAttribute('onclick');
+    if (onclick && onclick.includes('document.querySelector')) {
+      // todo: this is a hack
+      a.setAttribute(
+        'onclick',
+        onclick.replace('return false', 'window.updateHovers([sel]); return false'),
+      );
+    }
+  }
+
+  const links = appElem.querySelectorAll('.typst-content-link');
+  if (links.length === 0) {
+    console.log('no links found, probe after a while');
+    setTimeout(() => postProcessCrossLinks(appElem, reEnters * 1.5), reEnters);
+    return;
+  }
+  links.forEach(processLink);
 
   // todo: out of page
   if (window.location.hash && !jumppedCrossLink) {
@@ -102,6 +118,23 @@ function postProcessCrossLinks(appElem: HTMLDivElement, reEnters: number) {
     // console.log('jump label', window.location.hash, firstSep, globalSemaLabels);
     if (firstSep != -1 && hash.slice(0, firstSep) === '#label') {
       const labelTarget = hash.slice(firstSep + 1);
+
+      {
+        let sel = document.querySelector(
+          `[data-typst-label=${JSON.stringify(decodeURIComponent(labelTarget))}]`,
+        );
+        if (sel) {
+          window.scroll({
+            top: sel.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.382,
+          });
+          updateHovers([sel]);
+
+          initialRender = false;
+          jumppedCrossLink = true;
+          return;
+        }
+      }
+
       for (const [label, dom, pos] of globalSemaLabels) {
         if (label === labelTarget) {
           const [_, x, y] = pos;
@@ -126,8 +159,14 @@ function updateHovers(elems: Element[]) {
       h.classList.remove('focus');
     }
   }
+  if (elems) {
+    for (const h of elems) {
+      h.classList.add('focus');
+    }
+  }
   prevHovers = elems;
 }
+window.updateHovers = updateHovers;
 let globalSemaLabels: [string, SVGSVGElement, [number, number, number]][] = [];
 
 function findLinkInSvg(r: SVGSVGElement, xy: [number, number]) {
@@ -190,6 +229,7 @@ window.typstBookRenderHtmlPage = function (
 
     preloadContent.replaceWith(themePreloadContent);
     themePreloadContent.style.display = 'block';
+    postProcessCrossLinks(themePreloadContent, 100);
   }
 
   reloadArtifact(currTheme).then(() => {
@@ -330,9 +370,6 @@ window.typstBookRenderPage = function (
           }
           // const semaLinkLocation = document.getElementById(`typst-label-${label}`);
           const relatedElems = window.typstGetRelatedElements(lnk);
-          for (const h of relatedElems) {
-            h.classList.add('focus');
-          }
           updateHovers(relatedElems);
           return;
         });

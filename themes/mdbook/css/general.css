@@ -343,6 +343,7 @@ path.outline_glyph {
 path.outline_glyph {
   transition: 0.2s fill stroke;
 }
+
 .hover .typst-text {
   --glyph_fill: #66bab7;
   --glyph_stroke: #66bab7;
@@ -381,4 +382,14 @@ path.outline_glyph {
 
 .focus .typst-text {
   --glyph_fill: var(--sidebar-active);
+}
+
+a.focus {
+  /* todo: remove !important */
+  color: var(--sidebar-active) !important;
+}
+
+.focus .typst-text, a.focus {
+  transition: 0.1s;
+  transition-property: fill, stroke, color;
 }

@@ -37,6 +37,27 @@
           #link(loc)[\#] #dest
         ],
       )
+    } else {
+      let loc = here()
+      let dest = get-label-disambiguator(loc, title)
+      html.elem(
+        "div",
+        attrs: (
+          role: "none",
+          style: "float: left; width: 0pt; position: relative; right: var(--heading-hash-offset-"
+            + str(it.level)
+            + ", 20px)",
+        ),
+      )[
+        #set text(fill: hash-color)
+        #html.elem(
+          "h" + str(it.level + 1),
+          attrs: (style: "display: inline;", class: "typst-content-link shiroa-heading-hash"),
+          [
+            #link(dest)[\#] #dest
+          ],
+        )
+      ]
     }
   }
 }
