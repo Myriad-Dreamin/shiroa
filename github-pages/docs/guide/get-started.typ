@@ -1,4 +1,5 @@
 #import "/github-pages/docs/book.typ": book-page
+#import "@preview/shiroa:0.2.2": shiroa-sys-target
 
 #show: book-page.with(title: "Get Started")
 
@@ -114,7 +115,13 @@ You don't have to change the default template, which already handles the HTML ex
 shiroa build --mode static-html
 ```
 
-See the #link("https://myriad-dreamin.github.io/shiroa/html/")[HTML version of shiroa's documentation] to see the result of the HTML export.
+#context if shiroa-sys-target() == "html" [
+  You are viewing the HTML export of the book right now :).
+  See the #link("https://myriad-dreamin.github.io/shiroa/paged/")[Paged version of shiroa's documentation] to see the result using the old paged export.
+] else [
+  See the #link("https://myriad-dreamin.github.io/shiroa/")[HTML version of shiroa's documentation] to see the result of the HTML export.
+]
+
 
 There is still some known issues, for example, typst hasn't support labels in the HTML export yet.
 
