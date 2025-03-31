@@ -18,6 +18,9 @@
 
 #lorem(50)
 
-== Math equation $f = lambda x . x$ in heading 
+== Math equation $f = lambda x . x$ in heading
+
+
+$ f = lambda x . x $
 
 #lorem(50)

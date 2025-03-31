@@ -22,6 +22,7 @@
 
 /// Creates an embedded block typst frame.
 #let div-frame(content, attrs: (:)) = html.elem("div", html.frame(content), attrs: attrs)
+#let span-frame(content, attrs: (:)) = html.elem("span", html.frame(content), attrs: attrs)
 
 // Theme (Colors)
 #let (
@@ -133,8 +134,13 @@
 
   // math setting
   show math.equation: set text(weight: 400)
-  show math.equation: it => context if shiroa-sys-target() == "html" {
+  show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
     div-frame(attrs: ("style": "display: flex; justify-content: center; overflow-x: auto;"), it)
+  } else {
+    it
+  }
+  show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
+    span-frame(attrs: ("style": "overflow-x: auto;"), it)
   } else {
     it
   }
