@@ -54,7 +54,11 @@
 } else {
   10.5pt
 }
-#let heading-sizes = (26pt, 22pt, 14pt, 12pt, main-size)
+#let heading-sizes = if is-web-target {
+  (2, 1.5, 1.17, 1, 0.83).map(it => it * main-size)
+} else {
+  (26pt, 22pt, 14pt, 12pt, main-size)
+}
 #let list-indent = 0.5em
 
 /// The project function defines how your document looks.
@@ -135,12 +139,12 @@
   // math setting
   show math.equation: set text(weight: 400)
   show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
-    div-frame(attrs: ("style": "display: flex; justify-content: center; overflow-x: auto;"), it)
+    div-frame(attrs: (style: "display: flex; justify-content: center; overflow-x: auto;"), it)
   } else {
     it
   }
   show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
-    span-frame(attrs: ("style": "overflow-x: auto;"), it)
+    span-frame(attrs: (class: "inline-equation"), it)
   } else {
     it
   }
@@ -185,6 +189,19 @@
       line-width: 100%,
       wrap: false,
       it,
+    )
+  }
+
+  // Put your custom CSS here.
+  context if shiroa-sys-target() == "html" {
+    html.elem(
+      "style",
+      ```css
+      .inline-equation {
+        display: inline-block;
+        width: fit-content;
+      }
+      ```.text,
     )
   }
 

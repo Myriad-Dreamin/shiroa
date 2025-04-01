@@ -47,6 +47,24 @@ h6 code {
   font-size: unset;
 }
 
+/* todo: we would like to use the size from user-agent, but we found equation are rendered not well.
+We need to fix it then */
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.17em;
+}
+
+h4 {
+  font-size: 1em;
+}
+
+h5 {
+  font-size: 0.83em;
+}
+
 .left {
   float: left;
 }

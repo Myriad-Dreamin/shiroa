@@ -3,7 +3,7 @@
 #show: book-page.with(title: "Typst Supports - Cross Reference")
 
 // begin of sample
-#let p = "/format/supports/cross-ref-sample.typ"
+#let p = "/supports/cross-ref-sample.typ"
 - #cross-link(p)[cross reference to the sample page]
 #let sub = heading-reference[== Subsection]
 - #cross-link(p, reference: sub)[cross reference to ```typ == Subsection``` in the sample page]
@@ -14,4 +14,12 @@
 
 == List of Code
 
-#raw(lang: "typ", read("cross-ref.typ").find(regex("// begin of sample[\s\S]*?// end of sample")).replace("\r", "").slice(18, -16).trim(), block: true)
+#raw(
+  lang: "typ",
+  read("cross-ref.typ")
+    .find(regex("// begin of sample[\s\S]*?// end of sample"))
+    .replace("\r", "")
+    .slice(18, -16)
+    .trim(),
+  block: true,
+)

@@ -30,7 +30,7 @@ Example:
 )
 ```
 
-Check the #cross-link("/format/supports/multimedia.typ")[Multimedia Components] to see the result of the above code.
+Check the #cross-link("/supports/multimedia.typ")[Multimedia Components] to see the result of the above code.
 
 Explaination:
 - `outer-width` and `outer-height` gives a the size to render at the position. You can either use the `shiroa.page-width` or `std.layout` to determine a proper size.
