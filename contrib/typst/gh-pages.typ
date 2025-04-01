@@ -21,8 +21,9 @@
 #let sys-is-html-target = ("target" in dictionary(std))
 
 /// Creates an embedded block typst frame.
-#let div-frame(content, attrs: (:)) = html.elem("div", html.frame(content), attrs: attrs)
-#let span-frame(content, attrs: (:)) = html.elem("span", html.frame(content), attrs: attrs)
+#let div-frame(content, attrs: (:), tag: "div") = html.elem(tag, html.frame(content), attrs: attrs)
+#let span-frame = div-frame.with(tag: "span")
+#let p-frame = div-frame.with(tag: "p")
 
 // Theme (Colors)
 #let (
@@ -139,7 +140,7 @@
   // math setting
   show math.equation: set text(weight: 400)
   show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
-    div-frame(attrs: (style: "display: flex; justify-content: center; overflow-x: auto;"), it)
+    p-frame(attrs: ("class": "block-equation"), it)
   } else {
     it
   }
@@ -200,6 +201,11 @@
       .inline-equation {
         display: inline-block;
         width: fit-content;
+      }
+      .block-equation {
+        display: grid;
+        place-items: center;
+        overflow-x: auto;
       }
       ```.text,
     )
