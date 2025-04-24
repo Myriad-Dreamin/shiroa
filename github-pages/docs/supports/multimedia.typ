@@ -1,10 +1,10 @@
 #import "/github-pages/docs/book.typ": book-page, media
 
-#show: book-page.with(title: "Typst Supports - Multimedia components")
+#show: book-page.with(title: "Multimedia Components")
 
-= Multi-media in Typst
+= Multi-Media in Typst
 
-This is a embed video.
+This is an embed video.
 
 #media.iframe(
   outer-width: 640pt,
@@ -21,4 +21,4 @@ This is a embed video.
   ),
 )
 
-That is a embed video.
+That is an embed video.
