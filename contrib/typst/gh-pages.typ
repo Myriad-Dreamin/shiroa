@@ -11,7 +11,7 @@
   templates,
 )
 #import templates: *
-#import "@preview/zebraw:0.4.5": zebraw-init, zebraw-html
+#import "@preview/zebraw:0.5.2": zebraw-init, zebraw
 
 // Metadata
 #let page-width = get-page-width()
@@ -161,9 +161,10 @@
       comment-color: rgb("#394b70"),
       lang-color: rgb("#3d59a1"),
       lang: false,
+      numbering: false,
     )
   } else {
-    zebraw-init.with(lang: false)
+    zebraw-init.with(lang: false, numbering: false)
   }
 
   // code block setting
@@ -185,9 +186,9 @@
   } else {
     set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
     set par(justify: false)
-    zebraw-html(
+    zebraw(
       block-width: 100%,
-      line-width: 100%,
+      // line-width: 100%,
       wrap: false,
       it,
     )
