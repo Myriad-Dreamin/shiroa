@@ -3318,7 +3318,7 @@ dependencies = [
 
 [[package]]
 name = "shiroa"
-version = "0.3.1-rc1"
+version = "0.3.1-rc2"
 dependencies = [
  "anyhow",
  "clap",
@@ -3352,7 +3352,7 @@ dependencies = [
 
 [[package]]
 name = "shiroa-build"
-version = "0.3.1-rc1"
+version = "0.3.1-rc2"
 dependencies = [
  "anyhow",
 ]
