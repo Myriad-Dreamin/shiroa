@@ -16,8 +16,8 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@myriaddreamin/typst-ts-renderer": "^0.5.5-rc7",
-    "@myriaddreamin/typst.ts": "^0.5.5-rc7"
+    "@myriaddreamin/typst-ts-renderer": "^0.6.0-rc1",
+    "@myriaddreamin/typst.ts": "^0.6.0-rc1"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
