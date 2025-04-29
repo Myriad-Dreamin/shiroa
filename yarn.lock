@@ -127,15 +127,15 @@
   resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.3.tgz#b17a2171f9074df9e91bfb07ef99a892ac06412a"
   integrity sha512-ICgUR+kPimx0vvRzf+N/7L7tVSQeE3BYY+NhHRHXS1kBuPO7z2+7ea2HbhDyZdTephgvNvKrlDDKUexuCVBVvg==
 
-"@myriaddreamin/typst-ts-renderer@^0.5.5-rc7":
-  version "0.5.5-rc7"
-  resolved "https://registry.npmjs.org/@myriaddreamin/typst-ts-renderer/-/typst-ts-renderer-0.5.5-rc7.tgz#df3ed6ac39cba7923d015f1f3e836b0ec325d489"
-  integrity sha512-DVMr2dVVhvMcKhRvveetdhPMwvr0Ck5hHGPAOmf0Z6l5QKLUduJde+0ydo+SHifPsd6N67ZJnH5bNxHsO7hIhQ==
+"@myriaddreamin/typst-ts-renderer@^0.6.0-rc1":
+  version "0.6.0-rc1"
+  resolved "https://registry.npmjs.org/@myriaddreamin/typst-ts-renderer/-/typst-ts-renderer-0.6.0-rc1.tgz#1798933317d37204f96491d9f6a35d8885cbe35a"
+  integrity sha512-WZ3VpkGch2dOIZnAp73n5FpZNMntbL4D+TvywqPgfcKJFvTeKtYWcVOwGUnlf2LkDWsGCWxw723AreLkVcUyLw==
 
-"@myriaddreamin/typst.ts@^0.5.5-rc7":
-  version "0.5.5-rc7"
-  resolved "https://registry.npmjs.org/@myriaddreamin/typst.ts/-/typst.ts-0.5.5-rc7.tgz#8fedeb63999ddd70a64ed402bcd8ceae2283a274"
-  integrity sha512-ATGhPQSoIAThRZlqcdBkCROso7UQBV4vEmE8FQZYDcOQ12JpbkJUMop/3UV0kdRhJ1XzbJxckztFxWUmDbF9/g==
+"@myriaddreamin/typst.ts@^0.6.0-rc1":
+  version "0.6.0-rc1"
+  resolved "https://registry.npmjs.org/@myriaddreamin/typst.ts/-/typst.ts-0.6.0-rc1.tgz#678507db94bf988be5ede7266e2b2309a97955c5"
+  integrity sha512-RQFiiIFzzX6HCmpW2sj8kOBLZfd4W/NP6E+4sRCAItJmCJ+qoD6F0yZM3gVtRJiz0/Ll4hRfOPbuKLJyL1buOQ==
   dependencies:
     idb "^7.1.1"
 
