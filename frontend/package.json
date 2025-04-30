@@ -1,6 +1,6 @@
 {
   "name": "shiroa",
-  "version": "0.3.1-rc2",
+  "version": "0.3.1-rc3",
   "description": "Typst Book.",
   "main": "dist/main.js",
   "repository": "https://github.com/Myriad-Dreamin/shiroa",
@@ -16,8 +16,8 @@
   "license": "Apache-2.0",
   "private": false,
   "dependencies": {
-    "@myriaddreamin/typst-ts-renderer": "^0.6.0-rc1",
-    "@myriaddreamin/typst.ts": "^0.6.0-rc1"
+    "@myriaddreamin/typst-ts-renderer": "^0.6.0",
+    "@myriaddreamin/typst.ts": "^0.6.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
