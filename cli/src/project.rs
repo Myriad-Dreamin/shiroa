@@ -641,6 +641,15 @@ impl Project {
         let mut data: DataDict = serde_json::from_value(data)
             .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
 
+        // Update the title to use the format: {section title} - {book title}
+        if let Some(book_meta) = &self.book_meta {
+            let book_title = &book_meta.title;
+            let page_title = format!("{} - {}", title, book_title);
+            data.insert("title".to_owned(), json!(page_title));
+            // Keep the original book title for the menu
+            data.insert("book_title".to_owned(), json!(book_title));
+        }
+
         // Injects search configuration
         let config = &search.config;
         data.insert("search_enabled".to_owned(), json!(config.enable));
