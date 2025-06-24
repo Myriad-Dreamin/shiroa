@@ -194,6 +194,11 @@
     )
   }
 
+  // Main body.
+  set par(justify: true)
+
+  body
+  
   // Put your custom CSS here.
   context if shiroa-sys-target() == "html" {
     html.elem(
@@ -211,11 +216,6 @@
       ```.text,
     )
   }
-
-  // Main body.
-  set par(justify: true)
-
-  body
 }
 
 #let part-style = heading
