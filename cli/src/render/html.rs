@@ -50,7 +50,10 @@ impl HtmlRenderer {
         data.insert("fold_level".to_owned(), json!(0u64));
         data.insert("preferred_dark_theme".to_owned(), json!("ayu"));
         data.insert("default_theme".to_owned(), json!("light"));
-        data.insert("book_title".to_owned(), data["title"].clone());
+        // Only set book_title if it's not already set (for backward compatibility)
+        if !data.contains_key("book_title") {
+            data.insert("book_title".to_owned(), data["title"].clone());
+        }
         if let Some(repo) = data.get("repository") {
             data.insert("git_repository_url".to_owned(), repo.clone());
             data.insert("git_repository_icon".to_owned(), json!("fa-github"));
