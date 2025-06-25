@@ -17,27 +17,28 @@ bench = false
 doc = false
 
 [dependencies]
-typst.workspace = true
-typst-assets = { workspace = true }
-
-warp.workspace = true
 
 clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true
-
+codespan-reporting.workspace = true
 comemo.workspace = true
-tokio.workspace = true
-indexmap = "2"
-url = "2"
+elasticlunr-rs.workspace = true
+env_logger.workspace = true
+handlebars.workspace = true
+indexmap.workspace = true
 include_dir.workspace = true
-
+log.workspace = true
+pathdiff.workspace = true
+rayon.workspace = true
+regex.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+termcolor.workspace = true
 toml.workspace = true
-
-env_logger.workspace = true
-log.workspace = true
+tokio.workspace = true
+url.workspace = true
+warp.workspace = true
 
 reflexo-typst = { workspace = true, features = [
     "dynamic-layout",
@@ -45,13 +46,9 @@ reflexo-typst = { workspace = true, features = [
     "system",
 ] }
 reflexo-vec2svg.workspace = true
-handlebars.workspace = true
-pathdiff.workspace = true
-elasticlunr-rs.workspace = true
-regex.workspace = true
-termcolor.workspace = true
-rayon.workspace = true
-codespan-reporting.workspace = true
+tinymist-task.workspace = true
+typst.workspace = true
+typst-assets = { workspace = true }
 
 [build-dependencies]
 anyhow.workspace = true

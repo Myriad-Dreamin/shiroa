@@ -30,8 +30,8 @@ use reflexo_typst::{
     world::EntryOpts,
     CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
     EntryReader, ExportDynSvgModuleTask, FlagTask, LazyHash, SystemCompilerFeat, TakeAs,
-    TaskInputs, TextExport, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument,
-    TypstPagedDocument, TypstSystemWorld,
+    TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
+    TypstSystemWorld,
 };
 use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
@@ -39,6 +39,7 @@ use reflexo_vec2svg::{
     MultiVecDocument,
 };
 use serde::Deserialize;
+use tinymist_task::TextExport;
 use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
