@@ -54,7 +54,7 @@ pub struct BookMeta {
 }
 
 /// Build metadata in summary.typ
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct BuildMeta {
     /// The directory to put the rendered book in. By default this is book/ in
     /// the book's root directory. This can overridden with the --dest-dir CLI

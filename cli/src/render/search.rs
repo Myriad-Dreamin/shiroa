@@ -28,12 +28,12 @@ pub struct SearchRenderer {
 
 impl Default for SearchRenderer {
     fn default() -> Self {
-        Self::new()
+        Self::new(Default::default())
     }
 }
 
 impl SearchRenderer {
-    fn new() -> Self {
+    pub fn new(config: Search) -> Self {
         let index = IndexBuilder::new()
             .add_field_with_tokenizer("title", Box::new(&tokenize))
             .add_field_with_tokenizer("body", Box::new(&tokenize))
@@ -43,7 +43,7 @@ impl SearchRenderer {
         SearchRenderer {
             index,
             doc_urls: vec![],
-            config: Search::default(),
+            config,
         }
     }
 

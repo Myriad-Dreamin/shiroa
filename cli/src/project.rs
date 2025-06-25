@@ -160,11 +160,10 @@ impl Project {
         }
 
         if final_dest_dir.is_empty() {
-            if let Some(dest_dir) = self.build_meta.as_ref().map(|b| b.dest_dir.clone()) {
-                final_dest_dir = dest_dir;
+            if let Some(build_meta) = self.build_meta.as_ref() {
+                final_dest_dir = build_meta.dest_dir.clone();
             }
         }
-
         if final_dest_dir.is_empty() {
             "dist".clone_into(&mut final_dest_dir);
         }
@@ -229,9 +228,9 @@ impl Project {
             let res = task
                 .report(res)
                 .ok_or_else(|| error_once!("retrieve book meta from book.typ"))?;
-            let res = serde_json::to_value(&res).map_err(map_string_err("convert_to<BookMeta>"))?;
-            let res: Json<BookMeta> =
-                serde_json::from_value(res).map_err(map_string_err("convert_to<BookMeta>"))?;
+            let res: Json<BookMeta> = serde_json::to_value(&res)
+                .and_then(serde_json::from_value)
+                .map_err(map_string_err("convert_to<BookMeta>"))?;
 
             if res.len() > 1 {
                 return Err(error_once!("multiple book meta in book.typ"));
@@ -250,18 +249,16 @@ impl Project {
             let res = task
                 .report(res)
                 .ok_or_else(|| error_once!("retrieve build meta from book.typ"))?;
-            let res =
-                serde_json::to_value(&res).map_err(map_string_err("convert_to<BuildMeta>"))?;
-            let res: Json<BuildMeta> =
-                serde_json::from_value(res).map_err(map_string_err("convert_to<BuildMeta>"))?;
+            let res: Json<BuildMeta> = serde_json::to_value(&res)
+                .and_then(serde_json::from_value)
+                .map_err(map_string_err("convert_to<BuildMeta>"))?;
 
             if res.len() > 1 {
                 return Err(error_once!("multiple build meta in book.typ"));
             }
 
             if let Some(res) = res.first() {
-                let build_meta = res.value.clone();
-                self.build_meta = Some(build_meta);
+                self.build_meta = Some(res.value.clone());
             }
         }
 
@@ -270,15 +267,17 @@ impl Project {
             let res = task
                 .report(res)
                 .ok_or_else(|| error_once!("retrieve html meta from book.typ"))?;
-            let res = serde_json::to_value(&res).map_err(map_string_err("convert_to<HtmlMeta>"))?;
-            let res: Json<HtmlMeta> =
-                serde_json::from_value(res).map_err(map_string_err("convert_to<HtmlMeta>"))?;
+            let res: Json<HtmlMeta> = serde_json::to_value(&res)
+                .and_then(serde_json::from_value)
+                .map_err(map_string_err("convert_to<HtmlMeta>"))?;
 
             if res.len() > 1 {
                 return Err(error_once!("multiple build meta in book.typ"));
             }
 
-            self.html_meta = res.first().map(|item| item.value.clone());
+            if let Some(res) = res.first() {
+                self.html_meta = Some(res.value.clone());
+            }
         }
 
         self.tr.ctx = task.ctx;
@@ -354,12 +353,22 @@ impl Project {
                 verse.vfs().notify_fs_event(event);
             });
             let _ = self.build_meta();
-            let _ = self.compile_once(SearchRenderer::default());
+            let _ = self.compile_once(SearchRenderer::new(
+                self.html_meta
+                    .as_ref()
+                    .and_then(|h| h.search.clone())
+                    .unwrap_or_default(),
+            ));
         }
     }
 
     pub fn build(&mut self) -> Result<()> {
-        let sr = SearchRenderer::default();
+        let sr = SearchRenderer::new(
+            self.html_meta
+                .as_ref()
+                .and_then(|h| h.search.clone())
+                .unwrap_or_default(),
+        );
         self.extract_assets(&sr)?;
         self.compile_once(sr)?;
 
