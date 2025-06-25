@@ -1,3 +1,4 @@
+pub mod helpers;
 pub mod html;
 pub use self::html::*;
 pub mod typst;

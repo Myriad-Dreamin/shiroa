@@ -1,3 +1,5 @@
+use std::{collections::HashMap, path::PathBuf};
+
 use serde::{Deserialize, Serialize};
 
 /// Typst content kind embedded in metadata nodes
@@ -59,6 +61,90 @@ pub struct BuildMeta {
     /// option.
     #[serde(rename = "dest-dir")]
     pub dest_dir: String,
+}
+
+/// Configuration for the HTML renderer.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "kebab-case")]
+pub struct HtmlMeta {
+    /// The theme directory, if specified.
+    pub theme: Option<PathBuf>,
+    /// The default theme to use, defaults to 'light'
+    pub default_theme: Option<String>,
+    /// The theme to use if the browser requests the dark version of the site.
+    /// Defaults to 'navy'.
+    pub preferred_dark_theme: Option<String>,
+    /// Whether to fonts.css and respective font files to the output directory.
+    pub copy_fonts: bool,
+    /// Additional CSS stylesheets to include in the rendered page's `<head>`.
+    pub additional_css: Vec<PathBuf>,
+    /// Additional JS scripts to include at the bottom of the rendered page's
+    /// `<body>`.
+    pub additional_js: Vec<PathBuf>,
+    /// Fold settings.
+    pub fold: Fold,
+    /// Don't render section labels.
+    pub no_section_label: bool,
+    /// Search settings. If `None`, the default will be used.
+    pub search: Option<Search>,
+    /// Git repository url. If `None`, the git button will not be shown.
+    pub git_repository_url: Option<String>,
+    /// FontAwesome icon class to use for the Git repository link.
+    /// Defaults to `fa-github` if `None`.
+    pub git_repository_icon: Option<String>,
+    /// Edit url template, when set shows a "Suggest an edit" button for
+    /// directly jumping to editing the currently viewed page.
+    /// Contains {path} that is replaced with chapter source file path
+    pub edit_url_template: Option<String>,
+    /// Input path for the 404 file, defaults to 404.md, set to "" to disable 404 file output
+    pub input_404: Option<String>,
+    /// Absolute url to site, used to emit correct paths for the 404 page, which might be accessed in a deeply nested directory
+    pub site_url: Option<String>,
+    /// The DNS subdomain or apex domain at which your book will be hosted. This
+    /// string will be written to a file named CNAME in the root of your site,
+    /// as required by GitHub Pages (see [*Managing a custom domain for your
+    /// GitHub Pages site*][custom domain]).
+    ///
+    /// [custom domain]: https://docs.github.com/en/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site
+    pub cname: Option<String>,
+    /// The mapping from old pages to new pages/URLs to use when generating
+    /// redirects.
+    pub redirect: HashMap<String, String>,
+}
+
+impl Default for HtmlMeta {
+    fn default() -> HtmlMeta {
+        HtmlMeta {
+            theme: None,
+            default_theme: None,
+            preferred_dark_theme: None,
+            copy_fonts: true,
+            additional_css: Vec::new(),
+            additional_js: Vec::new(),
+            fold: Fold::default(),
+            no_section_label: false,
+            search: None,
+            git_repository_url: None,
+            git_repository_icon: None,
+            edit_url_template: None,
+            input_404: None,
+            site_url: None,
+            cname: None,
+            redirect: HashMap::new(),
+        }
+    }
+}
+
+/// Configuration for how to fold chapters of sidebar.
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "kebab-case")]
+pub struct Fold {
+    /// When off, all folds are open. Default: `false`.
+    pub enable: bool,
+    /// The higher the more folded regions are open. When level is 0, all folds
+    /// are closed.
+    /// Default: `0`.
+    pub level: u8,
 }
 
 /// Configuration of the search functionality of the HTML renderer.

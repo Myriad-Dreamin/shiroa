@@ -7,9 +7,7 @@ use std::{
 
 use include_dir::include_dir;
 use log::warn;
-use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
-    escape::{escape_str, AttributeEscapes},
     static_html,
     vfs::{notify::NotifyMessage, FsProvider},
     watch_deps, CompilerExt, TypstDocument, WorldDeps,
@@ -20,8 +18,8 @@ use tokio::sync::mpsc;
 
 use crate::{
     error::prelude::*,
-    meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
-    render::{DataDict, HtmlRenderer, SearchCtx, SearchRenderer, TypstRenderer},
+    meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta, HtmlMeta},
+    render::{DataDict, HtmlRenderContext, HtmlRenderer, SearchCtx, SearchRenderer, TypstRenderer},
     theme::Theme,
     tui, tui_error, tui_hint, tui_info,
     utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
@@ -65,6 +63,7 @@ pub struct Project {
 
     pub book_meta: Option<BookMeta>,
     pub build_meta: Option<BuildMeta>,
+    pub html_meta: Option<HtmlMeta>,
     pub chapters: Vec<DataDict>,
 
     pub dest_dir: PathBuf,
@@ -126,6 +125,7 @@ impl Project {
 
             book_meta: None,
             build_meta: None,
+            html_meta: None,
             chapters: vec![],
             path_to_root,
             meta_source,
@@ -140,7 +140,7 @@ impl Project {
         Ok(proj)
     }
 
-    pub fn build_meta(&mut self) -> Result<()> {
+    fn build_meta(&mut self) -> Result<()> {
         let args = &self.args;
         let meta_source = args.meta_source.clone();
         let mut final_dest_dir = args.dest_dir.clone();
@@ -180,7 +180,7 @@ impl Project {
         Ok(())
     }
 
-    pub fn compile_meta(&mut self) -> Result<()> {
+    fn compile_meta(&mut self) -> Result<()> {
         #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
         struct QueryItem<T> {
             pub value: T,
@@ -228,18 +228,18 @@ impl Project {
             let res = g.query("<shiroa-book-meta>".to_string(), &doc);
             let res = task
                 .report(res)
-                .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
+                .ok_or_else(|| error_once!("retrieve book meta from book.typ"))?;
             let res = serde_json::to_value(&res).map_err(map_string_err("convert_to<BookMeta>"))?;
             let res: Json<BookMeta> =
                 serde_json::from_value(res).map_err(map_string_err("convert_to<BookMeta>"))?;
 
             if res.len() > 1 {
-                return Err(error_once!("multiple book meta in book.toml"));
+                return Err(error_once!("multiple book meta in book.typ"));
             }
 
             let book_meta = res
                 .first()
-                .ok_or_else(|| error_once!("no book meta in book.toml"))?;
+                .ok_or_else(|| error_once!("no book meta in book.typ"))?;
 
             let book_meta = book_meta.value.clone();
             self.book_meta = Some(book_meta);
@@ -249,14 +249,14 @@ impl Project {
             let res = g.query("<shiroa-build-meta>".to_string(), &doc);
             let res = task
                 .report(res)
-                .ok_or_else(|| error_once!("retrieve build meta from book.toml"))?;
+                .ok_or_else(|| error_once!("retrieve build meta from book.typ"))?;
             let res =
                 serde_json::to_value(&res).map_err(map_string_err("convert_to<BuildMeta>"))?;
             let res: Json<BuildMeta> =
                 serde_json::from_value(res).map_err(map_string_err("convert_to<BuildMeta>"))?;
 
             if res.len() > 1 {
-                return Err(error_once!("multiple build meta in book.toml"));
+                return Err(error_once!("multiple build meta in book.typ"));
             }
 
             if let Some(res) = res.first() {
@@ -265,11 +265,27 @@ impl Project {
             }
         }
 
+        {
+            let res = g.query("<shiroa-html-meta>".to_string(), &doc);
+            let res = task
+                .report(res)
+                .ok_or_else(|| error_once!("retrieve html meta from book.typ"))?;
+            let res = serde_json::to_value(&res).map_err(map_string_err("convert_to<HtmlMeta>"))?;
+            let res: Json<HtmlMeta> =
+                serde_json::from_value(res).map_err(map_string_err("convert_to<HtmlMeta>"))?;
+
+            if res.len() > 1 {
+                return Err(error_once!("multiple build meta in book.typ"));
+            }
+
+            self.html_meta = res.first().map(|item| item.value.clone());
+        }
+
         self.tr.ctx = task.ctx;
         Ok(())
     }
 
-    pub fn infer_meta_by_outline(&mut self, entry: PathBuf) -> Result<()> {
+    fn infer_meta_by_outline(&mut self, entry: PathBuf) -> Result<()> {
         // println!("entry = {:?}, root = {:?}", entry, self.tr.root_dir);
         let entry = entry.strip_prefix(&self.tr.ctx.root_dir).unwrap_or_exit();
         let (task, doc) = self.tr.compile_book(entry)?;
@@ -400,30 +416,18 @@ impl Project {
             items: Mutex::new(vec![]),
         };
 
-        self.chapters
-            .clone()
-            .into_par_iter()
-            .enumerate()
-            .map(|(idx, ch)| {
-                if let Some(path) = ch.get("path") {
-                    let raw_path: String = serde_json::from_value(path.clone()).map_err(
-                        error_once_map_string!("retrieve path in book.toml", value: path),
-                    )?;
-                    let path = &self.dest_dir.join(&raw_path);
-                    let path = Path::new(&path);
-
-                    let content = self.render_chapter(ch, &raw_path, &serach_ctx)?;
-
-                    create_dirs(path.parent().unwrap())?;
-                    write_file(path.with_extension("html"), &content)?;
-                    if idx == 0 {
-                        write_file(self.dest_dir.join("index.html"), content)?;
-                    }
-                }
-
-                Ok(())
-            })
-            .collect::<Result<()>>()?;
+        self.hr.render_chapters(
+            HtmlRenderContext {
+                book_meta: self.book_meta.as_ref().unwrap_or(&Default::default()),
+                html_meta: self.html_meta.as_ref().unwrap_or(&Default::default()),
+                search: &serach_ctx,
+                dest_dir: &self.dest_dir,
+                path_to_root: &self.path_to_root,
+                chapters: &self.chapters,
+            },
+            self.chapters.clone(), // todo: only render changed
+            |path| self.compile_chapter(path),
+        )?;
 
         sr.build(&serach_ctx.items.into_inner().unwrap())?;
 
@@ -434,7 +438,7 @@ impl Project {
         Ok(())
     }
 
-    pub fn prepare_chapters(&mut self) {
+    fn prepare_chapters(&mut self) {
         match self.meta_source {
             MetaSource::Strict => {
                 self.chapters = self.generate_chapters(&self.book_meta.as_ref().unwrap().summary)
@@ -443,7 +447,7 @@ impl Project {
         }
     }
 
-    pub fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<DataDict> {
+    fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<DataDict> {
         let mut chapters = vec![];
 
         for item in meta.iter() {
@@ -499,7 +503,7 @@ impl Project {
         }
     }
 
-    pub fn evaluate_content(&self, title: &BookMetaContent) -> String {
+    fn evaluate_content(&self, title: &BookMetaContent) -> String {
         match title {
             BookMetaContent::PlainText { content } => content.clone(),
             BookMetaContent::Raw { content } => {
@@ -513,7 +517,7 @@ impl Project {
         }
     }
 
-    pub fn compile_chapter(&self, path: &str) -> Result<ChapterArtifact> {
+    fn compile_chapter(&self, path: &str) -> Result<ChapterArtifact> {
         tui_info!(h "Compiling", "{path}");
         let instant = std::time::Instant::now();
         let res = self.compile_chapter_(path);
@@ -527,7 +531,7 @@ impl Project {
         res
     }
 
-    pub fn compile_chapter_(&self, path: &str) -> Result<ChapterArtifact> {
+    fn compile_chapter_(&self, path: &str) -> Result<ChapterArtifact> {
         let file_name = Path::new(&self.path_to_root).join(path).with_extension("");
 
         // todo: description for single document
@@ -612,67 +616,6 @@ impl Project {
             content,
             description,
         })
-    }
-
-    pub fn render_chapter(
-        &self,
-        chapter_data: DataDict,
-        path: &str,
-        search: &SearchCtx,
-    ) -> Result<String> {
-        let instant = std::time::Instant::now();
-
-        let search_path = Path::new(path).with_extension("html");
-
-        log::info!("rendering chapter {path}");
-
-        // Compiles the chapter
-        let art = self.compile_chapter(path)?;
-
-        let title = chapter_data
-            .get("name")
-            .and_then(|t| t.as_str())
-            .ok_or_else(|| error_once!("no name in chapter data"))?;
-        search.index_search(&search_path, title.into(), art.description.as_str().into());
-
-        // Creates the data to inject in the template
-        let data = serde_json::to_value(self.book_meta.clone())
-            .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
-        let mut data: DataDict = serde_json::from_value(data)
-            .map_err(map_string_err("render_chapter,convert_to<BookMeta>"))?;
-
-        // Update the title to use the format: {section title} - {book title}
-        if let Some(book_meta) = &self.book_meta {
-            let book_title = &book_meta.title;
-            let page_title = format!("{} - {}", title, book_title);
-            data.insert("title".to_owned(), json!(page_title));
-            // Keep the original book title for the menu
-            data.insert("book_title".to_owned(), json!(book_title));
-        }
-
-        // Injects search configuration
-        let config = &search.config;
-        data.insert("search_enabled".to_owned(), json!(config.enable));
-        data.insert(
-            "search_js".to_owned(),
-            json!(config.enable && config.copy_js),
-        );
-
-        // Injects module path
-        let renderer_module = format!("{}internal/typst_ts_renderer_bg.wasm", self.path_to_root);
-        data.insert("renderer_module".to_owned(), json!(renderer_module));
-
-        // Injects description
-        let desc = escape_str::<AttributeEscapes>(&art.description).into_owned();
-        data.insert("description".to_owned(), serde_json::Value::String(desc));
-
-        data.insert("chapters".to_owned(), json!(self.chapters));
-        data.insert("content".to_owned(), serde_json::Value::String(art.content));
-        data.insert("path_to_root".to_owned(), json!(self.path_to_root));
-
-        let index_html = self.hr.render_index(data, path);
-        log::info!("rendering chapter {path} in {:?}", instant.elapsed());
-        Ok(index_html)
     }
 
     fn need_compile(&self) -> bool {
