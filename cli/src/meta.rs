@@ -41,10 +41,19 @@ pub struct BookMeta {
     /// A description for the book, which is added as meta information in the
     /// html `<head>` of each page
     pub description: String,
-    /// The github repository for the book
-    pub repository: String,
-    /// The github repository editing template for the book
-    /// example: `https://github.com/Me/Book/edit/main/path/to/book/{path}`
+    /// The git repository for the book. If `None`, the git button will not be
+    /// shown.
+    pub repository: Option<String>,
+    /// The git repository editing template for the book, when set shows a
+    /// "Suggest an edit" button for directly jumping to editing the
+    /// currently viewed page. Contains {path} that is replaced with chapter
+    /// source file path.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// https://github.com/Me/Book/edit/main/path/to/book/{path}
+    /// ```
     pub repository_edit: String,
     /// The main language of the book, which is used as a language attribute
     /// `<html lang="en">` for example.
@@ -87,18 +96,14 @@ pub struct HtmlMeta {
     pub no_section_label: bool,
     /// Search settings. If `None`, the default will be used.
     pub search: Option<Search>,
-    /// Git repository url. If `None`, the git button will not be shown.
-    pub git_repository_url: Option<String>,
     /// FontAwesome icon class to use for the Git repository link.
     /// Defaults to `fa-github` if `None`.
     pub git_repository_icon: Option<String>,
-    /// Edit url template, when set shows a "Suggest an edit" button for
-    /// directly jumping to editing the currently viewed page.
-    /// Contains {path} that is replaced with chapter source file path
-    pub edit_url_template: Option<String>,
-    /// Input path for the 404 file, defaults to 404.md, set to "" to disable 404 file output
+    /// Input path for the 404 file, defaults to 404.md, set to "" to disable
+    /// 404 file output
     pub input_404: Option<String>,
-    /// Absolute url to site, used to emit correct paths for the 404 page, which might be accessed in a deeply nested directory
+    /// Absolute url to site, used to emit correct paths for the 404 page, which
+    /// might be accessed in a deeply nested directory
     pub site_url: Option<String>,
     /// The DNS subdomain or apex domain at which your book will be hosted. This
     /// string will be written to a file named CNAME in the root of your site,
@@ -124,9 +129,7 @@ impl Default for HtmlMeta {
             fold: Fold::default(),
             no_section_label: false,
             search: None,
-            git_repository_url: None,
             git_repository_icon: None,
-            edit_url_template: None,
             input_404: None,
             site_url: None,
             cname: None,

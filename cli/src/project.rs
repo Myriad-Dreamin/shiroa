@@ -384,16 +384,105 @@ impl Project {
             items: Mutex::new(vec![]),
         };
 
+        // Prepare the rendering settings early, to avoid pour {book,html}_meta type
+        // details to the renderer.
+        let mut data = DataDict::new();
+
+        let book_meta = &self.book_meta;
+        let html_meta = &self.html_meta;
+
+        data.insert("title".to_owned(), json!(book_meta.title));
+        data.insert("book_title".to_owned(), json!(book_meta.title));
+        data.insert("authors".to_owned(), json!(book_meta.authors));
+        data.insert("description".to_owned(), json!(book_meta.description));
+        data.insert("language".to_owned(), json!(book_meta.language));
+        // todo: is `repository` key ever used??
+        data.insert("repository".to_owned(), json!(book_meta.repository));
+        data.insert("git_repository_url".to_owned(), json!(book_meta.repository));
+
+        data.insert("path_to_root".to_owned(), json!(self.path_to_root));
+
+        // todo: we clone all chapters here, which looks inefficient.
+        data.insert("chapters".to_owned(), json!(self.chapters));
+
+        data.insert(
+            "default_theme".to_owned(),
+            json!(html_meta
+                .default_theme
+                .as_deref()
+                .map(str::to_lowercase)
+                .unwrap_or_else(|| "light".to_string())),
+        );
+
+        data.insert(
+            "preferred_dark_theme".to_owned(),
+            json!(html_meta
+                .preferred_dark_theme
+                .as_deref()
+                .map(str::to_lowercase)
+                .unwrap_or_else(|| "ayu".to_string())),
+        );
+
+        data.insert(
+            "git_repository_icon".to_owned(),
+            json!(html_meta
+                .git_repository_icon
+                .as_deref()
+                .unwrap_or("fa-github")),
+        );
+
+        data.insert("fold_enable".to_owned(), json!(html_meta.fold.enable));
+        data.insert("fold_level".to_owned(), json!(html_meta.fold.level));
+
+        // Injects search configuration
+        let search_config = &serach_ctx.config;
+        data.insert("search_enabled".to_owned(), json!(search_config.enable));
+        data.insert(
+            "search_js".to_owned(),
+            json!(search_config.enable && search_config.copy_js),
+        );
+
+        // Injects module path
+        let renderer_module = format!("{}internal/typst_ts_renderer_bg.wasm", self.path_to_root);
+        data.insert("renderer_module".to_owned(), json!(renderer_module));
+
+        // This `matches!` checks for a non-empty file.
+        // if html_meta.copy_fonts || matches!(theme.fonts_css.as_deref(), Some([_,
+        // ..])) {     data.insert("copy_fonts".to_owned(), json!(true));
+        // }
+
+        // Add check to see if there is an additional style
+        // if !html_meta.additional_css.is_empty() {
+        //     let mut css = Vec::new();
+        //     for style in &html_meta.additional_css {
+        //         match style.strip_prefix(root) {
+        //             Ok(p) => css.push(p.to_str().expect("Could not convert to str")),
+        //             Err(_) => css.push(style.to_str().expect("Could not convert to
+        // str")),         }
+        //     }
+        //     data.insert("additional_css".to_owned(), json!(css));
+        // }
+
+        // Add check to see if there is an additional script
+        // if !html_meta.additional_js.is_empty() {
+        //     let mut js = Vec::new();
+        //     for script in &html_meta.additional_js {
+        //         match script.strip_prefix(root) {
+        //             Ok(p) => js.push(p.to_str().expect("Could not convert to str")),
+        //             Err(_) => js.push(script.to_str().expect("Could not convert to
+        // str")),         }
+        //     }
+        //     data.insert("additional_js".to_owned(), json!(js));
+        // }
+
         self.hr.render_chapters(
             HtmlRenderContext {
-                book_meta: &self.book_meta,
-                html_meta: &self.html_meta,
+                book_data: &data,
+                edit_url: &book_meta.repository_edit,
                 search: &serach_ctx,
                 dest_dir: &self.dest_dir,
-                path_to_root: &self.path_to_root,
-                chapters: &self.chapters,
             },
-            self.chapters.clone(), // todo: only render changed
+            &self.chapters, // todo: only render changed
             |path| self.compile_chapter(path),
         )?;
 
