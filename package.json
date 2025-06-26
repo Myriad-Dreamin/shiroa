@@ -8,7 +8,7 @@
     "frontend"
   ],
   "scripts": {
-    "docs": "cargo run --release --bin shiroa -- serve --font-path ./assets/fonts/ -w . github-pages/docs",
+    "docs": "cargo run --release --bin shiroa -- serve --font-path ./assets/fonts/ --theme themes/starlight -w . github-pages/docs",
     "docs:html": "yarn docs --mode static-html",
     "test": "yarn test:typ",
     "test:typ": "tinymist test packages/shiroa-tests/main.typ --root . --ignore-system-fonts --font-path ./assets/fonts/ --coverage --print-coverage=full",
