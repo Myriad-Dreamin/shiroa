@@ -323,22 +323,12 @@ impl Project {
                 verse.vfs().notify_fs_event(event);
             });
             let _ = self.build_meta();
-            let _ = self.compile_once(SearchRenderer::new(
-                self.html_meta
-                    .as_ref()
-                    .and_then(|h| h.search.clone())
-                    .unwrap_or_default(),
-            ));
+            let _ = self.compile_once(SearchRenderer::new(&self.html_meta));
         }
     }
 
     pub fn build(&mut self) -> Result<()> {
-        let sr = SearchRenderer::new(
-            self.html_meta
-                .as_ref()
-                .and_then(|h| h.search.clone())
-                .unwrap_or_default(),
-        );
+        let sr = SearchRenderer::new(&self.html_meta);
         self.extract_assets(&sr)?;
         self.compile_once(sr)?;
 
