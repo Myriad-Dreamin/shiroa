@@ -1,16 +1,18 @@
 use core::fmt;
 use std::{
+    collections::{BTreeSet, HashMap},
     net::SocketAddr,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 
 use include_dir::include_dir;
 use log::warn;
 use reflexo_typst::{
+    path::unix_slash,
     static_html,
-    vfs::{notify::NotifyMessage, FsProvider},
-    watch_deps, CompilerExt, TypstDocument, WorldDeps,
+    vfs::{notify::NotifyMessage, FilesystemEvent, FsProvider},
+    watch_deps, CompilerExt, ImmutStr, TypstDocument, WorldDeps,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -282,6 +284,8 @@ impl Project {
 
     pub(crate) async fn watch(
         &mut self,
+        active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
+        mut hb_rx: mpsc::UnboundedReceiver<()>,
         tx: broadcast::Sender<ServeEvent>,
         addr: Option<SocketAddr>,
     ) {
@@ -291,21 +295,94 @@ impl Project {
         tokio::spawn(watch_deps(dep_rx, move |event| {
             fs_tx.send(event).unwrap();
         }));
+
+        let mut prev_active_files = BTreeSet::new();
         loop {
-            // Notify the new file dependencies.
-            let mut deps = vec![];
+            enum WatchEvent {
+                Fs(FilesystemEvent),
+                Heartbeat,
+            }
+
+            let event = tokio::select! {
+                event = fs_rx.recv() => {
+                    match event {
+                        Some(e) => WatchEvent::Fs(e),
+                        None => break,
+                    }
+                }
+                _ = hb_rx.recv() => WatchEvent::Heartbeat,
+            };
+
+            // todo: reset_snapshot looks not good
+
+            match event {
+                WatchEvent::Fs(event) => {
+                    self.tr.reset_snapshot();
+                    self.tr.universe_mut().increment_revision(|verse| {
+                        let _ = tx.send(ServeEvent::FsChange);
+                        verse.vfs().notify_fs_event(event);
+                    });
+                    let _ = self.build_meta();
+
+                    let _ = tui::clear();
+                }
+                WatchEvent::Heartbeat => {
+                    let _ = self.build_meta();
+
+                    let mut active_set = active_set.lock().unwrap();
+
+                    if active_set.is_empty() && prev_active_files.is_empty() {
+                        // No changes, skip recompilation
+                        continue;
+                    }
+
+                    let mut active_files = BTreeSet::default();
+                    active_set.retain(|path, count| {
+                        if *count > 0 {
+                            if path.as_ref() == "/" || path.is_empty() {
+                                if let Some(f) = self.chapters.first() {
+                                    active_files.insert(
+                                        f.get("path").unwrap().as_str().unwrap().to_owned(),
+                                    );
+                                }
+                            } else if path.ends_with(".html") {
+                                let path = path.trim_start_matches('/');
+                                let typ_path = PathBuf::from(path);
+                                let typ_path = unix_slash(&typ_path.with_extension("typ"));
+                                active_files.insert(typ_path);
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    });
+
+                    if active_files == prev_active_files {
+                        // No changes, skip recompilation
+                        continue;
+                    }
+
+                    let _ = tui::clear();
+                    tui_info!("Recompiling changed chapters: {active_set:?}");
+
+                    prev_active_files = active_files;
+                }
+            }
+
             let snap = self.tr.snapshot();
             let mut world = snap.world.clone();
+
+            let _ = self.compile_once(&prev_active_files, SearchRenderer::new(&self.html_meta));
+
+            // Notify the new file dependencies.
+            let mut deps = vec![];
             world.iter_dependencies(&mut |dep| {
                 if let Ok(x) = world.file_path(dep).and_then(|e| e.to_err()) {
                     deps.push(x.into())
                 }
             });
-            tui_info!("Watching {} files for changes...", deps.len());
-            if let Some(addr) = &addr {
-                tui_hint!("Server started at http://{addr}");
-            }
 
+            tui_info!("Watching {} files for changes...", deps.len());
             let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
 
             if self.need_compile() {
@@ -314,27 +391,16 @@ impl Project {
                 world.evict_vfs(60);
             }
 
-            let Some(event) = fs_rx.recv().await else {
-                break;
-            };
-
-            let _ = tui::clear();
-
-            // todo: reset_snapshot looks not good
-            self.tr.reset_snapshot();
-            self.tr.universe_mut().increment_revision(|verse| {
-                let _ = tx.send(ServeEvent::FsChange);
-                verse.vfs().notify_fs_event(event);
-            });
-            let _ = self.build_meta();
-            let _ = self.compile_once(SearchRenderer::new(&self.html_meta));
+            if let Some(addr) = &addr {
+                tui_hint!("Server started at http://{addr}");
+            }
         }
     }
 
     pub fn build(&mut self) -> Result<()> {
         let sr = SearchRenderer::new(&self.html_meta);
         self.extract_assets(&sr)?;
-        self.compile_once(sr)?;
+        self.compile_once(&Default::default(), sr)?;
 
         Ok(())
     }
@@ -381,7 +447,7 @@ impl Project {
         Ok(())
     }
 
-    fn compile_once(&mut self, mut sr: SearchRenderer) -> Result<()> {
+    fn compile_once(&mut self, ac: &BTreeSet<String>, mut sr: SearchRenderer) -> Result<()> {
         self.prepare_chapters();
 
         let serach_ctx = SearchCtx {
@@ -488,6 +554,7 @@ impl Project {
                 dest_dir: &self.dest_dir,
             },
             &self.chapters, // todo: only render changed
+            ac,
             |path| self.compile_chapter(path),
         )?;
 

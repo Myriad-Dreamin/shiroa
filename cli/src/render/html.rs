@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{collections::BTreeSet, path::Path};
 
 use handlebars::Handlebars;
 use log::debug;
@@ -70,6 +70,7 @@ impl HtmlRenderer {
         &self,
         ctx: HtmlRenderContext,
         chapters: &[DataDict],
+        filter: &BTreeSet<String>,
         compiler: impl Fn(&str) -> Result<ChapterArtifact> + Send + Sync,
     ) -> Result<()> {
         chapters
@@ -80,13 +81,18 @@ impl HtmlRenderer {
                     let raw_path: String = serde_json::from_value(path.clone()).map_err(
                         error_once_map_string!("retrieve path in book.toml", value: path),
                     )?;
+
+                    if !filter.is_empty() && !filter.contains(&raw_path) {
+                        return Ok(());
+                    }
+
                     let path = ctx.dest_dir.join(&raw_path);
 
                     let instant = std::time::Instant::now();
                     log::info!("rendering chapter {raw_path}");
 
                     // Compiles the chapter
-                    let art = compiler(&raw_path)?;
+                    let art: ChapterArtifact = compiler(&raw_path)?;
 
                     let content = self.render_chapter(&ctx, art, ch, &raw_path)?;
 
