@@ -15,6 +15,7 @@ use reflexo_typst::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::mpsc;
+use typst::foundations::Content;
 
 use crate::{
     error::prelude::*,
@@ -180,42 +181,25 @@ impl Project {
     }
 
     fn compile_meta(&mut self) -> Result<()> {
-        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-        struct QueryItem<T> {
-            pub value: T,
-        }
-
-        type Json<T> = Vec<QueryItem<T>>;
-
         let (task, doc) = self.tr.compile_book(Path::new("book.typ"))?;
 
-        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-        pub enum InternalPackageMeta {
-            /// The version of the package used by users
-            #[serde(rename = "package")]
-            Package { version: String },
-        }
-
         let g = &task.graph;
-        {
-            let res = g.query("<shiroa-internal-package-meta>".to_string(), &doc);
-            let res = task
-                .report(res)
-                .ok_or_else(|| error_once!("retrieve book meta from book.toml"))?;
-            let res = serde_json::to_value(&res)
-                .map_err(map_string_err("convert_to<InternalPackageMeta>"))?;
-            let res: Json<InternalPackageMeta> = serde_json::from_value(res)
-                .map_err(map_string_err("convert_to<InternalPackageMeta>"))?;
+        let query = |item: &str| {
+            let res = g.query(item.to_string(), &doc);
+            task.report(res).context("cannot retrieve metadata item(s)")
+        };
 
-            if res.len() > 1 {
-                return Err(error_once!("multiple internal-package meta in book.toml"));
+        {
+            #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+            pub enum InternalPackageMeta {
+                /// The version of the package used by users
+                #[serde(rename = "package")]
+                Package { version: String },
             }
 
-            let package_meta = res
-                .first()
-                .ok_or_else(|| error_once!("no internal-package meta in book.typ (are you using old book package?, please import @preview/shiroa:0.2.3; or do you forget the show rule `#show: book`?)"))?;
+            let InternalPackageMeta::Package { version } = self.query_meta("<shiroa-internal-package-meta>", query)?
+                .context("No package meta. are you using old book package?, please import @preview/shiroa:0.2.3; or do you forget the show rule `#show: book`?")?;
 
-            let InternalPackageMeta::Package { version } = &package_meta.value;
             if version != "0.2.3" {
                 return Err(error_once!(
                     "outdated book package, please import @preview/shiroa:0.2.3", importing_version: version,
@@ -223,65 +207,58 @@ impl Project {
             }
         }
 
-        {
-            let res = g.query("<shiroa-book-meta>".to_string(), &doc);
-            let res = task
-                .report(res)
-                .ok_or_else(|| error_once!("retrieve book meta from book.typ"))?;
-            let res: Json<BookMeta> = serde_json::to_value(&res)
-                .and_then(serde_json::from_value)
-                .map_err(map_string_err("convert_to<BookMeta>"))?;
-
-            if res.len() > 1 {
-                return Err(error_once!("multiple book meta in book.typ"));
-            }
-
-            let book_meta = res
-                .first()
-                .ok_or_else(|| error_once!("no book meta in book.typ"))?;
-
-            let book_meta = book_meta.value.clone();
-            self.book_meta = Some(book_meta);
+        self.book_meta = Some(
+            self.query_meta::<BookMeta>("<shiroa-book-meta>", query)?
+                .context("no book meta in book.typ")?,
+        );
+        if let Some(build_meta) = self.query_meta::<BuildMeta>("<shiroa-build-meta>", query)? {
+            self.build_meta = Some(build_meta);
         }
-
-        {
-            let res = g.query("<shiroa-build-meta>".to_string(), &doc);
-            let res = task
-                .report(res)
-                .ok_or_else(|| error_once!("retrieve build meta from book.typ"))?;
-            let res: Json<BuildMeta> = serde_json::to_value(&res)
-                .and_then(serde_json::from_value)
-                .map_err(map_string_err("convert_to<BuildMeta>"))?;
-
-            if res.len() > 1 {
-                return Err(error_once!("multiple build meta in book.typ"));
-            }
-
-            if let Some(res) = res.first() {
-                self.build_meta = Some(res.value.clone());
-            }
-        }
-
-        {
-            let res = g.query("<shiroa-html-meta>".to_string(), &doc);
-            let res = task
-                .report(res)
-                .ok_or_else(|| error_once!("retrieve html meta from book.typ"))?;
-            let res: Json<HtmlMeta> = serde_json::to_value(&res)
-                .and_then(serde_json::from_value)
-                .map_err(map_string_err("convert_to<HtmlMeta>"))?;
-
-            if res.len() > 1 {
-                return Err(error_once!("multiple build meta in book.typ"));
-            }
-
-            if let Some(res) = res.first() {
-                self.html_meta = Some(res.value.clone());
-            }
+        if let Some(html_meta) = self.query_meta::<HtmlMeta>("<shiroa-html-meta>", query)? {
+            self.html_meta = Some(html_meta);
         }
 
         self.tr.ctx = task.ctx;
         Ok(())
+    }
+
+    fn query_meta<T: for<'a> serde::Deserialize<'a>>(
+        &mut self,
+        item: &str,
+        f: impl FnOnce(&str) -> Result<Vec<Content>>,
+    ) -> Result<Option<T>> {
+        self.query_meta_::<T>(item, f)
+            .with_context("while querying metadata", || {
+                Some(Box::new([("label", item.to_string())]))
+            })
+    }
+
+    fn query_meta_<T: for<'a> serde::Deserialize<'a>>(
+        &mut self,
+        item: &str,
+        f: impl FnOnce(&str) -> Result<Vec<Content>>,
+    ) -> Result<Option<T>> {
+        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+        struct QueryItem<T> {
+            pub value: T,
+        }
+
+        type Json<T> = Vec<QueryItem<T>>;
+
+        // let res = g.query(item.to_string(), &doc);
+        // let res = task
+        //     .report(res)
+        //     .context("cannot retrive metadata item(s)")?;
+        let res = f(item)?;
+        let res = serde_json::to_value(&res).context("cannot convert metadata item(s)")?;
+        let res: Json<T> =
+            serde_json::from_value(res).context("cannot convert metadata item(s)")?;
+
+        if res.len() > 1 {
+            bail!("multiple metadata items in book.typ");
+        }
+
+        Ok(res.into_iter().next().map(|v| v.value))
     }
 
     fn infer_meta_by_outline(&mut self, entry: PathBuf) -> Result<()> {
