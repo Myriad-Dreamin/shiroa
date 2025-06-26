@@ -4,7 +4,10 @@ use include_dir::include_dir;
 use log::warn;
 use reflexo_typst::{error::prelude::*, ImmutPath};
 
-use crate::utils::{self, copy_dir_embedded, write_file};
+use crate::{
+    tui_info,
+    utils::{self, copy_dir_embedded, write_file},
+};
 
 #[derive(Debug, PartialEq)]
 pub enum EmbeddedThemeAsset {
@@ -151,6 +154,20 @@ impl Theme {
         }
 
         Ok(())
+    }
+
+    // todo: fine-grain this reloading
+    pub(crate) fn reload(&mut self, dir: &Path, _themes: Vec<std::path::PathBuf>) -> bool {
+        let new_theme = Theme::new(dir);
+        if let Ok(theme) = new_theme {
+            if theme != *self {
+                tui_info!("Reloading theme from {dir:?}");
+                *self = theme;
+                return true;
+            }
+        }
+
+        false
     }
 }
 

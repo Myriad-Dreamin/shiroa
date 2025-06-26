@@ -3,13 +3,14 @@ use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-use crate::project::ServeEvent;
+use crate::project::{ServeEvent, WatchSignal};
 use crate::tui_hint;
 use crate::{project::Project, ServeArgs};
 use axum::http::Uri;
 use axum::response::sse::{Event, KeepAlive};
 use axum::routing::get;
 use axum::Router;
+use notify::Watcher;
 use reflexo_typst::error::prelude::*;
 use reflexo_typst::ImmutStr;
 use tokio::io::AsyncReadExt;
@@ -41,6 +42,7 @@ const LIVE_RELOAD_SERVER_EVENT: &str = r#"
 </script>
 "#;
 
+// todo: clean code here, but I'm tired.
 pub async fn serve(args: ServeArgs) -> Result<()> {
     let mut proj = Project::new(args.compile)?;
 
@@ -49,13 +51,41 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         .clone()
         .parse()
         .map_err(map_string_err("ParseServeAddr"))?;
-    // run our app with hyper, listening globally on port 3000
     let dest_dir = proj.dest_dir.clone();
 
     let (hb_tx, hb_rx) = tokio::sync::mpsc::unbounded_channel();
     let (backend_tx, _) = tokio::sync::broadcast::channel(128);
     let ac = Arc::new(Mutex::new(HashMap::new()));
     let ac2 = ac.clone();
+
+    // watch theme files
+    if !proj.theme.is_static() {
+        let theme_dir = proj.theme_dir.clone();
+        let hb_tx2 = hb_tx.clone();
+        tokio::spawn(async move {
+            let mut watcher =
+                notify::recommended_watcher(move |res: notify::Result<notify::Event>| match res {
+                    Ok(event) => {
+                        let paths = event.paths.into_iter().collect::<Vec<_>>();
+                        hb_tx2
+                            .send(ServeEvent::ThemeChange(paths))
+                            .unwrap_or_else(|e| {
+                                tui_hint!("Failed to send heartbeat: {e}");
+                            });
+                    }
+                    Err(e) => tui_hint!("Watcher error: {e}"),
+                })
+                .context_ut("Failed to create file watcher")?;
+
+            if let Err(e) = watcher.watch(&theme_dir, notify::RecursiveMode::Recursive) {
+                tui_hint!("Failed to watch theme directory: {e}");
+            } else {
+                tui_hint!("Watching theme directory: {theme_dir:?}");
+            }
+
+            Result::<()>::Ok(())
+        });
+    }
 
     let tx = backend_tx.clone();
     let server = Router::new()
@@ -65,7 +95,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
             get(async move || {
                 let mut backend_rx = tx.subscribe();
                 axum::response::sse::Sse::new(async_stream::stream! {
-                    while let Ok(ServeEvent::FsChange) = backend_rx.recv().await {
+                    while let Ok(WatchSignal::FsChange) = backend_rx.recv().await {
                         tui_hint!("File system change detected, reloading...");
                         yield Ok::<Event, Infallible>(Event::default().data("reload"));
                     }
@@ -93,7 +123,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
                     tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
                     let _guard = _guard;
                 });
-                let _ = hb_tx.send(());
+                let _ = hb_tx.send(ServeEvent::Heartbeat);
 
                 axum::response::Response::builder()
                     .status(200)

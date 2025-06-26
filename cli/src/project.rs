@@ -70,6 +70,7 @@ pub struct Project {
     pub chapters: Vec<DataDict>,
 
     pub dest_dir: PathBuf,
+    pub theme_dir: PathBuf,
     pub args: CompileArgs,
     pub path_to_root: String,
     pub meta_source: MetaSource,
@@ -119,6 +120,7 @@ impl Project {
 
         let mut proj = Self {
             dest_dir: tr.ctx.dest_dir.clone(),
+            theme_dir: tr.ctx.dest_dir.join("theme"),
             args: raw_args,
 
             theme,
@@ -173,6 +175,7 @@ impl Project {
 
         self.tr.ctx.fix_dest_dir(Path::new(&final_dest_dir));
         self.dest_dir.clone_from(&self.tr.ctx.dest_dir);
+        self.theme_dir = self.dest_dir.join("theme");
 
         if matches!(self.meta_source, MetaSource::Outline) {
             assert!(entry_file.is_some());
@@ -285,8 +288,8 @@ impl Project {
     pub(crate) async fn watch(
         &mut self,
         active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
-        mut hb_rx: mpsc::UnboundedReceiver<()>,
-        tx: broadcast::Sender<ServeEvent>,
+        mut hb_rx: mpsc::UnboundedReceiver<ServeEvent>,
+        tx: broadcast::Sender<WatchSignal>,
         addr: Option<SocketAddr>,
     ) {
         let _ = self.build();
@@ -300,7 +303,7 @@ impl Project {
         loop {
             enum WatchEvent {
                 Fs(FilesystemEvent),
-                Heartbeat,
+                Serve(ServeEvent),
             }
 
             let event = tokio::select! {
@@ -310,7 +313,7 @@ impl Project {
                         None => break,
                     }
                 }
-                _ = hb_rx.recv() => WatchEvent::Heartbeat,
+               Some(c) = hb_rx.recv() => WatchEvent::Serve(c),
             };
 
             // todo: reset_snapshot looks not good
@@ -319,16 +322,22 @@ impl Project {
                 WatchEvent::Fs(event) => {
                     self.tr.reset_snapshot();
                     self.tr.universe_mut().increment_revision(|verse| {
-                        let _ = tx.send(ServeEvent::FsChange);
+                        let _ = tx.send(WatchSignal::FsChange);
                         verse.vfs().notify_fs_event(event);
                     });
-                    let _ = self.build_meta();
 
                     let _ = tui::clear();
-                }
-                WatchEvent::Heartbeat => {
                     let _ = self.build_meta();
+                }
+                WatchEvent::Serve(ServeEvent::ThemeChange(themes)) => {
+                    if !self.theme.reload(&self.theme_dir, themes) {
+                        continue;
+                    }
 
+                    let _ = tui::clear();
+                    let _ = self.build_meta();
+                }
+                WatchEvent::Serve(ServeEvent::Heartbeat) => {
                     let mut active_set = active_set.lock().unwrap();
 
                     if active_set.is_empty() && prev_active_files.is_empty() {
@@ -361,11 +370,12 @@ impl Project {
                         // No changes, skip recompilation
                         continue;
                     }
+                    prev_active_files = active_files;
 
                     let _ = tui::clear();
                     tui_info!("Recompiling changed chapters: {active_set:?}");
 
-                    prev_active_files = active_files;
+                    let _ = self.build_meta();
                 }
             }
 
@@ -408,10 +418,9 @@ impl Project {
     fn extract_assets(&mut self, sr: &SearchRenderer) -> Result<()> {
         // Always update the theme if it is static
         // Or copy on first build
-        let themes = self.dest_dir.join("theme");
-        if self.theme.is_static() || !themes.exists() {
-            log::info!("copying theme assets to {themes:?}");
-            self.theme.copy_assets(&themes)?;
+        if self.theme.is_static() || !self.theme_dir.exists() {
+            log::info!("copying theme assets to {:?}", self.theme_dir);
+            self.theme.copy_assets(&self.theme_dir)?;
         }
 
         // copy internal files
@@ -781,7 +790,13 @@ pub struct ChapterArtifact {
     pub content: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum ServeEvent {
+    ThemeChange(Vec<PathBuf>),
+    Heartbeat,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum WatchSignal {
     FsChange,
 }
