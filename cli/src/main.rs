@@ -1,5 +1,6 @@
 use std::{net::SocketAddr, path::Path, process::exit};
 
+use axum::Router;
 use clap::{Args, Command, FromArgMatches};
 use reflexo_typst::path::{unix_slash, PathClean};
 use shiroa::{
@@ -10,7 +11,10 @@ use shiroa::{
     version::intercept_version,
     BuildArgs, InitArgs, Opts, ServeArgs, Subcommands,
 };
-use warp::{http::Method, Filter};
+use tower::ServiceBuilder;
+use tower_http::{
+    compression::CompressionLayer, decompression::RequestDecompressionLayer, services::ServeDir,
+};
 
 fn get_cli(sub_command_required: bool) -> Command {
     let cli = Command::new("$").disable_version_flag(true);
@@ -196,19 +200,23 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         .parse()
         .map_err(map_string_err("ParseServeAddr"))?;
 
+    // run our app with hyper, listening globally on port 3000
     let dest_dir = proj.dest_dir.clone();
-    let server = warp::serve({
-        let cors =
-            warp::cors().allow_methods(&[Method::GET, Method::POST, Method::DELETE, Method::HEAD]);
+    let server = Router::new()
+        .nest_service("/dev", ServeDir::new(""))
+        .fallback_service(ServeDir::new(dest_dir))
+        .layer(
+            ServiceBuilder::new()
+                .layer(RequestDecompressionLayer::new())
+                .layer(CompressionLayer::new()),
+        );
 
-        let dev = warp::path("dev").and(warp::fs::dir(""));
-
-        dev.or(warp::fs::dir(dest_dir))
-            .with(cors)
-            .with(warp::compression::gzip())
-    });
-
-    let (addr, fut) = server.bind_ephemeral(http_addr);
+    let listener = tokio::net::TcpListener::bind(http_addr)
+        .await
+        .context("failed to bind address")?;
+    let addr = listener
+        .local_addr()
+        .context("failed to get local address")?;
     tui_hint!("Server started at http://{addr}");
 
     // Build the book if it hasn't been built yet
@@ -216,7 +224,9 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         tokio::spawn(async move { proj.watch(Some(addr)).await });
     };
 
-    fut.await;
+    axum::serve(listener, server)
+        .await
+        .context("failed to serve")?;
 
     exit(0);
 }
