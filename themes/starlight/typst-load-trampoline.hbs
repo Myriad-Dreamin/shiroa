@@ -1,0 +1,6 @@
+<script>
+    let appContainer = document.currentScript && document.currentScript.parentElement;
+    window.typstRenderModuleReady.then((plugin) => {
+        window.typstBookRenderPage(plugin, "{{ rel_data_path }}", appContainer);
+    });
+</script>
