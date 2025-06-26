@@ -1,0 +1,6 @@
+<script>
+    let appContainer = document.currentScript && document.currentScript.parentElement;
+    window.typstBookJsLoaded.then(() => {
+       window.typstBookRenderHtmlPage("{{ rel_data_path }}", appContainer);
+    });
+</script>
