@@ -243,8 +243,7 @@ impl Project {
             pub value: T,
         }
 
-        let res = f(item)?;
-        let res = serde_json::to_value(&res).context("cannot convert metadata item(s)")?;
+        let res = serde_json::to_value(&f(item)?).context("cannot convert metadata item(s)")?;
         let res: Vec<QueryItem<T>> =
             serde_json::from_value(res).context("cannot convert metadata item(s)")?;
 
