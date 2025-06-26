@@ -27,7 +27,7 @@ pub struct SearchRenderer {
 }
 
 impl SearchRenderer {
-    pub fn new(meta: &Option<HtmlMeta>) -> Self {
+    pub fn new(meta: &HtmlMeta) -> Self {
         let index = IndexBuilder::new()
             .add_field_with_tokenizer("title", Box::new(&tokenize))
             .add_field_with_tokenizer("body", Box::new(&tokenize))
@@ -37,7 +37,7 @@ impl SearchRenderer {
         SearchRenderer {
             index,
             doc_urls: vec![],
-            config: (meta.as_ref().and_then(|m| m.search.clone())).unwrap_or_default(),
+            config: meta.search.clone().unwrap_or_default(),
         }
     }
 

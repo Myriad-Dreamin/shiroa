@@ -63,8 +63,8 @@ pub struct Project {
     pub hr: HtmlRenderer,
 
     pub book_meta: BookMeta,
+    pub html_meta: HtmlMeta,
     pub build_meta: Option<BuildMeta>,
-    pub html_meta: Option<HtmlMeta>,
     pub chapters: Vec<DataDict>,
 
     pub dest_dir: PathBuf,
@@ -125,8 +125,8 @@ impl Project {
             render_mode,
 
             book_meta: Default::default(),
+            html_meta: Default::default(),
             build_meta: None,
-            html_meta: None,
             chapters: vec![],
             path_to_root,
             meta_source,
@@ -214,7 +214,7 @@ impl Project {
             self.build_meta = Some(build_meta);
         }
         if let Some(html_meta) = self.query_meta::<HtmlMeta>("<shiroa-html-meta>", query)? {
-            self.html_meta = Some(html_meta);
+            self.html_meta = html_meta;
         }
 
         self.tr.ctx = task.ctx;
@@ -387,7 +387,7 @@ impl Project {
         self.hr.render_chapters(
             HtmlRenderContext {
                 book_meta: &self.book_meta,
-                html_meta: self.html_meta.as_ref().unwrap_or(&Default::default()),
+                html_meta: &self.html_meta,
                 search: &serach_ctx,
                 dest_dir: &self.dest_dir,
                 path_to_root: &self.path_to_root,
