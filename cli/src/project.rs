@@ -62,7 +62,7 @@ pub struct Project {
     pub tr: TypstRenderer,
     pub hr: HtmlRenderer,
 
-    pub book_meta: Option<BookMeta>,
+    pub book_meta: BookMeta,
     pub build_meta: Option<BuildMeta>,
     pub html_meta: Option<HtmlMeta>,
     pub chapters: Vec<DataDict>,
@@ -124,7 +124,7 @@ impl Project {
             hr,
             render_mode,
 
-            book_meta: None,
+            book_meta: Default::default(),
             build_meta: None,
             html_meta: None,
             chapters: vec![],
@@ -207,10 +207,9 @@ impl Project {
             }
         }
 
-        self.book_meta = Some(
-            self.query_meta::<BookMeta>("<shiroa-book-meta>", query)?
-                .context("no book meta in book.typ")?,
-        );
+        self.book_meta = self
+            .query_meta::<BookMeta>("<shiroa-book-meta>", query)?
+            .context("no book meta in book.typ")?;
         if let Some(build_meta) = self.query_meta::<BuildMeta>("<shiroa-build-meta>", query)? {
             self.build_meta = Some(build_meta);
         }
@@ -269,13 +268,13 @@ impl Project {
         let title = info.title.as_ref().map(|t| t.as_str());
         let authors = info.author.iter().map(|a| a.as_str().to_owned()).collect();
 
-        self.book_meta = Some(BookMeta {
+        self.book_meta = BookMeta {
             title: title.unwrap_or("Typst Document").to_owned(),
             authors,
             language: "en".to_owned(),
             summary: chapters,
             ..Default::default()
-        });
+        };
 
         self.tr.ctx = task.ctx;
         Ok(())
@@ -387,7 +386,7 @@ impl Project {
 
         self.hr.render_chapters(
             HtmlRenderContext {
-                book_meta: self.book_meta.as_ref().unwrap_or(&Default::default()),
+                book_meta: &self.book_meta,
                 html_meta: self.html_meta.as_ref().unwrap_or(&Default::default()),
                 search: &serach_ctx,
                 dest_dir: &self.dest_dir,
@@ -409,9 +408,7 @@ impl Project {
 
     fn prepare_chapters(&mut self) {
         match self.meta_source {
-            MetaSource::Strict => {
-                self.chapters = self.generate_chapters(&self.book_meta.as_ref().unwrap().summary)
-            }
+            MetaSource::Strict => self.chapters = self.generate_chapters(&self.book_meta.summary),
             MetaSource::Outline => {}
         }
     }
