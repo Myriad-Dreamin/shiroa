@@ -14,7 +14,7 @@ use reflexo_typst::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tokio::sync::mpsc;
+use tokio::sync::{broadcast, mpsc};
 use typst::foundations::Content;
 
 use crate::{
@@ -280,7 +280,11 @@ impl Project {
         Ok(())
     }
 
-    pub async fn watch(&mut self, addr: Option<SocketAddr>) {
+    pub(crate) async fn watch(
+        &mut self,
+        tx: broadcast::Sender<ServeEvent>,
+        addr: Option<SocketAddr>,
+    ) {
         let _ = self.build();
         let (dep_tx, dep_rx) = mpsc::unbounded_channel();
         let (fs_tx, mut fs_rx) = mpsc::unbounded_channel();
@@ -319,6 +323,7 @@ impl Project {
             // todo: reset_snapshot looks not good
             self.tr.reset_snapshot();
             self.tr.universe_mut().increment_revision(|verse| {
+                let _ = tx.send(ServeEvent::FsChange);
                 verse.vfs().notify_fs_event(event);
             });
             let _ = self.build_meta();
@@ -707,4 +712,9 @@ impl Project {
 pub struct ChapterArtifact {
     pub description: String,
     pub content: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ServeEvent {
+    FsChange,
 }

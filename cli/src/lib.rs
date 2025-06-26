@@ -1,15 +1,18 @@
+pub use serve::serve;
+
 pub mod error;
 pub mod meta;
 pub mod outline;
 pub mod project;
 pub mod render;
 pub mod theme;
+pub mod tui;
 pub mod utils;
 pub mod version;
 
 mod debug_loc;
 mod diag;
-pub mod tui;
+mod serve;
 
 use core::fmt;
 use std::path::PathBuf;

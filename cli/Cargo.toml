@@ -18,7 +18,7 @@ doc = false
 
 [dependencies]
 
-axum.workspace = true
+axum = { workspace = true, features = ["tokio"] }
 clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true
@@ -44,6 +44,9 @@ tower-http = { version = "0.6.1", features = [
     "compression-gzip",
     "decompression-gzip",
 ] }
+mime_guess = "2"
+futures-util = "0.3"
+async-stream = "0.3"
 url.workspace = true
 
 reflexo-typst = { workspace = true, features = [
