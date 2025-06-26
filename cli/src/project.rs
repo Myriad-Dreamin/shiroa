@@ -243,15 +243,9 @@ impl Project {
             pub value: T,
         }
 
-        type Json<T> = Vec<QueryItem<T>>;
-
-        // let res = g.query(item.to_string(), &doc);
-        // let res = task
-        //     .report(res)
-        //     .context("cannot retrive metadata item(s)")?;
         let res = f(item)?;
         let res = serde_json::to_value(&res).context("cannot convert metadata item(s)")?;
-        let res: Json<T> =
+        let res: Vec<QueryItem<T>> =
             serde_json::from_value(res).context("cannot convert metadata item(s)")?;
 
         if res.len() > 1 {
