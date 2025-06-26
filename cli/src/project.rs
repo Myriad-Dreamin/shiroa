@@ -1,9 +1,9 @@
 use core::fmt;
 use std::{
-    collections::{BTreeSet, HashMap},
+    collections::BTreeMap,
     net::SocketAddr,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::Mutex,
 };
 
 use include_dir::include_dir;
@@ -70,7 +70,6 @@ pub struct Project {
     pub chapters: Vec<DataDict>,
 
     pub dest_dir: PathBuf,
-    pub theme_dir: PathBuf,
     pub args: CompileArgs,
     pub path_to_root: String,
     pub meta_source: MetaSource,
@@ -120,7 +119,6 @@ impl Project {
 
         let mut proj = Self {
             dest_dir: tr.ctx.dest_dir.clone(),
-            theme_dir: tr.ctx.dest_dir.join("theme"),
             args: raw_args,
 
             theme,
@@ -175,7 +173,6 @@ impl Project {
 
         self.tr.ctx.fix_dest_dir(Path::new(&final_dest_dir));
         self.dest_dir.clone_from(&self.tr.ctx.dest_dir);
-        self.theme_dir = self.dest_dir.join("theme");
 
         if matches!(self.meta_source, MetaSource::Outline) {
             assert!(entry_file.is_some());
@@ -287,7 +284,7 @@ impl Project {
 
     pub(crate) async fn watch(
         &mut self,
-        active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
+        // active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
         mut hb_rx: mpsc::UnboundedReceiver<ServeEvent>,
         tx: broadcast::Sender<WatchSignal>,
         addr: Option<SocketAddr>,
@@ -299,7 +296,7 @@ impl Project {
             fs_tx.send(event).unwrap();
         }));
 
-        let mut prev_active_files = BTreeSet::new();
+        let mut active_files: BTreeMap<ImmutStr, usize> = BTreeMap::new();
         loop {
             enum WatchEvent {
                 Fs(FilesystemEvent),
@@ -318,11 +315,11 @@ impl Project {
 
             // todo: reset_snapshot looks not good
 
+            let is_heartbeat = matches!(event, WatchEvent::Serve(ServeEvent::HoldPath(..)));
             match event {
                 WatchEvent::Fs(event) => {
                     self.tr.reset_snapshot();
                     self.tr.universe_mut().increment_revision(|verse| {
-                        let _ = tx.send(WatchSignal::FsChange);
                         verse.vfs().notify_fs_event(event);
                     });
 
@@ -330,50 +327,64 @@ impl Project {
                     let _ = self.build_meta();
                 }
                 WatchEvent::Serve(ServeEvent::ThemeChange(themes)) => {
-                    if !self.theme.reload(&self.theme_dir, themes) {
+                    if !self
+                        .theme
+                        .reload(Path::new(self.args.theme.as_ref().unwrap()), themes)
+                    {
                         continue;
                     }
+                    tui_info!("Theme files changed");
+                    // Create a new HtmlRenderer with the updated theme
+                    self.hr = HtmlRenderer::new(&self.theme);
 
                     let _ = tui::clear();
                     let _ = self.build_meta();
                 }
-                WatchEvent::Serve(ServeEvent::Heartbeat) => {
-                    let mut active_set = active_set.lock().unwrap();
-
-                    if active_set.is_empty() && prev_active_files.is_empty() {
-                        // No changes, skip recompilation
-                        continue;
-                    }
-
-                    let mut active_files = BTreeSet::default();
-                    active_set.retain(|path, count| {
-                        if *count > 0 {
-                            if path.as_ref() == "/" || path.is_empty() {
-                                if let Some(f) = self.chapters.first() {
-                                    active_files.insert(
-                                        f.get("path").unwrap().as_str().unwrap().to_owned(),
-                                    );
-                                }
-                            } else if path.ends_with(".html") {
-                                let path = path.trim_start_matches('/');
-                                let typ_path = PathBuf::from(path);
-                                let typ_path = unix_slash(&typ_path.with_extension("typ"));
-                                active_files.insert(typ_path);
-                            }
-                            true
+                WatchEvent::Serve(ServeEvent::HoldPath(path, inc)) => {
+                    let path = if path.as_ref() == "/" || path.is_empty() {
+                        if let Some(f) = self.chapters.first() {
+                            f.get("path").unwrap().as_str().unwrap().into()
                         } else {
-                            false
+                            continue;
                         }
-                    });
+                    } else if path.ends_with(".html") {
+                        let path = path.trim_start_matches('/');
+                        let typ_path = PathBuf::from(path);
+                        unix_slash(&typ_path.with_extension("typ")).into()
+                    } else {
+                        path
+                    };
 
-                    if active_files == prev_active_files {
+                    let active_files = &mut active_files;
+                    let mut changed = false;
+                    if inc {
+                        *active_files.entry(path).or_insert_with(|| {
+                            changed = true;
+                            0
+                        }) += 1;
+                    } else {
+                        let count = active_files.entry(path);
+                        // erase if the count is 1, otherwise decrement
+                        match count {
+                            std::collections::btree_map::Entry::Occupied(mut e) => {
+                                if *e.get() > 1 {
+                                    *e.get_mut() -= 1;
+                                } else {
+                                    changed = true;
+                                    e.remove();
+                                }
+                            }
+                            std::collections::btree_map::Entry::Vacant(_) => {}
+                        }
+                    }
+
+                    if !changed {
                         // No changes, skip recompilation
                         continue;
                     }
-                    prev_active_files = active_files;
 
                     let _ = tui::clear();
-                    tui_info!("Recompiling changed chapters: {active_set:?}");
+                    tui_info!("Recompiling changed chapters: {active_files:?}");
 
                     let _ = self.build_meta();
                 }
@@ -382,7 +393,7 @@ impl Project {
             let snap = self.tr.snapshot();
             let mut world = snap.world.clone();
 
-            let _ = self.compile_once(&prev_active_files, SearchRenderer::new(&self.html_meta));
+            let _ = self.compile_once(&active_files, SearchRenderer::new(&self.html_meta));
 
             // Notify the new file dependencies.
             let mut deps = vec![];
@@ -401,6 +412,9 @@ impl Project {
                 world.evict_vfs(60);
             }
 
+            if !is_heartbeat {
+                let _ = tx.send(WatchSignal::Reload);
+            }
             if let Some(addr) = &addr {
                 tui_hint!("Server started at http://{addr}");
             }
@@ -418,9 +432,10 @@ impl Project {
     fn extract_assets(&mut self, sr: &SearchRenderer) -> Result<()> {
         // Always update the theme if it is static
         // Or copy on first build
-        if self.theme.is_static() || !self.theme_dir.exists() {
-            log::info!("copying theme assets to {:?}", self.theme_dir);
-            self.theme.copy_assets(&self.theme_dir)?;
+        let theme_dir = self.dest_dir.join("theme");
+        if self.theme.is_static() || !theme_dir.exists() {
+            log::info!("copying theme assets to {theme_dir:?}");
+            self.theme.copy_assets(&theme_dir)?;
         }
 
         // copy internal files
@@ -456,7 +471,11 @@ impl Project {
         Ok(())
     }
 
-    fn compile_once(&mut self, ac: &BTreeSet<String>, mut sr: SearchRenderer) -> Result<()> {
+    fn compile_once(
+        &mut self,
+        ac: &BTreeMap<ImmutStr, usize>,
+        mut sr: SearchRenderer,
+    ) -> Result<()> {
         self.prepare_chapters();
 
         let serach_ctx = SearchCtx {
@@ -793,10 +812,10 @@ pub struct ChapterArtifact {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum ServeEvent {
     ThemeChange(Vec<PathBuf>),
-    Heartbeat,
+    HoldPath(ImmutStr, bool),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum WatchSignal {
-    FsChange,
+    Reload,
 }

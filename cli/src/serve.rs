@@ -1,23 +1,28 @@
-use std::collections::HashMap;
 use std::convert::Infallible;
+use std::future::Future;
 use std::net::SocketAddr;
-use std::sync::{Arc, Mutex};
+use std::path::Path;
+use std::pin::Pin;
 
 use crate::project::{ServeEvent, WatchSignal};
 use crate::tui_hint;
 use crate::{project::Project, ServeArgs};
+use axum::extract::Request;
 use axum::http::Uri;
 use axum::response::sse::{Event, KeepAlive};
+use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use notify::Watcher;
 use reflexo_typst::error::prelude::*;
 use reflexo_typst::ImmutStr;
 use tokio::io::AsyncReadExt;
+use tokio_util::io::ReaderStream;
 use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
 use tower_http::decompression::RequestDecompressionLayer;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
+use tower_http::ServiceExt;
 
 const LIVE_RELOAD_SERVER_EVENT: &str = r#"
 <script>
@@ -44,6 +49,9 @@ const LIVE_RELOAD_SERVER_EVENT: &str = r#"
 
 // todo: clean code here, but I'm tired.
 pub async fn serve(args: ServeArgs) -> Result<()> {
+    #[cfg(feature = "tokio-console")]
+    console_subscriber::init();
+
     let mut proj = Project::new(args.compile)?;
 
     let http_addr: SocketAddr = args
@@ -55,36 +63,32 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
 
     let (hb_tx, hb_rx) = tokio::sync::mpsc::unbounded_channel();
     let (backend_tx, _) = tokio::sync::broadcast::channel(128);
-    let ac = Arc::new(Mutex::new(HashMap::new()));
-    let ac2 = ac.clone();
 
     // watch theme files
-    if !proj.theme.is_static() {
-        let theme_dir = proj.theme_dir.clone();
+    let mut _watcher_stack = None;
+    if let Some(theme_dir) = proj.args.theme.clone() {
         let hb_tx2 = hb_tx.clone();
-        tokio::spawn(async move {
-            let mut watcher =
-                notify::recommended_watcher(move |res: notify::Result<notify::Event>| match res {
-                    Ok(event) => {
-                        let paths = event.paths.into_iter().collect::<Vec<_>>();
-                        hb_tx2
-                            .send(ServeEvent::ThemeChange(paths))
-                            .unwrap_or_else(|e| {
-                                tui_hint!("Failed to send heartbeat: {e}");
-                            });
-                    }
-                    Err(e) => tui_hint!("Watcher error: {e}"),
-                })
-                .context_ut("Failed to create file watcher")?;
+        let mut watcher =
+            notify::recommended_watcher(move |res: notify::Result<notify::Event>| match res {
+                Ok(event) => {
+                    let paths = event.paths.into_iter().collect::<Vec<_>>();
+                    hb_tx2
+                        .send(ServeEvent::ThemeChange(paths))
+                        .unwrap_or_else(|e| {
+                            tui_hint!("Failed to send heartbeat: {e}");
+                        });
+                }
+                Err(e) => tui_hint!("Watcher error: {e}"),
+            })
+            .context_ut("Failed to create file watcher")?;
 
-            if let Err(e) = watcher.watch(&theme_dir, notify::RecursiveMode::Recursive) {
-                tui_hint!("Failed to watch theme directory: {e}");
-            } else {
-                tui_hint!("Watching theme directory: {theme_dir:?}");
-            }
+        if let Err(e) = watcher.watch(Path::new(&theme_dir), notify::RecursiveMode::Recursive) {
+            tui_hint!("Failed to watch theme directory: {e}");
+        } else {
+            tui_hint!("Watching theme directory: {theme_dir:?}");
+        }
 
-            Result::<()>::Ok(())
-        });
+        _watcher_stack = Some(watcher);
     }
 
     let tx = backend_tx.clone();
@@ -95,8 +99,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
             get(async move || {
                 let mut backend_rx = tx.subscribe();
                 axum::response::sse::Sse::new(async_stream::stream! {
-                    while let Ok(WatchSignal::FsChange) = backend_rx.recv().await {
-                        tui_hint!("File system change detected, reloading...");
+                    while let Ok(WatchSignal::Reload) = backend_rx.recv().await {
                         yield Ok::<Event, Infallible>(Event::default().data("reload"));
                     }
                 })
@@ -107,7 +110,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
             "/heartbeat",
             get(async move |uri: Uri| {
                 // get location from query params
-                let path = uri
+                let path: ImmutStr = uri
                     .query()
                     .and_then(|q| {
                         url::form_urlencoded::parse(q.as_bytes())
@@ -117,62 +120,20 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
                     .map(|s| s.to_string())
                     .unwrap_or_else(|| "index.html".to_string())
                     .into();
-                let _guard = ActiveCount::new(ac2.clone(), path);
+                let _ = hb_tx.send(ServeEvent::HoldPath(path.clone(), true));
                 tokio::spawn(async move {
                     // Simulate some work
                     tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-                    let _guard = _guard;
+                    let _ = hb_tx.send(ServeEvent::HoldPath(path, false));
                 });
-                let _ = hb_tx.send(ServeEvent::Heartbeat);
 
-                axum::response::Response::builder()
+                Response::builder()
                     .status(200)
                     .body(axum::body::Body::empty())
                     .unwrap()
             }),
         )
-        .fallback(get(async move |uri: Uri| {
-            let path = uri.path().trim_start_matches('/');
-            let mut path = dest_dir.join(path);
-
-            if path.is_dir() {
-                path = path.join("index.html");
-            }
-
-            let mut file = match tokio::fs::File::open(&path)
-                .await
-                .context("failed to open file")
-            {
-                Ok(file) => file,
-                Err(e) => {
-                    tui_hint!("Failed to open file: {e}");
-                    return axum::response::Response::builder()
-                        .status(404)
-                        .body(axum::body::Body::empty())
-                        .unwrap();
-                }
-            };
-
-            let mut data = Vec::new();
-            if let Err(e) = file.read_to_end(&mut data).await {
-                tui_hint!("Failed to read file: {e}");
-                return axum::response::Response::builder()
-                    .status(404)
-                    .body(axum::body::Body::empty())
-                    .unwrap();
-            }
-
-            if path.extension().and_then(|s| s.to_str()) == Some("html") {
-                data.extend_from_slice(LIVE_RELOAD_SERVER_EVENT.as_bytes());
-            }
-            let guess = mime_guess::from_path(path);
-
-            axum::response::Response::builder()
-                .status(200)
-                .header("Content-Type", guess.first_or_octet_stream().as_ref())
-                .body(axum::body::Body::from(data))
-                .unwrap()
-        }))
+        .fallback_service(FileService::new(dest_dir))
         .layer(
             ServiceBuilder::new()
                 .layer(RequestDecompressionLayer::new())
@@ -189,7 +150,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
 
     // Build the book if it hasn't been built yet
     if !args.no_build {
-        tokio::spawn(async move { proj.watch(ac, hb_rx, backend_tx, Some(addr)).await });
+        tokio::spawn(async move { proj.watch(hb_rx, backend_tx, Some(addr)).await });
     };
 
     axum::serve(listener, server)
@@ -199,17 +160,72 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
     Ok(())
 }
 
-pub struct ActiveCount(Arc<Mutex<HashMap<ImmutStr, usize>>>, ImmutStr);
+#[derive(Debug, Clone)]
+struct FileService {
+    dest_dir: std::path::PathBuf,
+}
 
-impl ActiveCount {
-    fn new(ac: Arc<Mutex<HashMap<ImmutStr, usize>>>, path: ImmutStr) -> Self {
-        *ac.lock().unwrap().entry(path.clone()).or_default() += 1;
-        Self(ac, path)
+impl FileService {
+    pub fn new(dest_dir: std::path::PathBuf) -> Self {
+        Self { dest_dir }
     }
 }
 
-impl Drop for ActiveCount {
-    fn drop(&mut self) {
-        *self.0.lock().unwrap().entry(self.1.clone()).or_default() -= 1;
+type FileFuture = Pin<Box<dyn Future<Output = Result<Response, Infallible>> + Send>>;
+
+impl tower::Service<Request<axum::body::Body>> for FileService {
+    type Response = Response;
+    type Error = Infallible;
+    type Future = FileFuture;
+
+    fn poll_ready(
+        &mut self,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: Request<axum::body::Body>) -> Self::Future {
+        let path = req.uri().path().trim_start_matches('/');
+        let mut path = self.dest_dir.join(path);
+
+        if path.is_dir() {
+            path = path.join("index.html");
+        }
+
+        if path.extension().and_then(|s| s.to_str()) == Some("html") {
+            Box::pin(async move {
+                let file = match tokio::fs::File::open(&path)
+                    .await
+                    .context("failed to open file")
+                {
+                    Ok(file) => tokio::io::BufReader::new(file),
+                    Err(e) => {
+                        tui_hint!("Failed to open file: {e}");
+                        return Ok(Response::builder()
+                            .status(404)
+                            .body(axum::body::Body::empty())
+                            .unwrap()
+                            .into_response());
+                    }
+                };
+                let body = axum::body::Body::from_stream(ReaderStream::new(
+                    file.chain(LIVE_RELOAD_SERVER_EVENT.as_bytes()),
+                ));
+
+                Ok(Response::builder()
+                    .status(200)
+                    .header("Content-Type", "text/html; charset=utf-8")
+                    .body(body)
+                    .unwrap()
+                    .into_response())
+            }) as FileFuture
+        } else {
+            Box::pin(
+                ServeFile::new(path)
+                    .map_response_body(axum::body::Body::new)
+                    .call(req),
+            )
+        }
     }
 }

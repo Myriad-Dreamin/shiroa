@@ -38,15 +38,18 @@ serde_json.workspace = true
 termcolor.workspace = true
 toml.workspace = true
 tokio.workspace = true
+console-subscriber = { version = "0.4", optional = true }
 tower = { version = "0.5.2", features = ["util"] }
 tower-http = { version = "0.6.1", features = [
     "fs",
+    "util",
+    "map-response-body",
     "compression-gzip",
     "decompression-gzip",
 ] }
-mime_guess = "2"
 async-stream = "0.3"
 notify = "6"
+tokio-util = "0.7.10"
 url.workspace = true
 
 reflexo-typst = { workspace = true, features = [
@@ -67,3 +70,4 @@ vergen-gitcl.workspace = true
 [features]
 embedded-fonts = ["typst-assets/fonts"]
 default = ["embedded-fonts"]
+tokio-console = ["console-subscriber"]
