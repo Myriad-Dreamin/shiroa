@@ -77,6 +77,8 @@
   #metadata(meta) <shiroa-build-meta>
 ]
 
+// todo: add documentations to `dict` fields.
+
 /// HTML renderer metadata in #link("https://myriad-dreamin.github.io/shiroa/format/book.html")[book.typ]
 ///
 /// - theme (str, none): The theme directory, if specified.
@@ -88,9 +90,7 @@
 /// - fold (auto, dict): Fold settings for sidebar chapters.
 /// - no-section-label (bool): Don't render section labels.
 /// - search (dict, none): Search settings. If `None`, the default will be used.
-/// - git-repository-url (str, none): Git repository url. If not provided, will use the repository from book-meta.
 /// - git-repository-icon (str, none): FontAwesome icon class to use for the Git repository link. Defaults to `fa-github`.
-/// - edit-url-template (str, none): Edit url template, when set shows a "Suggest an edit" button. Contains {path} that is replaced with chapter source file path.
 /// - input-404 (str, none): Input path for the 404 file, defaults to 404.md, set to "" to disable 404 file output.
 /// - site-url (str, none): Absolute url to site, used to emit correct paths for the 404 page.
 /// - cname (str, none): The DNS subdomain or apex domain at which your book will be hosted for GitHub Pages.
@@ -180,9 +180,11 @@
 ))
 
 #let external-book(spec: none) = {
-  place(hide[
-    #spec
-  ])
+  place(
+    hide[
+      #spec
+    ],
+  )
 }
 
 #let visit-summary(x, visit) = {
