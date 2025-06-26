@@ -5,7 +5,7 @@ use reflexo_typst::{error::prelude::*, path::unix_slash};
 use serde::Serialize;
 use typst::ecow::EcoString;
 
-use crate::meta::Search;
+use crate::meta::{HtmlMeta, Search};
 use crate::utils::{collapse_whitespace, write_file};
 
 const MAX_WORD_LENGTH_TO_INDEX: usize = 80;
@@ -26,14 +26,8 @@ pub struct SearchRenderer {
     pub config: Search,
 }
 
-impl Default for SearchRenderer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl SearchRenderer {
-    fn new() -> Self {
+    pub fn new(meta: &HtmlMeta) -> Self {
         let index = IndexBuilder::new()
             .add_field_with_tokenizer("title", Box::new(&tokenize))
             .add_field_with_tokenizer("body", Box::new(&tokenize))
@@ -43,7 +37,7 @@ impl SearchRenderer {
         SearchRenderer {
             index,
             doc_urls: vec![],
-            config: Search::default(),
+            config: meta.search.clone().unwrap_or_default(),
         }
     }
 

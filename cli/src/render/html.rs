@@ -1,12 +1,36 @@
-use handlebars::{Handlebars, RenderErrorReason};
+use std::path::Path;
+
+use handlebars::Handlebars;
 use log::debug;
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
+use reflexo_typst::escape::{escape_str, AttributeEscapes};
 use serde_json::json;
 
-use crate::theme;
+use crate::{
+    error::prelude::*,
+    project::ChapterArtifact,
+    render::{helpers::RenderToc, DataDict, SearchCtx},
+    theme,
+    utils::{create_dirs, write_file},
+};
 
 pub struct HtmlRenderer {
     // html renderer
     pub handlebars: Handlebars<'static>,
+}
+
+pub struct HtmlRenderContext<'a> {
+    pub book_data: &'a DataDict,
+    pub edit_url: &'a str,
+    pub search: &'a SearchCtx<'a>,
+    pub dest_dir: &'a Path,
+}
+
+struct RenderItemContext<'a> {
+    path: &'a str,
+    art: ChapterArtifact,
+    title: &'a str,
+    pub edit_url: &'a str,
 }
 
 impl HtmlRenderer {
@@ -42,261 +66,104 @@ impl HtmlRenderer {
         Self { handlebars }
     }
 
-    pub fn render_index(&self, mut data: DataDict, path: &str) -> String {
-        // inject path (for current document)
-        data.insert("path".to_owned(), json!(path));
+    pub fn render_chapters(
+        &self,
+        ctx: HtmlRenderContext,
+        chapters: &[DataDict],
+        compiler: impl Fn(&str) -> Result<ChapterArtifact> + Send + Sync,
+    ) -> Result<()> {
+        chapters
+            .into_par_iter()
+            .enumerate()
+            .map(|(idx, ch)| {
+                if let Some(path) = ch.get("path") {
+                    let raw_path: String = serde_json::from_value(path.clone()).map_err(
+                        error_once_map_string!("retrieve path in book.toml", value: path),
+                    )?;
+                    let path = ctx.dest_dir.join(&raw_path);
 
-        data.insert("fold_enable".to_owned(), json!(false));
-        data.insert("fold_level".to_owned(), json!(0u64));
-        data.insert("preferred_dark_theme".to_owned(), json!("ayu"));
-        data.insert("default_theme".to_owned(), json!("light"));
-        // Only set book_title if it's not already set (for backward compatibility)
-        if !data.contains_key("book_title") {
-            data.insert("book_title".to_owned(), data["title"].clone());
-        }
-        if let Some(repo) = data.get("repository") {
-            data.insert("git_repository_url".to_owned(), repo.clone());
-            data.insert("git_repository_icon".to_owned(), json!("fa-github"));
-        }
-        if let Some(edit_url_template) = data.get("repository_edit") {
-            let edit_url = edit_url_template.as_str().unwrap().replace("{path}", path);
-            data.insert("git_repository_edit_url".to_owned(), json!(edit_url));
-        }
+                    let instant = std::time::Instant::now();
+                    log::info!("rendering chapter {raw_path}");
 
+                    // Compiles the chapter
+                    let art = compiler(&raw_path)?;
+
+                    let content = self.render_chapter(&ctx, art, ch, &raw_path)?;
+
+                    log::info!("rendering chapter {raw_path} in {:?}", instant.elapsed());
+
+                    create_dirs(path.parent().unwrap())?;
+                    write_file(path.with_extension("html"), &content)?;
+                    if idx == 0 {
+                        write_file(ctx.dest_dir.join("index.html"), content)?;
+                    }
+                }
+
+                Ok(())
+            })
+            .collect::<Result<()>>()
+    }
+
+    fn render_chapter(
+        &self,
+        ctx: &HtmlRenderContext,
+        art: ChapterArtifact,
+        chapter_data: &DataDict,
+        path: &str,
+    ) -> Result<String> {
+        let title = chapter_data
+            .get("name")
+            .and_then(|t| t.as_str())
+            .ok_or_else(|| error_once!("no name in chapter data"))?;
+
+        let search_path = Path::new(path).with_extension("html");
+        ctx.search
+            .index_search(&search_path, title.into(), art.description.as_str().into());
+
+        let data = make_item_data(
+            RenderItemContext {
+                path,
+                art,
+                title,
+                edit_url: ctx.edit_url,
+            },
+            ctx.book_data.clone(),
+        );
+
+        let index_html = self.render_index(data);
+        Ok(index_html)
+    }
+
+    fn render_index(&self, data: DataDict) -> String {
         self.handlebars.render("index", &data).unwrap()
     }
 }
 
-use std::{cmp::Ordering, collections::BTreeMap, path::Path};
+fn make_item_data(ctx: RenderItemContext, mut data: DataDict) -> DataDict {
+    // inject path (for current document)
+    data.insert("path".to_owned(), json!(ctx.path));
 
-pub(crate) fn bracket_escape(mut s: &str) -> String {
-    let mut escaped = String::with_capacity(s.len());
-    let needs_escape: &[char] = &['<', '>'];
-    while let Some(next) = s.find(needs_escape) {
-        escaped.push_str(&s[..next]);
-        match s.as_bytes()[next] {
-            b'<' => escaped.push_str("&lt;"),
-            b'>' => escaped.push_str("&gt;"),
-            _ => unreachable!(),
-        }
-        s = &s[next + 1..];
+    // Update the title to use the format: {section title} - {book title}
+
+    let page_title = match data.get("title").and_then(|t| t.as_str()) {
+        Some(book_title) => format!("{} - {}", ctx.title, book_title),
+        None => ctx.title.to_owned(),
+    };
+    data.insert("title".to_owned(), json!(page_title));
+
+    if !ctx.edit_url.is_empty() {
+        let edit_url = ctx.edit_url.replace("{path}", ctx.path);
+        data.insert("git_repository_edit_url".to_owned(), json!(edit_url));
     }
-    escaped.push_str(s);
-    escaped
-}
 
-use handlebars::{Context, Helper, HelperDef, Output, RenderContext, RenderError};
+    // Injects description
+    let desc = escape_str::<AttributeEscapes>(&ctx.art.description).into_owned();
+    data.insert("description".to_owned(), serde_json::Value::String(desc));
 
-use super::DataDict;
+    data.insert(
+        "content".to_owned(),
+        serde_json::Value::String(ctx.art.content),
+    );
 
-// Handlebars helper to construct TOC
-#[derive(Clone, Copy)]
-pub struct RenderToc {
-    pub no_section_label: bool,
-}
-
-impl HelperDef for RenderToc {
-    fn call<'reg: 'rc, 'rc>(
-        &self,
-        _h: &Helper<'rc>,
-        _r: &'reg Handlebars<'reg>,
-        ctx: &'rc Context,
-        rc: &mut RenderContext<'reg, 'rc>,
-        out: &mut dyn Output,
-    ) -> Result<(), RenderError> {
-        // get value from context data
-        // rc.get_path() is current json parent path, you should always use it like this
-        // param is the key of value you want to display
-        let chapters = rc.evaluate(ctx, "@root/chapters").and_then(|c| {
-            serde_json::value::from_value::<Vec<BTreeMap<String, String>>>(c.as_json().clone())
-                .map_err(|_| other_reason("Could not decode the JSON data"))
-        })?;
-
-        let path_to_root = rc
-            .evaluate(ctx, "@root/path_to_root")?
-            .as_json()
-            .as_str()
-            .ok_or_else(|| other_reason("Type error for `path_to_root`, string expected"))?
-            .replace('\"', "");
-
-        let current_path = rc
-            .evaluate(ctx, "@root/path")?
-            .as_json()
-            .as_str()
-            .ok_or_else(|| other_reason("Type error for `path`, string expected"))?
-            .replace('\"', "");
-
-        let current_section = rc
-            .evaluate(ctx, "@root/section")?
-            .as_json()
-            .as_str()
-            .map(str::to_owned)
-            .unwrap_or_default();
-
-        let fold_enable = rc
-            .evaluate(ctx, "@root/fold_enable")?
-            .as_json()
-            .as_bool()
-            .ok_or_else(|| other_reason("Type error for `fold_enable`, bool expected"))?;
-
-        let fold_level = rc
-            .evaluate(ctx, "@root/fold_level")?
-            .as_json()
-            .as_u64()
-            .ok_or_else(|| other_reason("Type error for `fold_level`, u64 expected"))?;
-
-        out.write("<ol class=\"chapter\">")?;
-
-        let mut current_level = 1;
-        // The "index" page, which has this attribute set, is supposed to alias the
-        // first chapter in the book, i.e. the first link. There seems to be no
-        // easy way to determine which chapter the "index" is aliasing from
-        // within the renderer, so this is used instead to force the first link
-        // to be active. See further below.
-        let mut is_first_chapter = ctx.data().get("is_index").is_some();
-
-        for item in chapters {
-            // Spacer
-            if item.contains_key("spacer") {
-                out.write("<li class=\"spacer\"></li>")?;
-                continue;
-            }
-
-            let (section, level) = if let Some(s) = item.get("section") {
-                (s.as_str(), s.matches('.').count())
-            } else {
-                ("", 1)
-            };
-
-            let is_expanded =
-                if !fold_enable || (!section.is_empty() && current_section.starts_with(section)) {
-                    // Expand if folding is disabled, or if the section is an
-                    // ancestor or the current section itself.
-                    true
-                } else {
-                    // Levels that are larger than this would be folded.
-                    level - 1 < fold_level as usize
-                };
-
-            match level.cmp(&current_level) {
-                Ordering::Greater => {
-                    while level > current_level {
-                        out.write("<li>")?;
-                        out.write("<ol class=\"section\">")?;
-                        current_level += 1;
-                    }
-                    write_li_open_tag(out, is_expanded, false)?;
-                }
-                Ordering::Less => {
-                    while level < current_level {
-                        out.write("</ol>")?;
-                        out.write("</li>")?;
-                        current_level -= 1;
-                    }
-                    write_li_open_tag(out, is_expanded, false)?;
-                }
-                Ordering::Equal => {
-                    write_li_open_tag(out, is_expanded, !item.contains_key("section"))?;
-                }
-            }
-
-            // Part title
-            if let Some(title) = item.get("part") {
-                out.write("<li class=\"part-title\">")?;
-                out.write(&bracket_escape(title))?;
-                out.write("</li>")?;
-                continue;
-            }
-
-            // Link
-            let path_exists: bool;
-            match item.get("path") {
-                Some(path) if !path.is_empty() => {
-                    out.write("<a href=\"")?;
-                    let tmp = Path::new(&path_to_root)
-                        .join(path)
-                        .with_extension("html")
-                        .to_str()
-                        .unwrap()
-                        // Hack for windows who tends to use `\` as separator instead of `/`
-                        .replace('\\', "/");
-
-                    // Add link
-                    // out.write(&path_to_root(&current_path))?;
-                    out.write(&tmp)?;
-                    out.write("\"")?;
-
-                    // println!("compare path = {path:?}, current_path = {current_path:?}");
-
-                    if path == &current_path || is_first_chapter {
-                        is_first_chapter = false;
-                        out.write(" class=\"active\"")?;
-                    }
-
-                    out.write(">")?;
-                    path_exists = true;
-                }
-                _ => {
-                    out.write("<div>")?;
-                    path_exists = false;
-                }
-            }
-
-            if !self.no_section_label {
-                // Section does not necessarily exist
-                if let Some(section) = item.get("section") {
-                    out.write("<strong aria-hidden=\"true\">")?;
-                    out.write(section)?;
-                    out.write("</strong> ")?;
-                }
-            }
-
-            if let Some(name) = item.get("name") {
-                out.write(&bracket_escape(name))?
-            }
-
-            if path_exists {
-                out.write("</a>")?;
-            } else {
-                out.write("</div>")?;
-            }
-
-            // Render expand/collapse toggle
-            if let Some(flag) = item.get("has_sub_items") {
-                let has_sub_items = flag.parse::<bool>().unwrap_or_default();
-                if fold_enable && has_sub_items {
-                    out.write("<a class=\"toggle\"><div>❱</div></a>")?;
-                }
-            }
-            out.write("</li>")?;
-        }
-        while current_level > 1 {
-            out.write("</ol>")?;
-            out.write("</li>")?;
-            current_level -= 1;
-        }
-
-        out.write("</ol>")?;
-        Ok(())
-    }
-}
-
-fn other_reason(desc: &str) -> RenderError {
-    RenderErrorReason::Other(desc.to_string()).into()
-}
-
-fn write_li_open_tag(
-    out: &mut dyn Output,
-    is_expanded: bool,
-    is_affix: bool,
-) -> Result<(), std::io::Error> {
-    let mut li = String::from("<li class=\"chapter-item ");
-    if is_expanded {
-        li.push_str("expanded ");
-    }
-    if is_affix {
-        li.push_str("affix ");
-    }
-    li.push_str("\">");
-    out.write(&li)
+    data
 }
