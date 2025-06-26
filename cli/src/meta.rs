@@ -51,7 +51,7 @@ pub struct BookMeta {
     ///
     /// ## Example
     ///
-    /// ```
+    /// ```plain
     /// https://github.com/Me/Book/edit/main/path/to/book/{path}
     /// ```
     pub repository_edit: String,
