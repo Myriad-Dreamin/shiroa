@@ -663,7 +663,7 @@ impl Project {
             BookMetaContent::PlainText { content } => content.clone(),
             BookMetaContent::Raw { content } => {
                 if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
-                    return format!("{}", c);
+                    return format!("{c}");
                 }
 
                 warn!("unevaluated {content:#?}");

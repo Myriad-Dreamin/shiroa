@@ -65,7 +65,7 @@ impl SearchRenderer {
         write_file(dest_dir.join("searchindex.json"), index.as_bytes())?;
         write_file(
             dest_dir.join("searchindex.js"),
-            format!("Object.assign(window.search, {});", index).as_bytes(),
+            format!("Object.assign(window.search, {index});").as_bytes(),
         )?;
 
         Ok(())

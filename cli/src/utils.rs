@@ -31,7 +31,7 @@ pub fn async_continue<F: std::future::Future<Output = ()>>(f: F) -> ! {
 pub fn exit_with_error<E: std::error::Error>(err: E) -> ! {
     clap::Error::raw(
         clap::error::ErrorKind::ValueValidation,
-        format!("shiroa error: {}", err),
+        format!("shiroa error: {err}"),
     )
     .exit()
 }
@@ -130,7 +130,7 @@ fn release_packages_inner(world: &mut TypstSystemWorld, pkg: include_dir::Dir, n
     let name = get_string(pkg_info.get("name").unwrap());
     let version = get_string(pkg_info.get("version").unwrap());
 
-    let pkg_dirname = format!("{}/{}", name, version);
+    let pkg_dirname = format!("{name}/{version}");
 
     let local_path = world.registry.local_path().unwrap();
     let pkg_link_target = make_absolute(&local_path.join("preview").join(&pkg_dirname));
