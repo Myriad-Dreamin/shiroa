@@ -1,28 +1,17 @@
 use std::convert::Infallible;
-use std::future::Future;
 use std::net::SocketAddr;
 use std::path::Path;
-use std::pin::Pin;
 
 use crate::project::{ServeEvent, WatchSignal};
 use crate::tui_hint;
 use crate::{project::Project, ServeArgs};
-use axum::extract::Request;
-use axum::http::Uri;
-use axum::response::sse::{Event, KeepAlive};
-use axum::response::{IntoResponse, Response};
-use axum::routing::get;
-use axum::Router;
 use notify::Watcher;
 use reflexo_typst::error::prelude::*;
 use reflexo_typst::ImmutStr;
+use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
-use tokio_util::io::ReaderStream;
-use tower::ServiceBuilder;
-use tower_http::compression::CompressionLayer;
-use tower_http::decompression::RequestDecompressionLayer;
-use tower_http::services::{ServeDir, ServeFile};
-use tower_http::ServiceExt;
+use warp::Filter;
+use warp::Reply;
 
 const LIVE_RELOAD_SERVER_EVENT: &str = r#"
 <script>
@@ -63,6 +52,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
 
     let (hb_tx, hb_rx) = tokio::sync::mpsc::unbounded_channel();
     let (backend_tx, _) = tokio::sync::broadcast::channel(128);
+    let btx = backend_tx.clone();
 
     // watch theme files
     let mut _watcher_stack = None;
@@ -91,61 +81,68 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         _watcher_stack = Some(watcher);
     }
 
-    let tx = backend_tx.clone();
-    let server = Router::new()
-        .nest_service("/dev", ServeDir::new(""))
-        .route(
-            "/live-reload",
-            get(async move || {
-                let mut backend_rx = tx.subscribe();
-                axum::response::sse::Sse::new(async_stream::stream! {
-                    while let Ok(WatchSignal::Reload) = backend_rx.recv().await {
-                        yield Ok::<Event, Infallible>(Event::default().data("reload"));
-                    }
-                })
-                .keep_alive(KeepAlive::default())
-            }),
-        )
-        .route(
-            "/heartbeat",
-            get(async move |uri: Uri| {
-                // get location from query params
-                let path: ImmutStr = uri
-                    .query()
-                    .and_then(|q| {
-                        url::form_urlencoded::parse(q.as_bytes())
-                            .find(|(k, _)| k == "location")
-                            .map(|(_, v)| v)
-                    })
-                    .map(|s| s.to_string())
-                    .unwrap_or_else(|| "index.html".to_string())
-                    .into();
-                let _ = hb_tx.send(ServeEvent::HoldPath(path.clone(), true));
-                tokio::spawn(async move {
-                    // Simulate some work
-                    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-                    let _ = hb_tx.send(ServeEvent::HoldPath(path, false));
-                });
+    #[derive(Serialize, Deserialize)]
+    struct LocationQuery {
+        location: String,
+    }
 
-                Response::builder()
-                    .status(200)
-                    .body(axum::body::Body::empty())
-                    .unwrap()
-            }),
-        )
-        .fallback_service(FileService::new(dest_dir))
-        .layer(
-            ServiceBuilder::new()
-                .layer(RequestDecompressionLayer::new())
-                .layer(CompressionLayer::new()),
-        );
+    let live_reload = warp::path("live-reload").and(warp::get()).map(move || {
+            let mut backend_rx = btx.subscribe();
+            warp::sse::reply(warp::sse::keep_alive().stream(async_stream::stream! {
+                while let Ok(WatchSignal::Reload) = backend_rx.recv().await {
+                    tui_hint!("Live reload triggered");
+                    yield Ok::<warp::sse::Event, Infallible>(warp::sse::Event::default().data("reload"));
+                }
+            }))
+        });
+    let heartbeat = warp::path("heartbeat")
+        .and(warp::get())
+        .and(warp::query::<LocationQuery>())
+        .map(move |query: LocationQuery| {
+            let location = ImmutStr::from(query.location);
+            let _ = hb_tx.send(ServeEvent::HoldPath(location.clone(), true));
+            let hb_tx = hb_tx.clone();
+            tokio::spawn(async move {
+                // Simulate some work
+                tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+                let _ = hb_tx.send(ServeEvent::HoldPath(location, false));
+            });
+            warp::reply::with_status("", warp::http::StatusCode::OK)
+        });
+    let fallback = warp::fs::dir(dest_dir).map(|reply: warp::filters::fs::File| {
+        if reply.path().extension().is_some_and(|ext| ext == "html") {
+            let file = match std::fs::File::open(reply.path()) {
+                Ok(file) => file,
+                Err(e) => {
+                    tui_hint!("Failed to open file: {e}");
+                    return warp::reply::with_status(
+                        "File not found",
+                        warp::http::StatusCode::NOT_FOUND,
+                    )
+                    .into_response();
+                }
+            };
+            let body = tokio::fs::File::from_std(file);
 
-    let listener = tokio::net::TcpListener::bind(http_addr)
-        .await
-        .context("failed to bind address")?;
-    let addr = listener
-        .local_addr()
-        .context("failed to get local address")?;
+            let stream =
+                tokio_util::io::ReaderStream::new(body.chain(LIVE_RELOAD_SERVER_EVENT.as_bytes()));
+
+            let mut resp = warp::reply::Response::new(warp::hyper::body::Body::wrap_stream(stream));
+            resp.headers_mut()
+                .insert("Content-Type", "text/html".parse().unwrap());
+            resp
+        } else {
+            reply.into_response()
+        }
+    });
+
+    let server = live_reload.boxed().or(heartbeat
+        .boxed()
+        .or(fallback.boxed())
+        .or(warp::path("dev").and(warp::fs::dir("")))
+        .with(warp::compression::gzip()));
+
+    let (addr, server) = warp::serve(server).bind_ephemeral(http_addr);
     tui_hint!("Server started at http://{addr}");
 
     // Build the book if it hasn't been built yet
@@ -153,79 +150,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         tokio::spawn(async move { proj.watch(hb_rx, backend_tx, Some(addr)).await });
     };
 
-    axum::serve(listener, server)
-        .await
-        .context("failed to serve")?;
+    server.await;
 
     Ok(())
-}
-
-#[derive(Debug, Clone)]
-struct FileService {
-    dest_dir: std::path::PathBuf,
-}
-
-impl FileService {
-    pub fn new(dest_dir: std::path::PathBuf) -> Self {
-        Self { dest_dir }
-    }
-}
-
-type FileFuture = Pin<Box<dyn Future<Output = Result<Response, Infallible>> + Send>>;
-
-impl tower::Service<Request<axum::body::Body>> for FileService {
-    type Response = Response;
-    type Error = Infallible;
-    type Future = FileFuture;
-
-    fn poll_ready(
-        &mut self,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), Self::Error>> {
-        std::task::Poll::Ready(Ok(()))
-    }
-
-    fn call(&mut self, req: Request<axum::body::Body>) -> Self::Future {
-        let path = req.uri().path().trim_start_matches('/');
-        let mut path = self.dest_dir.join(path);
-
-        if path.is_dir() {
-            path = path.join("index.html");
-        }
-
-        if path.extension().and_then(|s| s.to_str()) == Some("html") {
-            Box::pin(async move {
-                let file = match tokio::fs::File::open(&path)
-                    .await
-                    .context("failed to open file")
-                {
-                    Ok(file) => tokio::io::BufReader::new(file),
-                    Err(e) => {
-                        tui_hint!("Failed to open file: {e}");
-                        return Ok(Response::builder()
-                            .status(404)
-                            .body(axum::body::Body::empty())
-                            .unwrap()
-                            .into_response());
-                    }
-                };
-                let body = axum::body::Body::from_stream(ReaderStream::new(
-                    file.chain(LIVE_RELOAD_SERVER_EVENT.as_bytes()),
-                ));
-
-                Ok(Response::builder()
-                    .status(200)
-                    .header("Content-Type", "text/html; charset=utf-8")
-                    .body(body)
-                    .unwrap()
-                    .into_response())
-            }) as FileFuture
-        } else {
-            Box::pin(
-                ServeFile::new(path)
-                    .map_response_body(axum::body::Body::new)
-                    .call(req),
-            )
-        }
-    }
 }
