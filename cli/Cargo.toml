@@ -18,7 +18,6 @@ doc = false
 
 [dependencies]
 
-axum.workspace = true
 clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true
@@ -38,12 +37,11 @@ serde_json.workspace = true
 termcolor.workspace = true
 toml.workspace = true
 tokio.workspace = true
-tower = { version = "0.5.2", features = ["util"] }
-tower-http = { version = "0.6.1", features = [
-    "fs",
-    "compression-gzip",
-    "decompression-gzip",
-] }
+# console-subscriber = { version = "0.4", optional = true }
+warp.workspace = true
+async-stream = "0.3"
+tokio-util = "0.7.10"
+notify = "6"
 url.workspace = true
 
 reflexo-typst = { workspace = true, features = [

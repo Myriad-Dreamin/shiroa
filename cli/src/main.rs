@@ -1,19 +1,13 @@
-use std::{net::SocketAddr, path::Path, process::exit};
+use std::{path::Path, process::exit};
 
-use axum::Router;
 use clap::{Args, Command, FromArgMatches};
 use reflexo_typst::path::{unix_slash, PathClean};
 use shiroa::{
     error::prelude::*,
     project::Project,
-    tui_hint,
     utils::{async_continue, create_dirs, make_absolute, write_file, UnwrapOrExit},
     version::intercept_version,
     BuildArgs, InitArgs, Opts, ServeArgs, Subcommands,
-};
-use tower::ServiceBuilder;
-use tower_http::{
-    compression::CompressionLayer, decompression::RequestDecompressionLayer, services::ServeDir,
 };
 
 fn get_cli(sub_command_required: bool) -> Command {
@@ -192,41 +186,6 @@ fn build(args: BuildArgs) -> Result<()> {
 }
 
 pub async fn serve(args: ServeArgs) -> Result<()> {
-    let mut proj = Project::new(args.compile)?;
-
-    let http_addr: SocketAddr = args
-        .addr
-        .clone()
-        .parse()
-        .map_err(map_string_err("ParseServeAddr"))?;
-
-    // run our app with hyper, listening globally on port 3000
-    let dest_dir = proj.dest_dir.clone();
-    let server = Router::new()
-        .nest_service("/dev", ServeDir::new(""))
-        .fallback_service(ServeDir::new(dest_dir))
-        .layer(
-            ServiceBuilder::new()
-                .layer(RequestDecompressionLayer::new())
-                .layer(CompressionLayer::new()),
-        );
-
-    let listener = tokio::net::TcpListener::bind(http_addr)
-        .await
-        .context("failed to bind address")?;
-    let addr = listener
-        .local_addr()
-        .context("failed to get local address")?;
-    tui_hint!("Server started at http://{addr}");
-
-    // Build the book if it hasn't been built yet
-    if !args.no_build {
-        tokio::spawn(async move { proj.watch(Some(addr)).await });
-    };
-
-    axum::serve(listener, server)
-        .await
-        .context("failed to serve")?;
-
+    shiroa::serve(args).await?;
     exit(0);
 }

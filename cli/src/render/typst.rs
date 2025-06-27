@@ -715,7 +715,7 @@ impl TypstRenderTask {
                             format!("{link_path}.{theme}.multi.sir.in", theme = self.theme),
                             prefix.finalize(origin),
                         );
-                        *link = Some(format!("{}.typ", link_path));
+                        *link = Some(format!("{link_path}.typ"));
                     }
 
                     *numbering.last_mut().unwrap() += 1;

@@ -1,9 +1,12 @@
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use handlebars::Handlebars;
 use log::debug;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
-use reflexo_typst::escape::{escape_str, AttributeEscapes};
+use reflexo_typst::{
+    escape::{escape_str, AttributeEscapes},
+    ImmutStr,
+};
 use serde_json::json;
 
 use crate::{
@@ -49,6 +52,7 @@ impl HtmlRenderer {
                 &theme.typst_load_html_trampoline,
             ),
         ] {
+            // todo: very expensive... mdbook you.
             handlebars
                 .register_template_string(name, String::from_utf8(partial.clone()).unwrap())
                 .unwrap();
@@ -70,6 +74,7 @@ impl HtmlRenderer {
         &self,
         ctx: HtmlRenderContext,
         chapters: &[DataDict],
+        filter: &BTreeMap<ImmutStr, usize>,
         compiler: impl Fn(&str) -> Result<ChapterArtifact> + Send + Sync,
     ) -> Result<()> {
         chapters
@@ -80,13 +85,18 @@ impl HtmlRenderer {
                     let raw_path: String = serde_json::from_value(path.clone()).map_err(
                         error_once_map_string!("retrieve path in book.toml", value: path),
                     )?;
+
+                    if !filter.is_empty() && !filter.contains_key(raw_path.as_str()) {
+                        return Ok(());
+                    }
+
                     let path = ctx.dest_dir.join(&raw_path);
 
                     let instant = std::time::Instant::now();
                     log::info!("rendering chapter {raw_path}");
 
                     // Compiles the chapter
-                    let art = compiler(&raw_path)?;
+                    let art: ChapterArtifact = compiler(&raw_path)?;
 
                     let content = self.render_chapter(&ctx, art, ch, &raw_path)?;
 

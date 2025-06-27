@@ -1,5 +1,6 @@
 use core::fmt;
 use std::{
+    collections::BTreeMap,
     net::SocketAddr,
     path::{Path, PathBuf},
     sync::Mutex,
@@ -8,13 +9,14 @@ use std::{
 use include_dir::include_dir;
 use log::warn;
 use reflexo_typst::{
+    path::unix_slash,
     static_html,
-    vfs::{notify::NotifyMessage, FsProvider},
-    watch_deps, CompilerExt, TypstDocument, WorldDeps,
+    vfs::{notify::NotifyMessage, FilesystemEvent, FsProvider},
+    watch_deps, CompilerExt, ImmutStr, TypstDocument, WorldDeps,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tokio::sync::mpsc;
+use tokio::sync::{broadcast, mpsc};
 use typst::foundations::Content;
 
 use crate::{
@@ -280,28 +282,128 @@ impl Project {
         Ok(())
     }
 
-    pub async fn watch(&mut self, addr: Option<SocketAddr>) {
+    pub(crate) async fn watch(
+        &mut self,
+        // active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
+        mut hb_rx: mpsc::UnboundedReceiver<ServeEvent>,
+        tx: broadcast::Sender<WatchSignal>,
+        addr: Option<SocketAddr>,
+    ) {
         let _ = self.build();
         let (dep_tx, dep_rx) = mpsc::unbounded_channel();
         let (fs_tx, mut fs_rx) = mpsc::unbounded_channel();
         tokio::spawn(watch_deps(dep_rx, move |event| {
             fs_tx.send(event).unwrap();
         }));
+
+        let mut active_files: BTreeMap<ImmutStr, usize> = BTreeMap::new();
         loop {
-            // Notify the new file dependencies.
-            let mut deps = vec![];
+            enum WatchEvent {
+                Fs(FilesystemEvent),
+                Serve(ServeEvent),
+            }
+
+            let event = tokio::select! {
+                event = fs_rx.recv() => {
+                    match event {
+                        Some(e) => WatchEvent::Fs(e),
+                        None => break,
+                    }
+                }
+               Some(c) = hb_rx.recv() => WatchEvent::Serve(c),
+            };
+
+            // todo: reset_snapshot looks not good
+
+            let is_heartbeat = matches!(event, WatchEvent::Serve(ServeEvent::HoldPath(..)));
+            match event {
+                WatchEvent::Fs(event) => {
+                    self.tr.reset_snapshot();
+                    self.tr.universe_mut().increment_revision(|verse| {
+                        verse.vfs().notify_fs_event(event);
+                    });
+
+                    let _ = tui::clear();
+                    let _ = self.build_meta();
+                }
+                WatchEvent::Serve(ServeEvent::ThemeChange(themes)) => {
+                    if !self
+                        .theme
+                        .reload(Path::new(self.args.theme.as_ref().unwrap()), themes)
+                    {
+                        continue;
+                    }
+                    tui_info!("Theme files changed");
+                    // Create a new HtmlRenderer with the updated theme
+                    self.hr = HtmlRenderer::new(&self.theme);
+
+                    let _ = tui::clear();
+                    let _ = self.build_meta();
+                }
+                WatchEvent::Serve(ServeEvent::HoldPath(path, inc)) => {
+                    let path = if path.as_ref() == "/" || path.is_empty() {
+                        if let Some(f) = self.chapters.first() {
+                            f.get("path").unwrap().as_str().unwrap().into()
+                        } else {
+                            continue;
+                        }
+                    } else if path.ends_with(".html") {
+                        let path = path.trim_start_matches('/');
+                        let typ_path = PathBuf::from(path);
+                        unix_slash(&typ_path.with_extension("typ")).into()
+                    } else {
+                        path
+                    };
+
+                    let active_files = &mut active_files;
+                    let mut changed = false;
+                    if inc {
+                        *active_files.entry(path).or_insert_with(|| {
+                            changed = true;
+                            0
+                        }) += 1;
+                    } else {
+                        let count = active_files.entry(path);
+                        // erase if the count is 1, otherwise decrement
+                        match count {
+                            std::collections::btree_map::Entry::Occupied(mut e) => {
+                                if *e.get() > 1 {
+                                    *e.get_mut() -= 1;
+                                } else {
+                                    changed = true;
+                                    e.remove();
+                                }
+                            }
+                            std::collections::btree_map::Entry::Vacant(_) => {}
+                        }
+                    }
+
+                    if !changed {
+                        // No changes, skip recompilation
+                        continue;
+                    }
+
+                    let _ = tui::clear();
+                    tui_info!("Recompiling changed chapters: {active_files:?}");
+
+                    let _ = self.build_meta();
+                }
+            }
+
             let snap = self.tr.snapshot();
             let mut world = snap.world.clone();
+
+            let _ = self.compile_once(&active_files, SearchRenderer::new(&self.html_meta));
+
+            // Notify the new file dependencies.
+            let mut deps = vec![];
             world.iter_dependencies(&mut |dep| {
                 if let Ok(x) = world.file_path(dep).and_then(|e| e.to_err()) {
                     deps.push(x.into())
                 }
             });
-            tui_info!("Watching {} files for changes...", deps.len());
-            if let Some(addr) = &addr {
-                tui_hint!("Server started at http://{addr}");
-            }
 
+            tui_info!("Watching {} files for changes...", deps.len());
             let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
 
             if self.need_compile() {
@@ -310,26 +412,19 @@ impl Project {
                 world.evict_vfs(60);
             }
 
-            let Some(event) = fs_rx.recv().await else {
-                break;
-            };
-
-            let _ = tui::clear();
-
-            // todo: reset_snapshot looks not good
-            self.tr.reset_snapshot();
-            self.tr.universe_mut().increment_revision(|verse| {
-                verse.vfs().notify_fs_event(event);
-            });
-            let _ = self.build_meta();
-            let _ = self.compile_once(SearchRenderer::new(&self.html_meta));
+            if !is_heartbeat {
+                let _ = tx.send(WatchSignal::Reload);
+            }
+            if let Some(addr) = &addr {
+                tui_hint!("Server started at http://{addr}");
+            }
         }
     }
 
     pub fn build(&mut self) -> Result<()> {
         let sr = SearchRenderer::new(&self.html_meta);
         self.extract_assets(&sr)?;
-        self.compile_once(sr)?;
+        self.compile_once(&Default::default(), sr)?;
 
         Ok(())
     }
@@ -337,10 +432,10 @@ impl Project {
     fn extract_assets(&mut self, sr: &SearchRenderer) -> Result<()> {
         // Always update the theme if it is static
         // Or copy on first build
-        let themes = self.dest_dir.join("theme");
-        if self.theme.is_static() || !themes.exists() {
-            log::info!("copying theme assets to {themes:?}");
-            self.theme.copy_assets(&themes)?;
+        let theme_dir = self.dest_dir.join("theme");
+        if self.theme.is_static() || !theme_dir.exists() {
+            log::info!("copying theme assets to {theme_dir:?}");
+            self.theme.copy_assets(&theme_dir)?;
         }
 
         // copy internal files
@@ -376,7 +471,11 @@ impl Project {
         Ok(())
     }
 
-    fn compile_once(&mut self, mut sr: SearchRenderer) -> Result<()> {
+    fn compile_once(
+        &mut self,
+        ac: &BTreeMap<ImmutStr, usize>,
+        mut sr: SearchRenderer,
+    ) -> Result<()> {
         self.prepare_chapters();
 
         let serach_ctx = SearchCtx {
@@ -483,6 +582,7 @@ impl Project {
                 dest_dir: &self.dest_dir,
             },
             &self.chapters, // todo: only render changed
+            ac,
             |path| self.compile_chapter(path),
         )?;
 
@@ -563,7 +663,7 @@ impl Project {
             BookMetaContent::PlainText { content } => content.clone(),
             BookMetaContent::Raw { content } => {
                 if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
-                    return format!("{}", c);
+                    return format!("{c}");
                 }
 
                 warn!("unevaluated {content:#?}");
@@ -707,4 +807,15 @@ impl Project {
 pub struct ChapterArtifact {
     pub description: String,
     pub content: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum ServeEvent {
+    ThemeChange(Vec<PathBuf>),
+    HoldPath(ImmutStr, bool),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum WatchSignal {
+    Reload,
 }
