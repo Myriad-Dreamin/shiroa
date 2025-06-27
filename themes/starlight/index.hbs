@@ -173,15 +173,15 @@
             html.classList.add("sidebar-" + sidebar);
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        {{!-- <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
                 {{#toc}}{{/toc}}
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
-        </nav>
+        </nav> --}}
 
         <!-- Track and set sidebar scroll position -->
-        <script>
+        {{!-- <script>
             var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
             sidebarScrollbox.addEventListener('click', function (e) {
                 if (e.target.tagName === 'A') {
@@ -200,7 +200,7 @@
                     activeSection.scrollIntoView({ block: 'center' });
                 }
             }
-        </script>
+        </script> --}}
 
         <div id="page-wrapper" class="page-wrapper">
 
@@ -270,14 +270,14 @@
                 </div>
                 {{/if}}
 
-                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                {{!-- <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
                     Array.from(document.querySelectorAll('#sidebar a')).forEach(function (link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
-                </script>
+                </script> --}}
 
                 <div id="content" class="content">
                     <main>
