@@ -18,7 +18,6 @@ doc = false
 
 [dependencies]
 
-axum = { workspace = true, features = ["tokio"] }
 clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true
