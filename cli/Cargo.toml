@@ -37,7 +37,7 @@ serde_json.workspace = true
 termcolor.workspace = true
 toml.workspace = true
 tokio.workspace = true
-console-subscriber = { version = "0.4", optional = true }
+# console-subscriber = { version = "0.4", optional = true }
 warp.workspace = true
 async-stream = "0.3"
 tokio-util = "0.7.10"
@@ -62,4 +62,3 @@ vergen-gitcl.workspace = true
 [features]
 embedded-fonts = ["typst-assets/fonts"]
 default = ["embedded-fonts"]
-tokio-console = ["console-subscriber"]

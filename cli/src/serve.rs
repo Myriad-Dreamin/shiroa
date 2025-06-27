@@ -38,8 +38,8 @@ const LIVE_RELOAD_SERVER_EVENT: &str = r#"
 
 // todo: clean code here, but I'm tired.
 pub async fn serve(args: ServeArgs) -> Result<()> {
-    #[cfg(feature = "tokio-console")]
-    console_subscriber::init();
+    // #[cfg(feature = "tokio-console")]
+    // console_subscriber::init();
 
     let mut proj = Project::new(args.compile)?;
 
