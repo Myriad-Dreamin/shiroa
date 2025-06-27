@@ -3,3 +3,6 @@
 	url = https://github.com/Myriad-Dreamin/typst/
 	branch = shiroa-v0.3.1
 	shallow = true
+[submodule "typ"]
+	path = typ
+	url = https://github.com/Myriad-Dreamin/typ.git
