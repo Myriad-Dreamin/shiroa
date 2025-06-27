@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Introduction")
 
-= Introduction
-
 *shiroa* (_Shiro A_, or _The White_, or _云笺_) is a simple tool for creating modern online (cloud) books in pure typst. It has similar use cases as #link("https://rust-lang.github.io/mdBook/index.html")[mdBook], which is ideal for creating product or API documentation, tutorials, course materials or anything that requires a clean, easily navigable and customizable presentation.
 
 *shiroa* is heavily inspired by mdBook, but it is considered to be more adapted to Typst style, hence no guarantee of compatibility with mdBook. Compared with mdBook, we utilizes typst's advantages to bring a more flexible writing experience, such as #link("https://typst.app/docs/reference/scripting/")[scripting] and #link("https://typst.app/docs/packages/")[package].
