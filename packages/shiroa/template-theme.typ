@@ -51,3 +51,94 @@
     code-extra-colors: code-extra-colors,
   )
 }
+
+#let theme-box-styles-from(
+  preset,
+  xml: xml,
+  target: target,
+  light-theme: none,
+  dark-theme: none,
+) = {
+  let sys-is-html-target = ("target" in dictionary(std))
+
+  if light-theme == none {
+    for (name, it) in preset.pairs() {
+      if it.at("color-scheme") == "light" {
+        light-theme = name
+      }
+    }
+  }
+  if dark-theme == none {
+    for (name, it) in preset.pairs() {
+      if it.at("color-scheme") == "dark" and dark-theme != "ayu" {
+        dark-theme = name
+      }
+    }
+  }
+
+  if light-theme == none {
+    light-theme = "light"
+  }
+  if dark-theme == none {
+    dark-theme = "dark"
+  }
+
+  // Theme (Colors)
+  let dark-theme = book-theme-from(preset, xml: xml, target: "web-" + dark-theme)
+  let light-theme = book-theme-from(
+    preset,
+    xml: xml,
+    target: if sys-is-html-target { "web-" + light-theme } else { "pdf" },
+  )
+  let default-theme = book-theme-from(preset, xml: xml, target: target)
+
+  (
+    dark-theme: dark-theme,
+    light-theme: light-theme,
+    default-theme: default-theme,
+  )
+}
+
+
+#let theme-box(render, tag: "div", themes: none, class: none, theme-tag: none) = {
+  let (
+    dark-theme: dark-theme,
+    light-theme: light-theme,
+    default-theme: default-theme,
+  ) = themes
+  let is-md-target = target == "md"
+  let sys-is-html-target = ("target" in dictionary(std))
+
+  if is-md-target {
+    show: html.elem.with(tag)
+    show: html.elem.with("picture")
+    html.elem(
+      "m1source",
+      attrs: (media: "(prefers-color-scheme: dark)"),
+      render(dark-theme),
+    )
+    render(light-theme)
+  } else if sys-is-html-target {
+    if theme-tag == none {
+      theme-tag = tag
+    }
+    html.elem(
+      tag,
+      attrs: (class: "code-image themed" + if class != none { " " + class }),
+      {
+        html.elem(
+          theme-tag,
+          render(dark-theme),
+          attrs: (class: "dark"),
+        )
+        html.elem(
+          theme-tag,
+          render(light-theme),
+          attrs: (class: "light"),
+        )
+      },
+    )
+  } else {
+    render(default-theme)
+  }
+}
