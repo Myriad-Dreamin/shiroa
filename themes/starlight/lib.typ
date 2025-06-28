@@ -26,7 +26,7 @@
   },
   right-group: none,
 ) = {
-  import "/typ/packages/html-bindings-h.typ": span
+  import "html-bindings-h.typ": span
 
   show: set-slot("main-title", html.elem("h1", title))
   show: set-slot("main-content", body)
