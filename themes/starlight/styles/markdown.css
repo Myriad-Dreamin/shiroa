@@ -1,22 +1,55 @@
 @layer starlight.content {
-	.sl-markdown-content
-		:not(a, strong, em, del, span, input, code, br)
-		+ :not(a, strong, em, del, span, input, code, br, :where(.not-content *)) {
-		margin-top: 1rem;
+    .sl-markdown-content .sl-heading-wrapper {
+		display: flex;
+        --sl-anchor-icon-size: .8275em;
+        --sl-anchor-icon-gap: .25em;
+        --sl-anchor-icon-space: calc(var(--sl-anchor-icon-size) + var(--sl-anchor-icon-gap));
+        line-height: var(--sl-line-height-headings)
+    }
+
+    .sl-markdown-content .sl-heading-wrapper.level-h1 {
+        font-size: var(--sl-text-h1)
+    }
+    .sl-markdown-content .sl-heading-wrapper.level-h2 {
+        font-size: var(--sl-text-h2)
+    }
+    .sl-markdown-content .sl-heading-wrapper.level-h3 {
+        font-size: var(--sl-text-h3)
+    }
+    .sl-markdown-content .sl-heading-wrapper.level-h4 {
+        font-size: var(--sl-text-h4)
+    }
+    .sl-markdown-content .sl-heading-wrapper.level-h5 {
+        font-size: var(--sl-text-h5)
+    }
+    .sl-markdown-content .sl-heading-wrapper.level-h6 {
+        font-size: var(--sl-text-h6)
+    }
+
+	.sl-heading-anchor {
+		padding-left: 0.5rem;
 	}
 
-	/* Headings after non-headings have more spacing. */
-	.sl-markdown-content
-		:not(h1, h2, h3, h4, h5, h6)
-		+ :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content *)) {
-		margin-top: 1.5em;
+	.sl-heading-wrapper .sl-heading-anchor{
+		opacity: 0%;
+	}
+
+	.sl-heading-wrapper:hover .sl-heading-anchor {
+		opacity: 100%;
 	}
 
 	.sl-markdown-content li + li:not(:where(.not-content *)),
 	.sl-markdown-content dt + dt:not(:where(.not-content *)),
 	.sl-markdown-content dt + dd:not(:where(.not-content *)),
 	.sl-markdown-content dd + dd:not(:where(.not-content *)) {
-		margin-top: 0.25rem;
+		margin-block-start: 0.25rem;
+	}
+
+	/* Headings after non-headings have more spacing. */
+	.sl-markdown-content
+		:is(h1, h2, h3, h4, h5, h6, .sl-heading-wrapper)
+		+ :is(h1, h2, h3, h4, h5, h6, .sl-heading-wrapper):not(.not-content):not(:where(.not-content *)) {
+		margin-top: 0.5em;
 	}
 
 	.sl-markdown-content li:not(:where(.not-content *)) {
@@ -242,4 +275,19 @@
 		--sl-details-border-color: var(--sl-color-asides-border);
 		--sl-details-border-color--hover: var(--sl-color-asides-text-accent);
 	}
+	
+	.code-image.themed .light {
+		display: none;
+	}
+	.code-image.themed .dark {
+		display: initial;
+	}
+	:root[data-theme='light'] .code-image.themed .light{
+		display: initial;
+	}
+
+	:root[data-theme='light'] .code-image.themed .dark {
+		display: none;
+	}
+
 }

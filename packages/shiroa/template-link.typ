@@ -61,3 +61,27 @@
     }
   }
 }
+
+/// Alternative resolves all heading as static link
+///
+/// - `elem`(content): The heading element to resolve
+#let static-heading-link(elem, body: "#", canonical: false) = context {
+  let id = {
+    let title = plain-text(elem).trim()
+    "label-"
+    str(
+      make-unique-label(
+        title,
+        disambiguator: label-disambiguator.at(elem.location()).at(title, default: 0) + 1,
+      ),
+    )
+  }
+  html.elem(
+    "a",
+    attrs: (
+      "href": "#" + id,
+      ..if canonical { ("id": id, "data-typst-label": id) },
+    ),
+    body,
+  )
+}

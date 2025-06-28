@@ -8,10 +8,28 @@
   nav.with(class: "sidebar")({
     // MobileMenuToggle
     div.with(id: "starlight__sidebar", class: "sidebar-pane")({
-      div(class: "sidebar-content sl-flex", virt-slot("sidebar"))
+      div(class: "sidebar-content sl-flex", include "page-sidebar.typ")
     })
   })
-  div(class: "main-frame", virt-slot("body"))
+  div(
+    class: "main-frame",
+    div.with(class: "lg:sl-flex")({
+      {
+        if has-toc {
+          h.aside.with(
+            class: "right-sidebar-container",
+            data-has-toc: "",
+          )({
+            div.with(class: "right-sidebar")({
+              include "page-right-sidebar.typ"
+            })
+          })
+        }
+
+        div(class: "main-pane", include "page-main.typ")
+      }
+    }),
+  )
 })
 
 #add-style(```css

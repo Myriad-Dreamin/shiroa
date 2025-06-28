@@ -3,8 +3,6 @@
 
 #let cssList = ();
 
-#let has-toc = true;
-
 // ---
 
 #h.html.with(
@@ -15,25 +13,6 @@
 )({
   include "head.typ"
   h.body({
-    show: set-slot(
-      "body",
-      div.with(class: "lg:sl-flex")({
-        {
-          if has-toc {
-            h.aside.with(
-              class: "right-sidebar-container",
-              data-has-toc: "",
-            )({
-              div.with(class: "right-sidebar")({
-                include "page-sidebar.typ"
-              })
-            })
-          }
-
-          div(class: "main-pane", include "page-main.typ")
-        }
-      }),
-    )
     include "page.typ"
   })
 })
@@ -68,7 +47,7 @@
       width: 100%;
     }
 
-    :global([data-has-sidebar][data-has-toc]) .main-pane {
+    :root[data-has-sidebar][data-has-toc] .main-pane {
       --sl-content-margin-inline: auto 0;
 
       order: 1;
@@ -79,3 +58,5 @@
   }
 }
 ```)
+
+// todo: global([data-has-sidebar][data-has-toc]) v.s. :root[data-has-sidebar][data-has-toc]

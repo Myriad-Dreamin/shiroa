@@ -12,6 +12,8 @@
 )
 #import templates: *
 
+#let is-starlight-theme = true
+
 // Metadata
 #let page-width = get-page-width()
 #let is-html-target = is-html-target()
@@ -70,6 +72,59 @@
   (26pt, 22pt, 14pt, 12pt, main-size)
 }
 #let list-indent = 0.5em
+#let in-heading = state("shiroa:in-heading", false)
+
+#let mdbook-heading-rule(it) = {
+  let it = {
+    set text(size: heading-sizes.at(it.level))
+    if is-web-target {
+      heading-hash(it, hash-color: dash-color)
+    }
+
+    in-heading.update(true)
+    it
+    in-heading.update(false)
+  }
+
+  block(
+    spacing: 0.7em * 1.5 * 1.2,
+    below: 0.7em * 1.2,
+    it,
+  )
+}
+
+#let starlight-heading-rule(it) = context if shiroa-sys-target() == "html" {
+  // // Render a dash to hint headings instead of bolding it as well.
+  // show link: static-heading-link(it)
+  // // Render the heading hash
+  // heading-hash(it, hash-color: dash-color)
+
+  import "/themes/starlight/main.typ": builtin-icon
+
+  in-heading.update(true)
+  html.elem("div", attrs: (class: "sl-heading-wrapper level-h" + str(it.level + 1)))[
+    #it
+    #html.elem(
+      "h" + str(it.level + 1),
+      attrs: (class: "sl-heading-anchor not-content", role: "presentation"),
+      static-heading-link(it, body: builtin-icon("anchor"), canonical: true),
+    )
+  ]
+  in-heading.update(false)
+} else {
+  let it = {
+    set text(size: heading-sizes.at(it.level))
+    in-heading.update(true)
+    it
+    in-heading.update(false)
+  }
+
+  block(
+    spacing: 0.7em * 1.5 * 1.2,
+    below: 0.7em * 1.2,
+    it,
+  )
+}
 
 #let markup-rules(body) = {
   // Set main spacing
@@ -87,21 +142,11 @@
   // Set text, spacing for headings
   // Render a dash to hint headings instead of bolding it as well if it's for web.
   show heading: set text(weight: "regular") if is-web-target
-  show heading: it => {
-    let it = {
-      set text(size: heading-sizes.at(it.level))
-      // todo: add me back in mdbook theme!!!
-      // if is-web-target {
-      //   heading-hash(it, hash-color: dash-color)
-      // }
-      it
-    }
-
-    block(
-      spacing: 0.7em * 1.5 * 1.2,
-      below: 0.7em * 1.2,
-      it,
-    )
+  // todo: add me back in mdbook theme!!!
+  show heading: if is-starlight-theme {
+    starlight-heading-rule
+  } else {
+    mdbook-heading-rule
   }
 
   // link setting
@@ -111,12 +156,20 @@
 }
 
 #let equation-rules(body) = {
+  let get-main-color(theme) = {
+    if is-starlight-theme and theme.is-dark and in-heading.get() {
+      white
+    } else {
+      theme.main-color
+    }
+  }
+
   show math.equation: set text(weight: 400)
   show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
     theme-box(
       tag: "div",
       theme => {
-        set text(fill: theme.main-color)
+        set text(fill: get-main-color(theme))
         p-frame(attrs: ("class": "block-equation", "role": "math"), it)
       },
     )
@@ -127,7 +180,7 @@
     theme-box(
       tag: "span",
       theme => {
-        set text(fill: theme.main-color)
+        set text(fill: get-main-color(theme))
         span-frame(attrs: (class: "inline-equation", "role": "math"), it)
       },
     )
@@ -171,12 +224,12 @@
   ) if is-web-target and not is-html-target
 
   show: if is-html-target {
-    it => {
-      import theme-path: set-slot
-      show: set-slot("main-title", html.elem("h1", title))
-      show: set-slot("main-content", it)
-      include theme-path
-    }
+    import "/themes/starlight/main.typ": starlight
+    starlight.with(
+      include "/github-pages/docs/book.typ",
+      title: title,
+      github-link: "https://github.com/Myriad-Dreamin/shiroa",
+    )
   } else {
     it => it
   }
@@ -204,6 +257,11 @@
     },
   )
 
+  // Main body.
+  set par(justify: true)
+
+  body
+
   // Put your custom CSS here.
   context if shiroa-sys-target() == "html" {
     html.elem(
@@ -218,14 +276,14 @@
         place-items: center;
         overflow-x: auto;
       }
+      .site-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        font-style: italic;
+      }
       ```.text,
     )
   }
-
-  // Main body.
-  set par(justify: true)
-
-  body
 }
 
 #let part-style = heading

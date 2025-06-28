@@ -19,7 +19,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
-    path::PathClean,
+    path::{unix_slash, PathClean},
     static_html,
     system::SystemWorldComputeGraph,
     vector::{
@@ -43,7 +43,8 @@ use tinymist_task::TextExport;
 use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
-    foundations::{IntoValue, Regex},
+    foundations::{IntoValue, Label, Regex, Selector},
+    utils::PicoStr,
 };
 // serialize_doc, LayoutRegionNode,
 
@@ -153,6 +154,8 @@ impl TypstRenderer {
             inputs: Some({
                 let mut dict = TypstDict::new();
                 dict.insert("x-target".into(), ctx.compiler.target.clone().into_value());
+                let current = unix_slash(&Path::new("/").join(path)).into_value();
+                dict.insert("x-current".into(), current);
                 Arc::new(LazyHash::new(dict))
             }),
         };
@@ -207,7 +210,7 @@ impl TypstRenderer {
         res.ok_or_else(|| error_once!("compile pages by outline"))
     }
 
-    pub fn compile_page(&self, path: &Path) -> Result<TypstDocument> {
+    pub fn compile_page(&self, path: &Path) -> Result<(TypstRenderTask, TypstDocument)> {
         self.compile_page_with(path, CompilePageSetting::default())
     }
 
@@ -215,32 +218,32 @@ impl TypstRenderer {
         &self,
         path: &Path,
         settings: CompilePageSetting,
-    ) -> Result<TypstDocument> {
+    ) -> Result<(TypstRenderTask, TypstDocument)> {
         if self.ctx.static_html && settings.with_outline {
             return Err(error_once!("outline is not supported in static paged mode"));
         }
 
         let task = self.spawn(path)?;
 
-        let doc = if self.ctx.static_html {
+        let doc = if task.ctx.static_html {
             TypstDocument::Html(task.pure_compile::<TypstHtmlDocument>()?)
         } else {
             TypstDocument::Paged(task.pure_compile::<TypstPagedDocument>()?)
         };
 
+        if task.ctx.static_html && {
+            let label = Selector::Label(Label::new(PicoStr::constant("keep-html")));
+            doc.introspector().query_first(&label).is_some()
+        } {
+            return Ok((task, doc));
+        }
+
         THEME_LIST
             .into_par_iter()
             .map(|theme| {
-                let mut task = self.spawn_with_theme(path, theme).unwrap_or_exit();
-                if task.ctx.static_html {
-                    task.compile_html_page_with().unwrap_or_exit();
-                } else {
-                    task.compile_paged_page_with(settings.clone())
-                        .unwrap_or_exit();
-                }
                 let mut task = self.spawn_with_theme(path, theme)?;
 
-                if self.ctx.static_html {
+                if task.ctx.static_html {
                     task.compile_html_page_with()?;
                 } else {
                     task.compile_paged_page_with(settings.clone())?;
@@ -250,7 +253,7 @@ impl TypstRenderer {
             })
             .collect::<Result<()>>()?;
 
-        Ok(doc)
+        Ok((task, doc))
     }
 
     pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
@@ -761,15 +764,13 @@ impl TypstRenderTask {
 
     pub fn compile_html_page_with(&mut self) -> Result<TypstDocument> {
         let doc = self.pure_compile::<TypstHtmlDocument>()?;
-
-        let html_doc = doc.as_ref();
-
         let res = self
-            .report(static_html(html_doc))
+            .report(static_html(&doc))
             .expect("failed to render static html");
+        let body = self.report(res.body()).expect("failed to render body");
 
         let dest = self.ctx.module_dest_path();
-        std::fs::write(&dest, res.body).unwrap_or_exit();
+        std::fs::write(&dest, body).unwrap_or_exit();
 
         Ok(TypstDocument::Html(doc.clone()))
     }

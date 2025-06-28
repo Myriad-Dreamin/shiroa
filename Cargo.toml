@@ -29,8 +29,10 @@ typst = "0.13.0"
 typst-eval = "0.13.0"
 typst-assets = "0.13.0"
 # typst-assets = { git = "https://github.com/typst/typst-assets", rev = "8cccef9" }
-reflexo-typst = { version = "0.6.0", features = ["html"] }
-reflexo-vec2svg = { version = "0.6.0", features = ["experimental-ligature"] }
+reflexo-typst = { version = "0.6.1-rc1", features = ["html"] }
+reflexo-vec2svg = { version = "0.6.1-rc1", features = [
+    "experimental-ligature",
+] }
 tinymist-task = { version = "0.13.12" }
 
 handlebars = "6.3.0"
@@ -82,8 +84,8 @@ typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typ
 typst-eval = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
 # typst-assets = { git = "https://github.com/typst/typst-assets", rev = "8cccef9" }
 
-# reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "0eee46894a09a4da5caff1610a3c99e8552bce86" }
-# reflexo-typst = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "0eee46894a09a4da5caff1610a3c99e8552bce86" }
+reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "a8132e5151435b9d51e76cb34b482acfd0526844" }
+reflexo-typst = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "a8132e5151435b9d51e76cb34b482acfd0526844" }
 
 typst-shim = { git = "https://github.com/Myriad-Dreamin/tinymist.git", rev = "0191e559789f313ad73610e8d173862ab801c47c" }
 tinymist-derive = { git = "https://github.com/Myriad-Dreamin/tinymist.git", rev = "0191e559789f313ad73610e8d173862ab801c47c" }

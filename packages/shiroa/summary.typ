@@ -195,7 +195,7 @@
     if link != none {
       let chapter-content = visit.at("inc")(link)
 
-      if chapter-content.children.len() > 0 {
+      if "children" in chapter-content.fields() and chapter-content.children.len() > 0 {
         let t = chapter-content.children.at(0)
         if t.func() == [].func() and t.children.len() == 0 {
           chapter-content = chapter-content.children.slice(1).sum()

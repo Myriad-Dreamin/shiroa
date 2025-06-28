@@ -98,7 +98,11 @@ impl HtmlRenderer {
                     // Compiles the chapter
                     let art: ChapterArtifact = compiler(&raw_path)?;
 
-                    let content = self.render_chapter(&ctx, art, ch, &raw_path)?;
+                    let content = if art.keep_html {
+                        art.content
+                    } else {
+                        self.render_chapter(&ctx, art, ch, &raw_path)?
+                    };
 
                     log::info!("rendering chapter {raw_path} in {:?}", instant.elapsed());
 

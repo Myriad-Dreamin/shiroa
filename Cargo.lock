@@ -1289,7 +1289,7 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "http 0.2.12",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "slab",
  "tokio",
  "tokio-util",
@@ -1355,7 +1355,7 @@ dependencies = [
  "biblatex",
  "ciborium",
  "citationberg",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "numerals",
  "paste",
  "serde",
@@ -1819,9 +1819,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.9.0"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cea70ddb795996207ad57735b50c5982d8844f38ba9ee5f1aedcfb708a2aa11e"
+checksum = "fe4cd85333e22411419a0bcae1297d25e58c9443848b11dc6a86fefe8c78a661"
 dependencies = [
  "equivalent",
  "hashbrown 0.15.4",
@@ -2471,7 +2471,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d77244ce2d584cd84f6a15f86195b8c9b2a0dfbfd817c09e0464244091a58ed"
 dependencies = [
  "base64 0.22.1",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "quick-xml 0.37.5",
  "serde",
  "time",
@@ -2798,9 +2798,8 @@ dependencies = [
 
 [[package]]
 name = "reflexo"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b379f5858b44f8d06bdea5f7110da0239ec79b49c88748a73f8411db48a322b"
+version = "0.6.1-rc1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=a8132e5151435b9d51e76cb34b482acfd0526844#a8132e5151435b9d51e76cb34b482acfd0526844"
 dependencies = [
  "base64 0.22.1",
  "bitvec",
@@ -2825,16 +2824,15 @@ dependencies = [
 
 [[package]]
 name = "reflexo-typst"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df406ab023a32e99eeee700d81eb568c2987e2d5a2376f03198f4284af95320a"
+version = "0.6.1-rc1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=a8132e5151435b9d51e76cb34b482acfd0526844#a8132e5151435b9d51e76cb34b482acfd0526844"
 dependencies = [
  "codespan-reporting",
  "comemo",
  "ecow",
  "futures",
  "fxhash",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "log",
  "nohash-hasher",
  "parking_lot",
@@ -2858,9 +2856,8 @@ dependencies = [
 
 [[package]]
 name = "reflexo-typst2vec"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5657c6da2ad318ae8f5ac2c2b28e82f37154cc3637044397f820b6c10ea2259b"
+version = "0.6.1-rc1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=a8132e5151435b9d51e76cb34b482acfd0526844#a8132e5151435b9d51e76cb34b482acfd0526844"
 dependencies = [
  "bitvec",
  "comemo",
@@ -2885,9 +2882,8 @@ dependencies = [
 
 [[package]]
 name = "reflexo-vec2svg"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b6ae1c98dfa4ba0298337afde9bb749df4eabd3ade68612fd29557b2431029e"
+version = "0.6.1-rc1"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=a8132e5151435b9d51e76cb34b482acfd0526844#a8132e5151435b9d51e76cb34b482acfd0526844"
 dependencies = [
  "base64 0.22.1",
  "comemo",
@@ -3291,7 +3287,7 @@ dependencies = [
  "chrono",
  "hex",
  "indexmap 1.9.3",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "schemars",
  "serde",
  "serde_derive",
@@ -3318,7 +3314,7 @@ version = "0.9.34+deprecated"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
 dependencies = [
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "itoa",
  "ryu",
  "serde",
@@ -3362,7 +3358,7 @@ dependencies = [
  "env_logger",
  "handlebars",
  "include_dir",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "log",
  "notify",
  "pathdiff",
@@ -3949,7 +3945,7 @@ source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=0191e559789f313
 dependencies = [
  "comemo",
  "ecow",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "log",
  "nohash-hasher",
  "parking_lot",
@@ -4120,7 +4116,7 @@ version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "serde",
  "serde_spanned",
  "toml_datetime",
@@ -4294,7 +4290,7 @@ dependencies = [
  "comemo",
  "ecow",
  "if_chain",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "stacker",
  "toml",
  "typst-library",
@@ -4372,7 +4368,7 @@ dependencies = [
  "icu_provider",
  "icu_provider_blob",
  "image",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "kamadak-exif",
  "kurbo",
  "lipsum",
@@ -4433,7 +4429,7 @@ dependencies = [
  "comemo",
  "ecow",
  "image",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
  "miniz_oxide",
  "pdf-writer",
  "serde",
@@ -4978,7 +4974,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d06bfa36ab3ac2be0dee563380147a5b81ba10dd8885d7fbbc9eb574be67d185"
 dependencies = [
  "bitflags 2.9.1",
- "indexmap 2.9.0",
+ "indexmap 2.10.0",
 ]
 
 [[package]]

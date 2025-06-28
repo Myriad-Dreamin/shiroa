@@ -51,7 +51,7 @@
 
 #build-meta(dest-dir: "../dist")
 
-#get-book-meta()
+// #get-book-meta()
 
 // re-export page template
 #import "/contrib/typst/gh-pages.typ": project, heading-reference

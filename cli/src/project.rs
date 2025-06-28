@@ -12,12 +12,15 @@ use reflexo_typst::{
     path::unix_slash,
     static_html,
     vfs::{notify::NotifyMessage, FilesystemEvent, FsProvider},
-    watch_deps, CompilerExt, ImmutStr, TypstDocument, WorldDeps,
+    watch_deps, CompilerExt, ImmutStr, TypstDocument, TypstSystemWorld, WorldDeps,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::{broadcast, mpsc};
-use typst::foundations::Content;
+use typst::{
+    foundations::{Content, Label, Selector},
+    utils::PicoStr,
+};
 
 use crate::{
     error::prelude::*,
@@ -296,6 +299,35 @@ impl Project {
             fs_tx.send(event).unwrap();
         }));
 
+        let need_compile = self.need_compile();
+        let finish = |world: &mut TypstSystemWorld| {
+            // Notify the new file dependencies.
+            let mut deps = vec![];
+            world.iter_dependencies(&mut |dep| {
+                if let Ok(x) = world.file_path(dep).and_then(|e| e.to_err()) {
+                    deps.push(x.into())
+                }
+            });
+
+            tui_info!("Watching {} files for changes...", deps.len());
+            let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
+
+            if need_compile {
+                comemo::evict(10);
+                world.evict_source_cache(30);
+                world.evict_vfs(60);
+            }
+
+            if let Some(addr) = &addr {
+                tui_hint!("Server started at http://{addr}");
+            }
+        };
+
+        let mut snap = self.tr.snapshot();
+        let mut world = snap.world.clone();
+        // first report.
+        finish(&mut world);
+
         let mut active_files: BTreeMap<ImmutStr, usize> = BTreeMap::new();
         loop {
             enum WatchEvent {
@@ -325,6 +357,9 @@ impl Project {
 
                     let _ = tui::clear();
                     let _ = self.build_meta();
+
+                    snap = self.tr.snapshot();
+                    world = snap.world.clone();
                 }
                 WatchEvent::Serve(ServeEvent::ThemeChange(themes)) => {
                     if !self
@@ -390,34 +425,13 @@ impl Project {
                 }
             }
 
-            let snap = self.tr.snapshot();
-            let mut world = snap.world.clone();
-
+            // todo: blocking?
             let _ = self.compile_once(&active_files, SearchRenderer::new(&self.html_meta));
-
-            // Notify the new file dependencies.
-            let mut deps = vec![];
-            world.iter_dependencies(&mut |dep| {
-                if let Ok(x) = world.file_path(dep).and_then(|e| e.to_err()) {
-                    deps.push(x.into())
-                }
-            });
-
-            tui_info!("Watching {} files for changes...", deps.len());
-            let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
-
-            if self.need_compile() {
-                comemo::evict(10);
-                world.evict_source_cache(30);
-                world.evict_vfs(60);
-            }
 
             if !is_heartbeat {
                 let _ = tx.send(WatchSignal::Reload);
             }
-            if let Some(addr) = &addr {
-                tui_hint!("Server started at http://{addr}");
-            }
+            finish(&mut world);
         }
     }
 
@@ -690,15 +704,18 @@ impl Project {
         let file_name = Path::new(&self.path_to_root).join(path).with_extension("");
 
         // todo: description for single document
-        let doc = if self.need_compile() {
-            let doc = self.tr.compile_page(Path::new(path))?;
-            Some(doc)
+        let task_doc = if self.need_compile() {
+            Some(self.tr.compile_page(Path::new(path))?)
         } else {
             None
         };
 
         let auto_description = || {
-            let full_digest = doc.as_ref().map(TypstRenderer::generate_desc).transpose()?;
+            let full_digest = task_doc
+                .as_ref()
+                .map(|doc| &doc.1)
+                .map(TypstRenderer::generate_desc)
+                .transpose()?;
             let full_digest = full_digest.unwrap_or_default();
             Result::Ok(match full_digest.char_indices().nth(512) {
                 Some((idx, _)) => full_digest[..idx].to_owned(),
@@ -712,41 +729,50 @@ impl Project {
             // windows
             .replace('\\', "/");
 
-        let (description, content) = match self.render_mode.clone() {
+        let (keep_html, description, content) = match self.render_mode.clone() {
             RenderMode::StaticHtml => {
-                let doc = doc
-                    .as_ref()
-                    .expect("doc is not compiled in StaticHtml mode");
-                let html_doc = match doc {
-                    TypstDocument::Html(doc) => doc,
+                let (task, html_doc) = match &task_doc {
+                    Some((task, TypstDocument::Html(doc))) => (task, doc),
+                    None => bail!("no task document for static html"),
                     _ => bail!("doc is not Html"),
                 };
 
-                let content = self
-                    .hr
-                    .handlebars
-                    .render(
-                        "typst_load_html_trampoline",
-                        &json!({
-                            "rel_data_path": rel_data_path,
-                        }),
-                    )
-                    .map_err(map_string_err(
-                        "render typst_load_html_trampoline for compile_chapter",
-                    ))?;
-
-                let res = self
-                    .tr
+                let res = task
                     .report(static_html(html_doc))
                     .expect("failed to render static html");
 
-                let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
-                (
-                    description.unwrap_or_else(auto_description)?,
+                let keep_html = {
+                    let label = Selector::Label(Label::new(PicoStr::constant("keep-html")));
+                    html_doc.introspector.query_first(&label).is_some()
+                };
+
+                let content = if keep_html {
+                    task.report(res.html()).unwrap_or_default().to_owned()
+                } else {
+                    let content = self
+                        .hr
+                        .handlebars
+                        .render(
+                            "typst_load_html_trampoline",
+                            &json!({
+                                "rel_data_path": rel_data_path,
+                            }),
+                        )
+                        .map_err(map_string_err(
+                            "render typst_load_html_trampoline for compile_chapter",
+                        ))?;
+
                     format!(
                         r#"{content}<div class="typst-preload-content" style="display: none">{}</div>"#,
-                        res.body
-                    ),
+                        task.report(res.body()).unwrap_or_default().to_owned()
+                    )
+                };
+
+                let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
+                (
+                    keep_html,
+                    description.unwrap_or_else(auto_description)?,
+                    content,
                 )
             }
             RenderMode::DynPaged | RenderMode::StaticHtmlDynPaged => {
@@ -763,11 +789,12 @@ impl Project {
                         "render typst_load_trampoline for compile_chapter",
                     ))?;
 
-                (auto_description()?, content)
+                (false, auto_description()?, content)
             }
         };
 
         Ok(ChapterArtifact {
+            keep_html,
             content,
             description,
         })
@@ -807,6 +834,7 @@ impl Project {
 pub struct ChapterArtifact {
     pub description: String,
     pub content: String,
+    pub keep_html: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
