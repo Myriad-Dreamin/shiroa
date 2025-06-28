@@ -141,6 +141,10 @@ impl Project {
             &mut proj.tr.universe_mut().snapshot(),
             include_dir!("$CARGO_MANIFEST_DIR/../packages/shiroa"),
         );
+        release_packages(
+            &mut proj.tr.universe_mut().snapshot(),
+            include_dir!("$CARGO_MANIFEST_DIR/../themes/starlight"),
+        );
 
         proj.build_meta()?;
         Ok(proj)

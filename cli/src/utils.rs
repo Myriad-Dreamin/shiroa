@@ -102,10 +102,15 @@ pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Resul
     fs::write(path, contents.as_ref()).map_err(error_once_map!("write_file: write"))
 }
 
-pub fn copy_dir_embedded(src: include_dir::Dir, dst: impl AsRef<Path>) -> Result<()> {
+pub fn copy_dir_embedded(src: &include_dir::Dir, dst: &Path) -> Result<()> {
+    // Create all the subdirectories in here (but not their files yet)
+    for dir in src.dirs() {
+        create_dirs(dst.join(dir.path()))?;
+        // Recurse for this directory
+        copy_dir_embedded(dir, dst)?;
+    }
     for entry in src.files() {
-        let t = dst.as_ref().join(entry.path());
-        create_dirs(t.parent().unwrap())?;
+        let t = dst.join(entry.path());
         write_file(t, entry.contents())?;
     }
     Ok(())
@@ -143,7 +148,7 @@ fn release_packages_inner(world: &mut TypstSystemWorld, pkg: include_dir::Dir, n
     }
 
     std::fs::create_dir_all(pkg_link_target.parent().unwrap()).unwrap();
-    copy_dir_embedded(pkg, &pkg_link_target).unwrap();
+    copy_dir_embedded(&pkg, &pkg_link_target).unwrap();
 }
 
 pub fn release_packages(world: &mut TypstSystemWorld, pkg: include_dir::Dir) {

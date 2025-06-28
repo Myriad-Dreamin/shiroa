@@ -153,13 +153,15 @@ Sample page
     )?;
     write_file(
         dir.join("templates/page.typ"),
-        include_bytes!("../../contrib/typst/gh-pages.typ"),
+        include_str!("../../contrib/typst/gh-pages.typ").replace(
+            r#""/contrib/typst/gh-pages.typ""#,
+            &format!("{page_template:?}"),
+        ),
     )?;
     write_file(
         dir.join("templates/ebook.typ"),
-        std::str::from_utf8(include_bytes!("../../contrib/typst/gh-ebook.typ").as_slice())
-            .unwrap()
-            .replace("/contrib/typst/gh-pages.typ", &page_template),
+        include_str!("../../contrib/typst/gh-ebook.typ")
+            .replace(r#""/github-pages/docs/book.typ""#, &format!("{book_typ:?}")),
     )?;
     write_file(
         dir.join("templates/theme-style.toml"),

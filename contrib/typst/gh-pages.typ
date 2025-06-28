@@ -12,7 +12,8 @@
 )
 #import templates: *
 
-#let is-starlight-theme = true
+#let use-theme = "starlight"
+#let is-starlight-theme = use-theme == "starlight"
 
 // Metadata
 #let page-width = get-page-width()
@@ -43,9 +44,6 @@
 ) = themes;
 #let theme-box = theme-box.with(themes: themes)
 
-// The theme path
-// todo: this can cause file not find error if bundled
-#let theme-path = "/themes/starlight/index.typ"
 // Fonts
 #let main-font = (
   "Charter",
@@ -99,7 +97,7 @@
   // // Render the heading hash
   // heading-hash(it, hash-color: dash-color)
 
-  import "/themes/starlight/main.typ": builtin-icon
+  import "@preview/shiroa-starlight:0.2.3": builtin-icon
 
   in-heading.update(true)
   html.elem("div", attrs: (class: "sl-heading-wrapper level-h" + str(it.level + 1)))[
@@ -224,7 +222,7 @@
   ) if is-web-target and not is-html-target
 
   show: if is-html-target {
-    import "/themes/starlight/main.typ": starlight
+    import "@preview/shiroa-starlight:0.2.3": starlight
     starlight.with(
       include "/github-pages/docs/book.typ",
       title: title,
