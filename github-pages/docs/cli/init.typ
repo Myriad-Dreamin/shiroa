@@ -25,7 +25,7 @@ shiroa init --dest-dir ../dist my-book/
 shiroa build my-book/ # memoryized dest-dir
 ```
 
-== Things to note
+= Things to note
 
 The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #cross-link("/guide/get-started.typ")[Get Started] shown.
 

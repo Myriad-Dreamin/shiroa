@@ -215,6 +215,7 @@
     starlight.with(
       include "/github-pages/docs/book.typ",
       title: title,
+      site-title: [Shiroa],
       github-link: "https://github.com/Myriad-Dreamin/shiroa",
     )
   } else {

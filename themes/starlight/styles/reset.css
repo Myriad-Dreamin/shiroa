@@ -1,8 +1,4 @@
 @layer starlight.reset {
-  :root {
-    font-size: 16px;
-  }
-
   *,
   *::before,
   *::after {

@@ -8,7 +8,7 @@ Choose any one of the methods below that best suit your needs.
 
 // [continuous integration]: ../continuous-integration.md
 
-== Pre-compiled binaries
+= Pre-compiled binaries
 
 Executable binaries are available for download on the #link("https://github.com/Myriad-Dreamin/shiroa/releases")[GitHub Releases page].
 Download the binary for your platform (Windows, macOS, or Linux) and extract the archive.
@@ -16,7 +16,7 @@ The archive contains an `shiroa` executable which you can run to build your book
 
 To make it easier to run, put the path to the binary into your `PATH`.
 
-== Build from source using Rust
+= Build from source using Rust
 
 To build the `shiroa` executable from source, you will first need to install Yarn, Rust, and Cargo.
 Follow the instructions on the #link("https://classic.yarnpkg.com/en/docs/install")[Yarn installation page] and #link("https://www.rust-lang.org/tools/install")[Rust installation page].
