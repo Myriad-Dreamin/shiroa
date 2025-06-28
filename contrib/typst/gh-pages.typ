@@ -110,18 +110,7 @@
   ]
   in-heading.update(false)
 } else {
-  let it = {
-    set text(size: heading-sizes.at(it.level))
-    in-heading.update(true)
-    it
-    in-heading.update(false)
-  }
-
-  block(
-    spacing: 0.7em * 1.5 * 1.2,
-    below: 0.7em * 1.2,
-    it,
-  )
+  mdbook-heading-rule(it)
 }
 
 #let markup-rules(body) = {
