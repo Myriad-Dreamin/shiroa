@@ -1,7 +1,7 @@
 
 #import "mod.typ": *
 #import "icons.typ": builtin-icon
-#import "@preview/shiroa:0.2.3": get-book-meta
+#import "@preview/shiroa:0.2.3": get-book-meta, x-url-base, cross-link-path-label
 
 #let render-sidebar(summary-items, visit) = {
   let part = none
@@ -61,7 +61,15 @@
     type(it) == str or type(it) == content,
     message: "invalid type of sidebar item, want str or content, got " + repr(it),
   )
-  a(..aria-current, href: dest.replace(regex("\\.typ$"), ".html"), it)
+
+
+  let dest = cross-link-path-label(dest)
+  if dest.starts-with("/") {
+    dest = dest.slice(1)
+  }
+  dest = x-url-base + dest
+
+  a(..aria-current, href: dest, it)
 }
 
 #let onclick = ```js
