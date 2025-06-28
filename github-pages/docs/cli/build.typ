@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "CLI Build Command")
 
-= The build command
-
 The build command is used to render your book:
 
 ```bash
@@ -17,7 +15,7 @@ but not present will be created.
 The rendered output will maintain the same directory structure as the source for
 convenience. Large books will therefore remain structured when rendered.
 
-== Specify a directory
+= Specify a directory
 
 The `build` command can take a directory as an argument to use as the book's
 root instead of the current working directory.
@@ -26,7 +24,7 @@ root instead of the current working directory.
 shiroa build path/to/book
 ```
 
-=== --workspace, -w
+== --workspace, -w
 
 *Note:* The workspace is a _typst-specific_ command.
 
@@ -44,14 +42,14 @@ Then you can access the template with the absolute path in typst:
 #import "/common/book-template.typ": *
 ```
 
-=== --dest-dir, -d
+== --dest-dir, -d
 
 The `--dest-dir` (`-d`) option allows you to change the output directory for the
 book. Relative paths are interpreted relative to the book's root directory. If
 not specified it will default to the value of the `build.build-dir` key in
 `book.toml`, or to `./book`.
 
-=== --path-to-root
+== --path-to-root
 
 When your website's root is not exact serving the book, use `--path-to-root` to specify the path to the root of the book site. For example, if you own `myriad-dreamin.github.io` and have mounted the book to `/shiroa/`, you can access `https://myriad-dreamin.github.io/shiroa/cli/main.html` to get the generated content of `cli/main.typ`.
 
@@ -59,7 +57,7 @@ When your website's root is not exact serving the book, use `--path-to-root` to 
 shiroa build --path-to-root /shiroa/ book-project1
 ```
 
-=== --mode
+== --mode
 
 The `--mode` option allows you to specify the mode of rendering typst document. The default mode is `normal`.
 - (Default) `dynamic-paged`: dynamically render as paged document.
@@ -70,7 +68,7 @@ The `--mode` option allows you to specify the mode of rendering typst document. 
 
 The dynamically rendering means that some elements will be rendered by a wasm renderer in the browser.
 
-=== --theme
+== --theme
 
 Specify a theme directory to copy recursively. This allows you to use custom themes.
 

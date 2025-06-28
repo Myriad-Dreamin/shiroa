@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Book Metadata")
 
-= Book Metadata
-
 #let type-hint(t, required: false) = {
   {
     set text(weight: 400, size: 16pt)
@@ -18,7 +16,7 @@
   }
 }
 
-=== title #type-hint("string")
+= title #type-hint("string")
 
 Specify the title of the book.
 
@@ -28,7 +26,7 @@ Specify the title of the book.
 )
 ```
 
-=== authors #type-hint("array<string>")
+= authors #type-hint("array<string>")
 
 Specify the author(s) of the book.
 
@@ -38,7 +36,7 @@ Specify the author(s) of the book.
 )
 ```
 
-=== summary #type-hint("content", required: true)
+= summary #type-hint("content", required: true)
 
 Its formatting
 is very strict and must follow the structure outlined below to allow for easy
@@ -151,7 +149,7 @@ of contents as rendered to the left.
   raw(exp, lang: "typ", block: true)
 }
 
-=== description #type-hint("string")
+= description #type-hint("string")
 
 A description for the book, which is added as meta information in the html `<head>` of each page.
 
@@ -161,7 +159,7 @@ A description for the book, which is added as meta information in the html `<hea
 )
 ```
 
-=== repository #type-hint("string")
+= repository #type-hint("string")
 
 The github repository for the book.
 
@@ -171,7 +169,7 @@ The github repository for the book.
 )
 ```
 
-=== language #type-hint("string")
+= language #type-hint("string")
 
 The main language of the book, which is used as a html language attribute
 `<html lang="en">` for example.

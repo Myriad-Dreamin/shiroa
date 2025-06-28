@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "CLI Serve Command")
 
-= The serve command
-
 The serve command is used to preview a book by serving it via HTTP at
 `localhost:25520` by default:
 
@@ -19,7 +17,7 @@ shiroa serve
 *Note:* *The `serve` command is for testing a book's HTML output, and is not
 intended to be a complete HTTP server for a website.*
 
-== Specify a directory
+= Specify a directory
 
 The `serve` command can take a directory as an argument to use as the book's
 root instead of the current working directory.
@@ -28,11 +26,11 @@ root instead of the current working directory.
 shiroa serve path/to/book
 ```
 
-== Build options
+= Build options
 
 The `serve` command will build your book once before serving the content. It is hence including all of the #cross-link("/cli/build.typ")[options] from `build` command.
 
-== Server options
+= Server options
 
 The `serve` address defaults to `localhost:25520`. Either option can be specified on the command line:
 
@@ -40,7 +38,7 @@ The `serve` address defaults to `localhost:25520`. Either option can be specifie
 shiroa serve path/to/book --addr 8000:127.0.0.1
 ```
 
-=== --open
+== --open
 
 When you use the `--open` flag, shiroa will open the rendered book in
 your default web browser after building it.

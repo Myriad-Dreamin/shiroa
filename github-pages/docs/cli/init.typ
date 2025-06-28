@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "CLI Init Command")
 
-= The init command
-
 The `init` command will try to initialize your book to build your book successfully by default. It is hence including all of the #cross-link("/cli/build.typ")[options] from `build` command.
 
 For instance, Initialize a book to the directory `my-book`:

@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Command Line Tool")
 
-= Command Line Tool
-
 // todo: cross link
 The `shiroa` command-line tool is used to create and build books.
 After you have #cross-link("/guide/installation.typ")[installed] `shiroa`, you can run the `shiroa help` command in your terminal to view the available commands.

@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Installation")
 
-= Installation
-
 There are multiple ways to install the shiroa CLI tool.
 Choose any one of the methods below that best suit your needs.
 // If you are installing shiroa for automatic deployment, check out the [continuous integration] chapter for more examples on how to install.

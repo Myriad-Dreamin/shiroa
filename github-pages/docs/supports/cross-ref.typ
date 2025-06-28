@@ -5,14 +5,14 @@
 // begin of sample
 #let p = "/supports/cross-ref-sample.typ"
 - #cross-link(p)[cross reference to the sample page]
-#let sub = heading-reference[== Subsection]
+#let sub = heading-reference[= Subsection]
 - #cross-link(p, reference: sub)[cross reference to ```typ == Subsection``` in the sample page]
-#let ref-head = "== Math equation $f = lambda x . x$ in heading"
+#let ref-head = "= Math equation $f = lambda x . x$ in heading"
 #let sub = heading-reference(eval(ref-head, mode: "markup"))
 - #cross-link(p, reference: sub)[cross reference to #raw(lang: "typ", ref-head) in the sample page]
 // end of sample
 
-== List of Code
+= List of Code
 
 #raw(
   lang: "typ",
