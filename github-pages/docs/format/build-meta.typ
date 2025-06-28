@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Build Metadata")
 
-= Build Metadata
-
 #let type-hint(t, required: false) = {
   {
     set text(weight: 400, size: 16pt)
@@ -16,7 +14,7 @@
   }
 }
 
-=== dest-dir #type-hint("string")
+== dest-dir #type-hint("string")
 
 The directory to put the rendered book in. By default this is `book/` in the book's root directory. This can be *overridden* with the `--dest-dir` CLI option.
 

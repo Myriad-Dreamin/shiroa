@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Format")
 
-= Format
-
 In this section you will learn how to:
 
 - Structure your book correctly

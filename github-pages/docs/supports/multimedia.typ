@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Multimedia Components")
 
-= Multi-Media in Typst
-
 This is an embed video.
 
 #media.iframe(

@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "Embed Sanitized HTML Elements")
 
-== `media` module
-
 There are a few media components provided by `media` module.
 
 - `iframe`: Embed an iframe in the document.

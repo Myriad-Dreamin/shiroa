@@ -3,11 +3,9 @@
 
 #show: book-page.with(title: "Get Started")
 
-= Creating a Book
-
 Once you have the `shiroa` CLI tool installed, you can use it to create and render a book.
 
-== Initializing a book
+= Initializing a book
 
 The `shiroa init` command will create a new directory containing an empty book for you to get started.
 Give it the name of the directory that you want to create:
@@ -33,11 +31,11 @@ shiroa serve
 
 Check out the `shiroa help` for more information about other `shiroa` commands and CLI options.
 
-== Anatomy of a book
+= Anatomy of a book
 
 A book is built from several files which define the settings and layout of the book.
 
-=== `book.typ`
+== `book.typ`
 
 If you are familiar with `mdbook`, the `book.typ` file is similar to the `book.toml` with `summary.md` file.
 
@@ -71,7 +69,7 @@ Try opening up `src/book.typ` in your editor and adding a few chapters.
 
 // For more details on other formatting options for the summary file, check out the [Summary chapter](../format/summary.typ).
 
-=== Source files
+== Source files
 
 The content of your book is all contained in the `src` directory.
 Each chapter is a separate Typst file.
@@ -94,7 +92,7 @@ The organization of the files will correspond to the HTML files generated, so ke
 All other files in the `src` directory will be included in the output.
 So if you have images or other static files, just include them somewhere in the `src` directory.
 
-== Publishing a book
+= Publishing a book
 
 Once you've written your book, you may want to host it somewhere for others to view.
 The first step is to build the output of the book.
@@ -107,7 +105,7 @@ shiroa build
 This will generate a directory named `book` which contains the HTML content of your book.
 You can then place this directory on any web server to host it.
 
-== (Experimental) Using Typst v0.13.0's HTML Export
+= (Experimental) Using Typst v0.13.0's HTML Export
 
 You don't have to change the default template, which already handles the HTML export. Simply set the `mode` to `static-html` to export the book as Static HTML files:
 

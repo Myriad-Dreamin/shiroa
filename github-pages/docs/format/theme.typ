@@ -2,15 +2,13 @@
 
 #show: book-page.with(title: "Theme")
 
-= Theme
-
 The default renderer uses a #link("https://handlebarsjs.com")[handlebars] template to
 render your typst source files and comes with a default theme included in the `shiroa`
 binary.
 
 Currently we have no much design on theme's html part. But you can still configure your book project like a regular typst project.
 
-== Things to note
+= Things to note
 
 #let t = cross-link("/guide/get-started.typ")[Get Started]
 
