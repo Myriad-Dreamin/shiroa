@@ -14,6 +14,14 @@
 /// ```
 #let target = target
 
+#let x-url-base = sys.inputs.at("x-url-base", default: "/")
+#if not x-url-base.starts-with("/") {
+  x-url-base = "/" + x-url-base
+}
+#if not x-url-base.ends-with("/") {
+  x-url-base = x-url-base + "/"
+}
+
 /// The default page width is A4 paper's width (21cm).
 ///
 /// Example:

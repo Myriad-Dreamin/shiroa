@@ -1,8 +1,9 @@
 
-#import "meta-and-state.typ": shiroa-sys-target
+#import "meta-and-state.typ": shiroa-sys-target, x-url-base
 
 #let link2page = state("shiroa-link2page", (:))
 
+// todo: deprecated
 #let cross-link-path-label(path) = {
   assert(path.starts-with("/"), message: "absolute positioning required")
   path.replace(regex(".typ$"), ".html")
@@ -32,13 +33,6 @@
     }
     // assert(read(path) != none, message: "no such file")
 
-    let x-url-base = sys.inputs.at("x-url-base", default: "")
-    if not x-url-base.starts-with("/") {
-      x-url-base = "/" + x-url-base
-    }
-    if not x-url-base.ends-with("/") {
-      x-url-base = x-url-base + "/"
-    }
     let path = path
     if path.starts-with("/") {
       path = path.slice(1)
