@@ -97,6 +97,7 @@ impl TypstRenderer {
             snapshot: OnceLock::new(),
             ctx: RenderContext {
                 output: dest_dir.clone(),
+                url_base: args.path_to_root.into(),
                 compiler,
                 root_dir,
                 dest_dir,
@@ -153,6 +154,7 @@ impl TypstRenderer {
             entry: Some(entry),
             inputs: Some({
                 let mut dict = TypstDict::new();
+                dict.insert("x-url-base".into(), self.ctx.url_base.clone().into_value());
                 dict.insert("x-target".into(), ctx.compiler.target.clone().into_value());
                 let current = unix_slash(&Path::new("/").join(path)).into_value();
                 dict.insert("x-current".into(), current);
@@ -264,6 +266,7 @@ impl TypstRenderer {
 #[derive(Clone)]
 pub struct RenderContext {
     pub extension: EcoString,
+    pub url_base: EcoString,
     pub output: PathBuf,
     pub compiler: ExportDynSvgModuleTask,
     pub root_dir: PathBuf,

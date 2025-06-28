@@ -3,33 +3,13 @@
 
 #let link2page = state("shiroa-link2page", (:))
 
-#let encode-url-component(s) = {
-  let prev = false
-  for (idx, c) in s.codepoints().enumerate() {
-    if c.starts-with(regex("[a-zA-Z]")) {
-      if prev {
-        prev = false
-        "-"
-      }
-      c
-    } else {
-      prev = true
-      if idx != 0 {
-        "-"
-      }
-      str(c.to-unicode())
-    }
-  }
-}
-
 #let cross-link-path-label(path) = {
   assert(path.starts-with("/"), message: "absolute positioning required")
-  encode-url-component(path)
+  path.replace(regex(".typ$"), ".html")
 }
 
 /// Cross link support
 #let cross-link(path, reference: none, content) = {
-  let path-lbl = cross-link-path-label(path)
   if reference != none {
     assert(type(reference) == label, message: "invalid reference")
   }
@@ -37,8 +17,8 @@
   assert(content != none, message: "invalid label content")
   context {
     let link-result = link2page.final()
-    if path-lbl in link-result {
-      link((page: link-result.at(path-lbl), x: 0pt, y: 0pt), content)
+    if path in link-result {
+      link((page: link-result.at(path), x: 0pt, y: 0pt), content)
       return
     }
 
@@ -52,14 +32,28 @@
     }
     // assert(read(path) != none, message: "no such file")
 
-    let href = {
-      "cross-link://jump?path-label="
-      path-lbl
-      if reference != none {
-        "&label="
-        encode-url-component(str(reference))
-      }
+    let x-url-base = sys.inputs.at("x-url-base", default: "")
+    if not x-url-base.starts-with("/") {
+      x-url-base = "/" + x-url-base
     }
+    if not x-url-base.ends-with("/") {
+      x-url-base = x-url-base + "/"
+    }
+    let path = path
+    if path.starts-with("/") {
+      path = path.slice(1)
+    }
+    let href = (
+      x-url-base
+        + path
+        + if reference != none {
+          if type(reference) == label {
+            "#label-" + str(reference)
+          } else {
+            "#" + str(reference)
+          }
+        }
+    )
 
     if shiroa-sys-target() == "html" {
       html.elem("a", content, attrs: (class: "typst-content-link", href: href))

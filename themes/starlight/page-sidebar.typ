@@ -61,7 +61,7 @@
     type(it) == str or type(it) == content,
     message: "invalid type of sidebar item, want str or content, got " + repr(it),
   )
-  a(..aria-current, href: dest.replace(".typ", ".html"), it)
+  a(..aria-current, href: dest.replace(regex("\\.typ$"), ".html"), it)
 }
 
 #let onclick = ```js

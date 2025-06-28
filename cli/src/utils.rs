@@ -110,6 +110,9 @@ pub fn copy_dir_embedded(src: &include_dir::Dir, dst: &Path) -> Result<()> {
         copy_dir_embedded(dir, dst)?;
     }
     for entry in src.files() {
+        if let Some(dir) = dst.join(entry.path()).parent() {
+            create_dirs(dir)?;
+        }
         let t = dst.join(entry.path());
         write_file(t, entry.contents())?;
     }
