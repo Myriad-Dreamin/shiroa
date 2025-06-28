@@ -139,7 +139,6 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
     let server = live_reload.boxed().or(heartbeat
         .boxed()
         .or(fallback.boxed())
-        .or(warp::path("dev").and(warp::fs::dir("")))
         .with(warp::compression::gzip()));
 
     let (addr, server) = warp::serve(server).bind_ephemeral(http_addr);

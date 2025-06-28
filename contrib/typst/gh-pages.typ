@@ -11,7 +11,9 @@
   templates,
 )
 #import templates: *
-#import "@preview/zebraw:0.5.2": zebraw-init, zebraw
+
+#let use-theme = "starlight"
+#let is-starlight-theme = use-theme == "starlight"
 
 // Metadata
 #let page-width = get-page-width()
@@ -26,14 +28,21 @@
 #let p-frame = div-frame.with(tag: "p")
 
 // Theme (Colors)
+#let themes = theme-box-styles-from(toml("theme-style.toml"), xml: it => xml(it))
 #let (
-  style: theme-style,
-  is-dark: is-dark-theme,
-  is-light: is-light-theme,
-  main-color: main-color,
-  dash-color: dash-color,
-  code-extra-colors: code-extra-colors,
-) = book-theme-from(toml("theme-style.toml"), xml: it => xml(it))
+  default-theme: (
+    style: theme-style,
+    is-dark: is-dark-theme,
+    is-light: is-light-theme,
+    main-color: main-color,
+    dash-color: dash-color,
+    code-extra-colors: code-extra-colors,
+  ),
+) = themes;
+#let (
+  default-theme: default-theme,
+) = themes;
+#let theme-box = theme-box.with(themes: themes)
 
 // Fonts
 #let main-font = (
@@ -61,6 +70,123 @@
   (26pt, 22pt, 14pt, 12pt, main-size)
 }
 #let list-indent = 0.5em
+#let in-heading = state("shiroa:in-heading", false)
+
+#let mdbook-heading-rule(it) = {
+  let it = {
+    set text(size: heading-sizes.at(it.level))
+    if is-web-target {
+      heading-hash(it, hash-color: dash-color)
+    }
+
+    in-heading.update(true)
+    it
+    in-heading.update(false)
+  }
+
+  block(
+    spacing: 0.7em * 1.5 * 1.2,
+    below: 0.7em * 1.2,
+    it,
+  )
+}
+
+#let starlight-heading-rule(it) = context if shiroa-sys-target() == "html" {
+  // // Render a dash to hint headings instead of bolding it as well.
+  // show link: static-heading-link(it)
+  // // Render the heading hash
+  // heading-hash(it, hash-color: dash-color)
+
+  import "@preview/shiroa-starlight:0.2.3": builtin-icon
+
+  in-heading.update(true)
+  html.elem("div", attrs: (class: "sl-heading-wrapper level-h" + str(it.level + 1)))[
+    #it
+    #html.elem(
+      "h" + str(it.level + 1),
+      attrs: (class: "sl-heading-anchor not-content", role: "presentation"),
+      static-heading-link(it, body: builtin-icon("anchor"), canonical: true),
+    )
+  ]
+  in-heading.update(false)
+} else {
+  let it = {
+    set text(size: heading-sizes.at(it.level))
+    in-heading.update(true)
+    it
+    in-heading.update(false)
+  }
+
+  block(
+    spacing: 0.7em * 1.5 * 1.2,
+    below: 0.7em * 1.2,
+    it,
+  )
+}
+
+#let markup-rules(body) = {
+  // Set main spacing
+  set enum(
+    indent: list-indent * 0.618,
+    body-indent: list-indent,
+  )
+  set list(
+    indent: list-indent * 0.618,
+    body-indent: list-indent,
+  )
+  set par(leading: 0.7em)
+  set block(spacing: 0.7em * 1.5)
+
+  // Set text, spacing for headings
+  // Render a dash to hint headings instead of bolding it as well if it's for web.
+  show heading: set text(weight: "regular") if is-web-target
+  // todo: add me back in mdbook theme!!!
+  show heading: if is-starlight-theme {
+    starlight-heading-rule
+  } else {
+    mdbook-heading-rule
+  }
+
+  // link setting
+  show link: set text(fill: dash-color)
+
+  body
+}
+
+#let equation-rules(body) = {
+  let get-main-color(theme) = {
+    if is-starlight-theme and theme.is-dark and in-heading.get() {
+      white
+    } else {
+      theme.main-color
+    }
+  }
+
+  show math.equation: set text(weight: 400)
+  show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
+    theme-box(
+      tag: "div",
+      theme => {
+        set text(fill: get-main-color(theme))
+        p-frame(attrs: ("class": "block-equation", "role": "math"), it)
+      },
+    )
+  } else {
+    it
+  }
+  show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
+    theme-box(
+      tag: "span",
+      theme => {
+        set text(fill: get-main-color(theme))
+        span-frame(attrs: (class: "inline-equation", "role": "math"), it)
+      },
+    )
+  } else {
+    it
+  }
+  body
+}
 
 /// The project function defines how your document looks.
 /// It takes your content and some metadata and formats it.
@@ -95,6 +221,17 @@
     height: auto,
   ) if is-web-target and not is-html-target
 
+  show: if is-html-target {
+    import "@preview/shiroa-starlight:0.2.3": starlight
+    starlight.with(
+      include "/github-pages/docs/book.typ",
+      title: title,
+      github-link: "https://github.com/Myriad-Dreamin/shiroa",
+    )
+  } else {
+    it => it
+  }
+
   // Set main text
   set text(
     font: main-font,
@@ -103,96 +240,25 @@
     lang: "en",
   )
 
-  // Set main spacing
-  set enum(
-    indent: list-indent * 0.618,
-    body-indent: list-indent,
-  )
-  set list(
-    indent: list-indent * 0.618,
-    body-indent: list-indent,
-  )
-  set par(leading: 0.7em)
-  set block(spacing: 0.7em * 1.5)
 
-  // Set text, spacing for headings
-  // Render a dash to hint headings instead of bolding it as well if it's for web.
-  show heading: set text(weight: "regular") if is-web-target
-  show heading: it => {
-    let it = {
-      set text(size: heading-sizes.at(it.level))
-      if is-web-target {
-        heading-hash(it, hash-color: dash-color)
-      }
-      it
-    }
-
-    block(
-      spacing: 0.7em * 1.5 * 1.2,
-      below: 0.7em * 1.2,
-      it,
-    )
-  }
-
-  // link setting
-  show link: set text(fill: dash-color)
-
+  // markup setting
+  show: markup-rules
   // math setting
-  show math.equation: set text(weight: 400)
-  show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
-    p-frame(attrs: ("class": "block-equation"), it)
-  } else {
-    it
-  }
-  show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
-    span-frame(attrs: (class: "inline-equation"), it)
-  } else {
-    it
-  }
-
-  /// HTML code block supported by zebraw.
-  show: if is-dark-theme {
-    zebraw-init.with(
-      // should vary by theme
-      background-color: if code-extra-colors.bg != none {
-        (code-extra-colors.bg, code-extra-colors.bg)
-      },
-      highlight-color: rgb("#3d59a1"),
-      comment-color: rgb("#394b70"),
-      lang-color: rgb("#3d59a1"),
-      lang: false,
-      numbering: false,
-    )
-  } else {
-    zebraw-init.with(lang: false, numbering: false)
-  }
-
+  show: equation-rules
   // code block setting
-  set raw(theme: theme-style.code-theme) if theme-style.code-theme.len() > 0
-  show raw: set text(font: code-font)
-  show raw.where(block: true): it => context if shiroa-sys-target() == "paged" {
-    rect(
-      width: 100%,
-      inset: (x: 4pt, y: 5pt),
-      radius: 4pt,
-      fill: code-extra-colors.bg,
-      [
-        #set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
-        #set par(justify: false)
-        // #place(right, text(luma(110), it.lang))
-        #it
-      ],
-    )
-  } else {
-    set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
-    set par(justify: false)
-    zebraw(
-      block-width: 100%,
-      // line-width: 100%,
-      wrap: false,
-      it,
-    )
-  }
+  show: code-block-rules.with(
+    themes: themes,
+    code-font: code-font,
+    set-raw-theme: (theme, it) => {
+      set raw(theme: theme) if theme.len() > 0
+      it
+    },
+  )
+
+  // Main body.
+  set par(justify: true)
+
+  body
 
   // Put your custom CSS here.
   context if shiroa-sys-target() == "html" {
@@ -208,14 +274,14 @@
         place-items: center;
         overflow-x: auto;
       }
+      .site-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        font-style: italic;
+      }
       ```.text,
     )
   }
-
-  // Main body.
-  set par(justify: true)
-
-  body
 }
 
 #let part-style = heading
