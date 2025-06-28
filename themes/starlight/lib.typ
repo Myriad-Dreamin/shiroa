@@ -29,7 +29,7 @@
   import "html-bindings-h.typ": span
 
   show: set-slot("meta-title", html.elem("title", [#title - #site-title]))
-  show: set-slot("main-", html.elem("h1", title))
+  show: set-slot("main-title", html.elem("h1", title))
   show: set-slot("main-content", body)
 
   show: set-slot("header", include "page-header.typ")
