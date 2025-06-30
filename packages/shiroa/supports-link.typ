@@ -11,6 +11,7 @@
 
 /// Cross link support
 #let cross-link(path, reference: none, content) = {
+  let path = cross-link-path-label(path)
   if reference != none {
     assert(type(reference) == label, message: "invalid reference")
   }
