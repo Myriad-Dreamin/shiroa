@@ -1,0 +1,241 @@
+// <div id="body-container">
+//     <!-- Provide site root to javascript -->
+//     <script>
+//         var path_to_root = "{{ path_to_root }}";
+//         window.typstPathToRoot = path_to_root;
+//         var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "{{ preferred_dark_theme }}" : "{{ default_theme }}";
+//     </script>
+
+//     <!-- Work around some values being stored in localStorage wrapped in quotes -->
+//     <script>
+//         // reserved util next major release
+//         try {
+//             localStorage.removeItem('mdbook-theme');
+//             localStorage.removeItem('mdbook-sidebar');
+//         } catch (e) { }
+//         try {
+//             var theme = localStorage.getItem('shiroa-theme');
+//             var sidebar = localStorage.getItem('shiroa-sidebar');
+
+//             if (theme.startsWith('"') && theme.endsWith('"')) {
+//                 localStorage.setItem('shiroa-theme', theme.slice(1, theme.length - 1));
+//             }
+
+//             if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+//                 localStorage.setItem('shiroa-sidebar', sidebar.slice(1, sidebar.length - 1));
+//             }
+//         } catch (e) { }
+//     </script>
+
+//     <!-- Set the theme before any content is loaded, prevents flash -->
+//     <script>
+//         window.getTypstTheme = function getTypstTheme() {
+//             var _theme;
+//             try { _theme = localStorage.getItem('shiroa-theme'); } catch (e) { }
+//             if (_theme === null || _theme === undefined) { _theme = default_theme; }
+//             window.typstBookTheme = _theme;
+//             return _theme;
+//         }
+//         window.isTypstLightTheme = function isLightTheme(theme) {
+//             return theme === 'light' || theme === 'rust';
+//         }
+//         var theme = getTypstTheme();
+//         // todo: consistent theme between html and typst
+//         var html = document.querySelector('html');
+//         html.classList.remove('no-js')
+//         html.classList.remove('{{ default_theme }}')
+//         html.classList.add(theme);
+//         html.classList.add('js');
+//     </script>
+
+//     <!-- Hide / unhide sidebar before it is displayed -->
+//     <script>
+//         var html = document.querySelector('html');
+//         var sidebar = null;
+//         if (document.body.clientWidth >= 800) {
+//             try { sidebar = localStorage.getItem('shiroa-sidebar'); } catch (e) { }
+//             sidebar = sidebar || 'visible';
+//         } else {
+//             sidebar = 'hidden';
+//         }
+//         html.classList.remove('sidebar-visible');
+//         html.classList.add("sidebar-" + sidebar);
+//     </script>
+
+//     <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+//         <div class="sidebar-scrollbox">
+//             {{#toc}}{{/toc}}
+//         </div>
+//         <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+//     </nav>
+
+//     <!-- Track and set sidebar scroll position -->
+//     <script>
+//         var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+//         sidebarScrollbox.addEventListener('click', function (e) {
+//             if (e.target.tagName === 'A') {
+//                 sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+//             }
+//         }, { passive: true });
+//         var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+//         sessionStorage.removeItem('sidebar-scroll');
+//         if (sidebarScrollTop) {
+//             // preserve sidebar scroll position when navigating via links within sidebar
+//             sidebarScrollbox.scrollTop = sidebarScrollTop;
+//         } else {
+//             // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+//             var activeSection = document.querySelector('#sidebar .active');
+//             if (activeSection) {
+//                 activeSection.scrollIntoView({ block: 'center' });
+//             }
+//         }
+//     </script>
+
+//     <div id="page-wrapper" class="page-wrapper">
+
+//         <div class="page">
+//             {{> header}}
+//             <div id="menu-bar-hover-placeholder"></div>
+//             <div id="menu-bar" class="menu-bar sticky">
+//                 <div class="left-buttons">
+//                     <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents"
+//                         aria-label="Toggle Table of Contents" aria-controls="sidebar">
+//                         <i class="fa fa-bars"></i>
+//                     </button>
+//                     <button id="theme-toggle" class="icon-button" type="button" title="Change theme"
+//                         aria-label="Change theme" aria-haspopup="true" aria-expanded="false"
+//                         aria-controls="theme-list">
+//                         <i class="fa fa-paint-brush"></i>
+//                     </button>
+//                     <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+//                         <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+//                         <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+//                         <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+//                         <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+//                         <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+//                     </ul>
+//                     {{#if search_enabled}}
+//                     <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)"
+//                         aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S"
+//                         aria-controls="searchbar">
+//                         <i class="fa fa-search"></i>
+//                     </button>
+//                     {{/if}}
+//                 </div>
+
+//                 <h1 class="menu-title">{{ book_title }}</h1>
+
+//                 <div class="right-buttons">
+//                     {{#if print_enable}}
+//                     <a href="{{ path_to_root }}theme/print.html" title="Print this book" aria-label="Print this book">
+//                         <i id="print-button" class="fa fa-print"></i>
+//                     </a>
+//                     {{/if}}
+//                     {{#if git_repository_url}}
+//                     <a href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
+//                         <i id="git-repository-button" class="fa {{git_repository_icon}}"></i>
+//                     </a>
+//                     {{/if}}
+//                     {{#if git_repository_edit_url}}
+//                     <a href="{{git_repository_edit_url}}" title="Suggest an edit" aria-label="Suggest an edit">
+//                         <i id="git-edit-button" class="fa fa-edit"></i>
+//                     </a>
+//                     {{/if}}
+
+//                 </div>
+//             </div>
+
+//             {{#if search_enabled}}
+//             <div id="search-wrapper" class="hidden">
+//                 <form id="searchbar-outer" class="searchbar-outer">
+//                     <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..."
+//                         aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+//                 </form>
+//                 <div id="searchresults-outer" class="searchresults-outer hidden">
+//                     <div id="searchresults-header" class="searchresults-header"></div>
+//                     <ul id="searchresults">
+//                     </ul>
+//                 </div>
+//             </div>
+//             {{/if}}
+
+//             <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+//             <script>
+//                 document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+//                 document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+//                 Array.from(document.querySelectorAll('#sidebar a')).forEach(function (link) {
+//                     link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+//                 });
+//             </script>
+
+//             <div id="content" class="content">
+//                 <main>
+//                     {{{ content }}}
+//                 </main>
+
+//                 <nav class="nav-wrapper" aria-label="Page navigation">
+//                     <!-- Mobile navigation buttons -->
+//                     {{!-- {{#previous}}
+//                     <a rel="prev" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters previous"
+//                         title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+//                         <i class="fa fa-angle-left"></i>
+//                     </a>
+//                     {{/previous}}
+
+//                     {{#next}}
+//                     <a rel="next" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters next"
+//                         title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+//                         <i class="fa fa-angle-right"></i>
+//                     </a>
+//                     {{/next}} --}}
+
+//                     <div style="clear: both"></div>
+//                 </nav>
+//             </div>
+//         </div>
+
+//         <nav class="nav-wide-wrapper" aria-label="Page navigation">
+//             {{!-- {{#previous}}
+//             <a rel="prev" href="{{ path_to_root }}{{link}}" class="nav-chapters previous" title="Previous chapter"
+//                 aria-label="Previous chapter" aria-keyshortcuts="Left">
+//                 <i class="fa fa-angle-left"></i>
+//             </a>
+//             {{/previous}}
+
+//             {{#next}}
+//             <a rel="next" href="{{ path_to_root }}{{link}}" class="nav-chapters next" title="Next chapter"
+//                 aria-label="Next chapter" aria-keyshortcuts="Right">
+//                 <i class="fa fa-angle-right"></i>
+//             </a>
+//             {{/next}} --}}
+//         </nav>
+
+//     </div>
+
+//     {{#if search_js}}
+//     <script src="{{ path_to_root }}internal/elasticlunr.min.js"></script>
+//     <script src="{{ path_to_root }}internal/mark.min.js"></script>
+//     <script src="{{ path_to_root }}internal/searcher.js"></script>
+//     {{/if}}
+
+//     <script src="{{ path_to_root }}internal/svg_utils.js"></script>
+//     {{!-- <script src="/dev/frontend/src/svg_utils.cjs"></script> --}}
+//     <script src="{{ path_to_root }}theme/index.js"></script>
+
+// </div>
+
+// typst-load-html-trampoline.hbs
+// <script>
+//     let appContainer = document.currentScript && document.currentScript.parentElement;
+//     window.typstBookJsLoaded.then(() => {
+//        window.typstBookRenderHtmlPage("{{ rel_data_path }}", appContainer);
+//     });
+// </script>
+
+// typst-load-trampoline.hbs
+// <script>
+//     let appContainer = document.currentScript && document.currentScript.parentElement;
+//     window.typstRenderModuleReady.then((plugin) => {
+//         window.typstBookRenderPage(plugin, "{{ rel_data_path }}", appContainer);
+//     });
+// </script>

@@ -411,3 +411,5 @@ a.focus {
   transition: 0.1s;
   transition-property: fill, stroke, color;
 }
+
+.typst-app { position: relative; }
