@@ -528,6 +528,12 @@ impl Project {
         let renderer_module = format!("{}internal/typst_ts_renderer_bg.wasm", self.path_to_root);
         data.insert("renderer_module".to_owned(), json!(renderer_module));
 
+        // dummy settings, will remove in future
+        data.insert("fold_enable".to_owned(), json!(false));
+        data.insert("fold_level".to_owned(), json!(0u64));
+        data.insert("preferred_dark_theme".to_owned(), json!("ayu"));
+        data.insert("default_theme".to_owned(), json!("light"));
+
         self.hr.render_chapters(
             HtmlRenderContext {
                 book_data: &data,
