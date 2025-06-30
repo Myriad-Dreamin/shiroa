@@ -1,0 +1,28 @@
+
+#import "mod.typ": *
+#import "@preview/shiroa:0.2.3": x-url-base
+
+// ---
+
+#add-style(read("styles/search.css"))
+
+#script(src: { x-url-base + "internal/elasticlunr.min.js" })[]
+#script(src: { x-url-base + "internal/mark.min.js" })[]
+#script(src: { x-url-base + "internal/searcher.min.js" })[]
+
+#div.with(id: "search-wrapper", class: "hidden")({
+  form.with(id: "searchbar-outer", class: "searchbar-outer")({
+    input(
+      type: "search",
+      id: "searchbar",
+      name: "searchbar",
+      placeholder: "Search this book ...",
+      aria_controls: "searchresults-outer",
+      aria_describedby: "searchresults-header",
+    )[]
+  })
+  div.with(id: "searchresults-outer", class: "searchresults-outer hidden")({
+    div(id: "searchresults-header", class: "searchresults-header")[]
+    ul(id: "searchresults")[]
+  })
+})

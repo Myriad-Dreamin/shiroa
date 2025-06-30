@@ -36,6 +36,7 @@
   show: set-slot("site-title", span(class: "site-title", site-title))
   show: set-slot("sl:book-meta", book)
   show: set-slot("sl:search", if enable-search { include "site-search.typ" })
+  show: set-slot("sl:search-results", if enable-search { include "site-search-results.typ" })
   show: set-slot(
     "sl:right-group",
     if right-group != none { right-group } else {
