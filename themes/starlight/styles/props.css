@@ -111,6 +111,16 @@
 		--sl-z-index-menu: 5;
 		--sl-z-index-navbar: 10;
 		--sl-z-index-skiplink: 20;
+
+
+		--searchbar-border-color: #848484;
+		--searchbar-bg: #424242;
+		--searchbar-fg: #fff;
+		--searchbar-shadow-color: #d4c89f;
+		--searchresults-header-fg: #666;
+		--searchresults-border-color: #888;
+		--searchresults-li-bg: #252932;
+		--search-mark-bg: #e3b171;
 	}
 
 	:root[data-theme='light'],
@@ -164,6 +174,15 @@
 		--sl-shadow-lg: 0px 25px 7px rgba(0, 0, 0, 0.01), 0px 16px 6px hsla(0, 0%, 0%, 0.03),
 			0px 9px 5px hsla(223, 13%, 10%, 0.08), 0px 4px 4px hsla(0, 0%, 0%, 0.16),
 			0px 4px 2px hsla(0, 0%, 0%, 0.04);
+
+		--searchbar-border-color: #aaa;
+		--searchbar-bg: #fafafa;
+		--searchbar-fg: #000;
+		--searchbar-shadow-color: #aaa;
+		--searchresults-header-fg: #666;
+		--searchresults-border-color: #888;
+		--searchresults-li-bg: #e4f2fe;
+		--search-mark-bg: #a2cff5;
 	}
 
 	@media (min-width: 50em) {
