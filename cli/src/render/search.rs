@@ -26,6 +26,12 @@ pub struct SearchRenderer {
     pub config: Search,
 }
 
+impl Default for SearchRenderer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SearchRenderer {
     pub fn new() -> Self {
         let index = IndexBuilder::new()
