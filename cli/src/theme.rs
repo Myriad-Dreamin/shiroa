@@ -138,10 +138,6 @@ impl Theme {
                     &include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/css"),
                     &dest_dir.join("FontAwesome/css"),
                 )?;
-                copy_dir_embedded(
-                    &include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/fonts"),
-                    &dest_dir.join("FontAwesome/fonts"),
-                )?;
                 write_file(
                     dest_dir.join("index.js"),
                     include_bytes!("../../themes/mdbook/index.js"),
