@@ -5,7 +5,7 @@
 /// Collect text content of element recursively into a single string
 /// https://discord.com/channels/1054443721975922748/1088371919725793360/1138586827708702810
 /// https://github.com/Myriad-Dreamin/shiroa/issues/55
-#let plain-text_(it) = {
+#let plain-text_(it, limit: none) = {
   if type(it) == str {
     return it
   } else if it == [ ] {
@@ -17,7 +17,26 @@
   } else if it.has("body") {
     return plain-text_(it.body)
   } else if it.has("children") {
-    return it.children.map(plain-text_).join()
+    let results = ()
+    let content-sum = 0
+    for child in it.children {
+      let ret = plain-text_(child)
+      results.push(ret)
+      if limit != none {
+        content-sum += ret.len()
+        if content-sum >= limit {
+          break
+        }
+      }
+    }
+
+    if results.len() == 0 {
+      return ""
+    } else if results.len() == 1 {
+      return results.at(0)
+    } else {
+      return results.join()
+    }
   } else if it.has("text") {
     return it.text
   }
@@ -40,8 +59,8 @@
   }
 }
 
-#let plain-text(it) = {
-  let res = plain-text_(it)
+#let plain-text(it, limit: none) = {
+  let res = plain-text_(it, limit: limit)
   if res == none {
     ""
   } else {

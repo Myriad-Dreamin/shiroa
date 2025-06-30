@@ -13,6 +13,7 @@
     content: "width=device-width, initial-scale=1.0",
   )
   virt-slot("meta-title")
+  virt-slot("description")
   meta(name: "generator", content: "Shiroa")
 
   inline-assets(context (

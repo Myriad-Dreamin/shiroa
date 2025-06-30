@@ -180,7 +180,7 @@
 /// The project function defines how your document looks.
 /// It takes your content and some metadata and formats it.
 /// Go ahead and customize it to your liking!
-#let project(title: "Typst Book", authors: (), kind: "page", body) = {
+#let project(title: "Typst Book", authors: (), kind: "page", description: none, body) = {
   // set basic document metadata
   set document(
     author: authors,
@@ -212,10 +212,20 @@
 
   show: if is-html-target {
     import "@preview/shiroa-starlight:0.2.3": starlight
+
+    let description = if description != none { description } else {
+      let desc = plain-text(body, limit: 512).trim()
+      if desc.len() > 512 {
+        desc = desc.slice(0, 512) + "..."
+      }
+      desc
+    }
+
     starlight.with(
       include "/github-pages/docs/book.typ",
       title: title,
       site-title: [Shiroa],
+      description: description,
       github-link: "https://github.com/Myriad-Dreamin/shiroa",
     )
   } else {

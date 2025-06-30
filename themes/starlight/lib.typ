@@ -16,6 +16,7 @@
   body,
   title: [Shiroa Site],
   site-title: [Shiroa],
+  description: none,
   enable-search: true,
   github-link: none,
   discord-link: none,
@@ -26,11 +27,16 @@
   },
   right-group: none,
 ) = {
-  import "html-bindings-h.typ": span
+  import "html.typ": span, meta
+  import "@preview/shiroa:0.2.3": plain-text
 
   show: set-slot("meta-title", html.elem("title", [#title - #site-title]))
   show: set-slot("main-title", html.elem("h1", title))
   show: set-slot("main-content", body)
+  show: set-slot(
+    "description",
+    if description != none { meta(name: "description", content: description) },
+  )
 
   show: set-slot("header", include "page-header.typ")
   show: set-slot("site-title", span(class: "site-title", site-title))

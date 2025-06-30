@@ -4,11 +4,16 @@
 
 // ---
 
-#add-style(read("styles/search.css"))
-
-#script(src: { x-url-base + "internal/elasticlunr.min.js" })[]
-#script(src: { x-url-base + "internal/mark.min.js" })[]
-#script(src: { x-url-base + "internal/searcher.min.js" })[]
+#add-style(raw(lang: "css", read("styles/search.css")))
+#inline-assets(
+  raw(
+    lang: "js",
+    {
+      "window.path_to_root = "
+      json.encode(x-url-base)
+    },
+  ),
+)
 
 #div.with(id: "search-wrapper", class: "hidden")({
   form.with(id: "searchbar-outer", class: "searchbar-outer")({
@@ -26,3 +31,7 @@
     ul(id: "searchresults")[]
   })
 })
+
+#script(src: { x-url-base + "internal/elasticlunr.min.js" })[]
+#script(src: { x-url-base + "internal/mark.min.js" })[]
+#script(src: { x-url-base + "internal/searcher.js" })[]
