@@ -1,8 +1,6 @@
 
 #import "mod.typ": *
 
-#let meta = meta.with[]
-
 #let is-debug = false;
 
 // ---
