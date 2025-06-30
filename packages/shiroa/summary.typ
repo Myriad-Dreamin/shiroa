@@ -77,64 +77,6 @@
   #metadata(meta) <shiroa-build-meta>
 ]
 
-// todo: add documentations to `dict` fields.
-
-/// HTML renderer metadata in #link("https://myriad-dreamin.github.io/shiroa/format/book.html")[book.typ]
-///
-/// - theme (str, none): The theme directory, if specified.
-/// - default-theme (str, none): The default theme to use, defaults to 'light'
-/// - preferred-dark-theme (str, none): The theme to use if the browser requests the dark version of the site. Defaults to 'navy'.
-/// - copy-fonts (bool): Whether to copy fonts.css and respective font files to the output directory.
-/// - additional-css (array): Additional CSS stylesheets to include in the rendered page's `<head>`.
-/// - additional-js (array): Additional JS scripts to include at the bottom of the rendered page's `<body>`.
-/// - fold (auto, dict): Fold settings for sidebar chapters.
-/// - no-section-label (bool): Don't render section labels.
-/// - search (dict, none): Search settings. If `None`, the default will be used.
-/// - git-repository-icon (str, none): FontAwesome icon class to use for the Git repository link. Defaults to `fa-github`.
-/// - input-404 (str, none): Input path for the 404 file, defaults to 404.md, set to "" to disable 404 file output.
-/// - site-url (str, none): Absolute url to site, used to emit correct paths for the 404 page.
-/// - cname (str, none): The DNS subdomain or apex domain at which your book will be hosted for GitHub Pages.
-/// - redirect (dict): The mapping from old pages to new pages/URLs to use when generating redirects.
-#let html-meta(
-  theme: none,
-  default-theme: none,
-  preferred-dark-theme: none,
-  copy-fonts: none,
-  additional-css: (),
-  additional-js: (),
-  fold: auto,
-  no-section-label: none,
-  search: none,
-  git-repository-url: none,
-  git-repository-icon: none,
-  edit-url-template: none,
-  input-404: none,
-  site-url: none,
-  cname: none,
-  redirect: (:),
-) = [
-  #let meta = (
-    theme: theme,
-    default-theme: default-theme,
-    preferred-dark-theme: preferred-dark-theme,
-    copy-fonts: copy-fonts,
-    additional-css: additional-css,
-    additional-js: additional-js,
-    fold: fold,
-    no-section-label: no-section-label,
-    search: search,
-    git-repository-url: git-repository-url,
-    git-repository-icon: git-repository-icon,
-    edit-url-template: edit-url-template,
-    input-404: input-404,
-    site-url: site-url,
-    cname: cname,
-    redirect: redirect,
-  )
-
-  #metadata(meta) <shiroa-html-meta>
-]
-
 /// Represents a chapter in the book
 /// link: path relative (from summary.typ) to the chapter
 /// title: title of the chapter
