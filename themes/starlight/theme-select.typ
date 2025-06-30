@@ -1,6 +1,5 @@
 
 #import "mod.typ": *
-
 #import "icons.typ": builtin-icon
 
 #let links = (

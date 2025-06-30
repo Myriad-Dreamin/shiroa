@@ -48,6 +48,7 @@
     if right-group != none { right-group } else {
       right-group-item(class: "social-icons", social-icons(social-links(github: github-link, discord: discord-link)))
       right-group-item(include "theme-select.typ")
+      right-group-item(class: "md:sl-hidden", include "page-sidebar-mobile.typ")
     },
   )
 

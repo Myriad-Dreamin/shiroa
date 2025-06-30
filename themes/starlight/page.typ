@@ -6,7 +6,6 @@
 #div({
   header(class: "header", virt-slot("header"))
   nav.with(class: "sidebar")({
-    // MobileMenuToggle
     div.with(id: "starlight__sidebar", class: "sidebar-pane")({
       div(class: "sidebar-content sl-flex", include "page-sidebar.typ")
     })
@@ -94,7 +93,7 @@ main {
     overflow-y: auto;
   }
 
-  :global([aria-expanded='true']) ~ .sidebar-pane {
+  [data-mobile-menu-expanded] .sidebar-pane {
     --sl-sidebar-visibility: visible;
   }
 

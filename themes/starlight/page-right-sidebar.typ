@@ -4,11 +4,12 @@
 // ---
 
 #div.with(class: "lg:sl-hidden")({
-  // MobileTableOfContents
+  if has-toc {
+    include "table-of-contents-mobile.typ"
+  }
 })
 #div.with(class: "right-sidebar-panel sl-hidden lg:sl-block")({
   div.with(class: "sl-container page-sidebar")({
-    // TableOfContents
     if has-toc {
       // data-min-h={toc.minHeadingLevel} data-max-h={toc.maxHeadingLevel}
       h2(id: "starlight__on-this-page")[On this page]
