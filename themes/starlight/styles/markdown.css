@@ -30,11 +30,12 @@
 		padding-left: 0.5rem;
 	}
 
-	.sl-heading-wrapper .sl-heading-anchor{
+	.sl-heading-wrapper .sl-heading-anchor a {
 		opacity: 0%;
 	}
 
-	.sl-heading-wrapper:hover .sl-heading-anchor {
+	.sl-heading-wrapper a:target,
+	.sl-heading-wrapper:hover .sl-heading-anchor a {
 		opacity: 100%;
 	}
 
