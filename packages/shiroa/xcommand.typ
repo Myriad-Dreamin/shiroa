@@ -1,4 +1,6 @@
 
+#import "meta-and-state.typ": is-pdf-target
+
 /// HTML extension
 #let xcommand(outer-width: 1024pt, outer-height: 768pt, inner-width: none, inner-height: none, content) = {
   let content = if type(content) == str {
@@ -32,13 +34,15 @@
     "\" height=\""
     str(outer-height.pt())
     "\" xmlns=\"http://www.w3.org/2000/svg\">"
-    "<foreignObject width=\""
-    str(inner-width.pt())
-    "\" height=\""
-    str(inner-height.pt())
-    "\"><!-- embedded-content "
-    content
-    " embedded-content --></foreignObject>"
+    if not is-pdf-target() {
+      "<foreignObject width=\""
+      str(inner-width.pt())
+      "\" height=\""
+      str(inner-height.pt())
+      "\"><!-- embedded-content "
+      content
+      " embedded-content --></foreignObject>"
+    }
     "</svg>"
   }
 
@@ -46,16 +50,13 @@
 }
 
 #let xhtml(..args, tag: none, attributes: (:)) = context if shiroa-sys-target() == "paged" {
-  xcommand(
-    ..args,
-    {
-      "html,"
-      json.encode((
-        tag: tag,
-        attributes: attributes,
-      ))
-    },
-  )
+  xcommand(..args, {
+    "html,"
+    json.encode((
+      tag: tag,
+      attributes: attributes,
+    ))
+  })
 } else {
   // outer-width: 1024pt, outer-height: 768pt, inner-width: none, inner-height: none,
   html.elem(tag, attrs: attributes)
