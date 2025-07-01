@@ -99,12 +99,11 @@
     mk-raw(it, tag: "span", inline: true)
   }
   show raw.where(block: true, tab-size: 114): it => context if shiroa-sys-target() == "paged" {
-    show raw: with-raw-theme.with(theme-style.code-theme)
-    rect(width: 100%, inset: (x: 4pt, y: 5pt), radius: 4pt, fill: code-extra-colors.bg, [
-      #set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
-      #set par(justify: false)
-      #it
-    ])
+    rect(width: 100%, inset: (x: 4pt, y: 5pt), radius: 4pt, fill: code-extra-colors.bg, {
+      set text(fill: code-extra-colors.fg) if code-extra-colors.fg != none
+      set par(justify: false)
+      with-raw-theme(theme-style.code-theme, it)
+    })
   } else {
     mk-raw(it)
   }
