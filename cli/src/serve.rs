@@ -90,7 +90,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
             let mut backend_rx = btx.subscribe();
             warp::sse::reply(warp::sse::keep_alive().stream(async_stream::stream! {
                 while let Ok(WatchSignal::Reload) = backend_rx.recv().await {
-                    tui_hint!("Live reload triggered");
+                    // tui_hint!("Live reload triggered");
                     yield Ok::<warp::sse::Event, Infallible>(warp::sse::Event::default().data("reload"));
                 }
             }))

@@ -1,7 +1,14 @@
 
 #import "sys.typ": target
 
-#let book-theme-from(preset, xml: xml, target: target) = {
+/// Reads a theme from a preset dictionary and returns a structured theme object.
+///
+/// - preset (dictionary): A dictionary containing theme presets.
+/// - xml (function): (Deprecated, passing `read` intead) A function to parse XML data.
+/// - read (function): A function to read theme files.
+/// - target (string): The target platform or style, such as "web-light", "web-dark", or "pdf".
+/// -> dictionary
+#let book-theme-from(preset, xml: xml, read: none, target: target) = {
   // todo: move theme style parser to another lib file
   let theme-target = if target.contains("-") {
     target.split("-").at(1)
@@ -19,6 +26,9 @@
   let code-theme-file = theme-style.at("code-theme")
 
   let code-extra-colors = if code-theme-file.len() > 0 {
+    if read != none {
+      theme-style.insert("code-theme", bytes(read(code-theme-file)))
+    }
     let data = xml(theme-style.at("code-theme")).first()
 
     let find-child(elem, tag) = {
@@ -52,9 +62,15 @@
   )
 }
 
+/// Reads themes from a preset dictionary and returns structured theme objects.
+///
+/// - preset (dictionary): A dictionary containing theme presets.
+/// - read (function): A function to read theme files.
+/// - target (string): The target platform or style, such as "web-light", "web-dark", or "pdf".
+/// -> dictionary
 #let theme-box-styles-from(
   preset,
-  xml: xml,
+  read: read,
   target: target,
   light-theme: none,
   dark-theme: none,
@@ -83,14 +99,12 @@
     dark-theme = "dark"
   }
 
+  let book-theme-from = book-theme-from.with(xml: xml, read: read)
+
   // Theme (Colors)
-  let dark-theme = book-theme-from(preset, xml: xml, target: "web-" + dark-theme)
-  let light-theme = book-theme-from(
-    preset,
-    xml: xml,
-    target: if sys-is-html-target { "web-" + light-theme } else { "pdf" },
-  )
-  let default-theme = book-theme-from(preset, xml: xml, target: target)
+  let dark-theme = book-theme-from(preset, target: "web-" + dark-theme)
+  let light-theme = book-theme-from(preset, target: if sys-is-html-target { "web-" + light-theme } else { "pdf" })
+  let default-theme = book-theme-from(preset, target: target)
 
   (
     dark-theme: dark-theme,
@@ -112,32 +126,16 @@
   if is-md-target {
     show: html.elem.with(tag)
     show: html.elem.with("picture")
-    html.elem(
-      "m1source",
-      attrs: (media: "(prefers-color-scheme: dark)"),
-      render(dark-theme),
-    )
+    html.elem("m1source", attrs: (media: "(prefers-color-scheme: dark)"), render(dark-theme))
     render(light-theme)
   } else if sys-is-html-target {
     if theme-tag == none {
       theme-tag = tag
     }
-    html.elem(
-      tag,
-      attrs: (class: "code-image themed" + if class != none { " " + class }),
-      {
-        html.elem(
-          theme-tag,
-          render(dark-theme),
-          attrs: (class: "dark"),
-        )
-        html.elem(
-          theme-tag,
-          render(light-theme),
-          attrs: (class: "light"),
-        )
-      },
-    )
+    html.elem(tag, attrs: (class: "code-image themed" + if class != none { " " + class }), {
+      html.elem(theme-tag, render(dark-theme), attrs: (class: "dark"))
+      html.elem(theme-tag, render(light-theme), attrs: (class: "light"))
+    })
   } else {
     render(default-theme)
   }

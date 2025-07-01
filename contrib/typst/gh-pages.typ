@@ -1,14 +1,7 @@
 // This is important for shiroa to produce a responsive layout
 // and multiple targets.
 #import "@preview/shiroa:0.2.3": (
-  get-page-width,
-  target,
-  is-web-target,
-  is-pdf-target,
-  is-html-target,
-  plain-text,
-  shiroa-sys-target,
-  templates,
+  get-page-width, is-html-target, is-pdf-target, is-web-target, plain-text, shiroa-sys-target, target, templates,
 )
 #import templates: *
 
@@ -28,7 +21,7 @@
 #let p-frame = div-frame.with(tag: "p")
 
 // Theme (Colors)
-#let themes = theme-box-styles-from(toml("theme-style.toml"), xml: it => xml(it))
+#let themes = theme-box-styles-from(toml("theme-style.toml"), read: it => read(it))
 #let (
   default-theme: (
     style: theme-style,
@@ -153,24 +146,18 @@
 
   show math.equation: set text(weight: 400)
   show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
-    theme-box(
-      tag: "div",
-      theme => {
-        set text(fill: get-main-color(theme))
-        p-frame(attrs: ("class": "block-equation", "role": "math"), it)
-      },
-    )
+    theme-box(tag: "div", theme => {
+      set text(fill: get-main-color(theme))
+      p-frame(attrs: ("class": "block-equation", "role": "math"), it)
+    })
   } else {
     it
   }
   show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
-    theme-box(
-      tag: "span",
-      theme => {
-        set text(fill: get-main-color(theme))
-        span-frame(attrs: (class: "inline-equation", "role": "math"), it)
-      },
-    )
+    theme-box(tag: "span", theme => {
+      set text(fill: get-main-color(theme))
+      span-frame(attrs: (class: "inline-equation", "role": "math"), it)
+    })
   } else {
     it
   }
@@ -240,20 +227,12 @@
     lang: "en",
   )
 
-
   // markup setting
   show: markup-rules
   // math setting
   show: equation-rules
   // code block setting
-  show: code-block-rules.with(
-    themes: themes,
-    code-font: code-font,
-    set-raw-theme: (theme, it) => {
-      set raw(theme: theme) if theme.len() > 0
-      it
-    },
-  )
+  show: code-block-rules.with(themes: themes, code-font: code-font)
 
   // Main body.
   set par(justify: true)
