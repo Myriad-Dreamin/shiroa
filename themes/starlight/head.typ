@@ -28,7 +28,7 @@
       raw(lang: "js", read("/assets/artifacts/mark.min.js"))
       raw(lang: "js", read("/assets/artifacts/searcher.js"))
     },
-    ..styles.final().values(),
+    ..shiroa-assets.final().values(),
   ).join())
   virt-slot("sl:book-meta")
   include "theme-provider.typ"

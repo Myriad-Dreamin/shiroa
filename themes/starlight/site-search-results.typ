@@ -4,16 +4,11 @@
 
 // ---
 
-#add-style(raw(lang: "css", read("styles/search.css")))
-#inline-assets(
-  raw(
-    lang: "js",
-    {
-      "window.path_to_root = "
-      json.encode(x-url-base)
-    },
-  ),
-)
+#add-styles(raw(lang: "css", read("styles/search.css")))
+#inline-assets(raw(lang: "js", {
+  "window.path_to_root = "
+  json.encode(x-url-base)
+}))
 
 #div.with(id: "search-wrapper", class: "hidden")({
   form.with(id: "searchbar-outer", class: "searchbar-outer")({

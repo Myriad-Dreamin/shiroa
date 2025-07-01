@@ -88,19 +88,21 @@
   ```
 })
 
-#add-style.with(cond: links.len() > 0)(```css
-@layer starlight.core {
-  .theme-button {
-    background: none;
-    border: none;
-    padding: 0.5em;
-    margin: -0.2em;
+#add-styles.with(cond: links.len() > 0)(
+  ```css
+  @layer starlight.core {
+    .theme-button {
+      background: none;
+      border: none;
+      padding: 0.5em;
+      margin: -0.2em;
+    }
+    :root[data-theme-active='light'] #theme-light, :root[data-theme-active='dark'] #theme-dark {
+      color: var(--sl-color-text-accent);
+    }
+    .theme-button:hover {
+      opacity: 0.66;
+    }
   }
-  :root[data-theme-active='light'] #theme-light, :root[data-theme-active='dark'] #theme-dark {
-    color: var(--sl-color-text-accent);
-  }
-  .theme-button:hover {
-    opacity: 0.66;
-  }
-}
-```)
+  ```,
+)

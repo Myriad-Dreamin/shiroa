@@ -32,6 +32,7 @@
 // Part III: Supports
 #import "supports-link.typ" as link-support: cross-link
 #import "supports-text.typ" as text-support: plain-text
+#import "supports-html.typ" as html-support
 #import "media.typ"
 #import "utils.typ": get-book-meta, get-build-meta
 

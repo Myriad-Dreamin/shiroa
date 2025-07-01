@@ -12,16 +12,18 @@
     })
   }
 
-  add-style.with(cond: links.len() > 0)(```css
-  @layer starlight.core {
-    a.social-icon {
-      color: var(--sl-color-text-accent);
-      padding: 0.5em;
-      margin: -0.5em;
+  add-styles.with(cond: links.len() > 0)(
+    ```css
+    @layer starlight.core {
+      a.social-icon {
+        color: var(--sl-color-text-accent);
+        padding: 0.5em;
+        margin: -0.5em;
+      }
+      a.social-icon:hover {
+        opacity: 0.66;
+      }
     }
-    a.social-icon:hover {
-      opacity: 0.66;
-    }
-  }
-  ```)
+    ```,
+  )
 }

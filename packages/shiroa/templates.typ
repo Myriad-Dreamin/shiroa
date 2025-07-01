@@ -1,7 +1,106 @@
 #import "template-link.typ": *
 #import "template-theme.typ": *
 
-#let code-block-rules(body, code-font: none, themes: none, zebraw: "@preview/zebraw:0.5.5") = {
+#import "meta-and-state.typ": is-web-target
+
+// Sizes
+#let main-size = if is-web-target() {
+  16pt
+} else {
+  10.5pt
+}
+#let heading-sizes = if is-web-target() {
+  (2, 1.5, 1.17, 1, 0.83).map(it => it * main-size)
+} else {
+  (26pt, 22pt, 14pt, 12pt, main-size)
+}
+#let list-indent = 0.5em
+
+#let markup-rules(
+  body,
+  dash-color: none,
+  web-theme: "starlight",
+  main-size: main-size,
+  heading-sizes: heading-sizes,
+  list-indent: list-indent,
+  starlight: "@preview/shiroa-starlight:0.2.3",
+) = {
+  assert(dash-color != none, message: "dash-color must be set")
+
+  let is-starlight-theme = web-theme == "starlight"
+  let in-heading = state("shiroa:in-heading", false)
+
+  let mdbook-heading-rule(it) = {
+    let it = {
+      set text(size: heading-sizes.at(it.level))
+      if is-web-target() {
+        heading-hash(it, hash-color: dash-color)
+      }
+
+      in-heading.update(true)
+      it
+      in-heading.update(false)
+    }
+
+    block(
+      spacing: 0.7em * 1.5 * 1.2,
+      below: 0.7em * 1.2,
+      it,
+    )
+  }
+
+  let starlight-heading-rule(it) = context if shiroa-sys-target() == "html" {
+    import starlight: builtin-icon
+
+    in-heading.update(true)
+    html.elem("div", attrs: (class: "sl-heading-wrapper level-h" + str(it.level + 1)))[
+      #it
+      #html.elem(
+        "h" + str(it.level + 1),
+        attrs: (class: "sl-heading-anchor not-content", role: "presentation"),
+        static-heading-link(it, body: builtin-icon("anchor"), canonical: true),
+      )
+    ]
+    in-heading.update(false)
+  } else {
+    mdbook-heading-rule(it)
+  }
+
+
+  // Set main spacing
+  set enum(
+    indent: list-indent * 0.618,
+    body-indent: list-indent,
+  )
+  set list(
+    indent: list-indent * 0.618,
+    body-indent: list-indent,
+  )
+  set par(leading: 0.7em)
+  set block(spacing: 0.7em * 1.5)
+
+  // Set text, spacing for headings
+  // Render a dash to hint headings instead of bolding it as well if it's for web.
+  show heading: set text(weight: "regular") if is-web-target()
+  // todo: add me back in mdbook theme!!!
+  show heading: if is-starlight-theme {
+    starlight-heading-rule
+  } else {
+    mdbook-heading-rule
+  }
+
+  // link setting
+  show link: set text(fill: dash-color)
+
+  body
+}
+
+#let code-block-rules(
+  body,
+  code-font: none,
+  themes: none,
+  zebraw: "@preview/zebraw:0.5.5",
+) = {
   import zebraw: zebraw, zebraw-init
 
   let with-raw-theme = (theme, it) => {
