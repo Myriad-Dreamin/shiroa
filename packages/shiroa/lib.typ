@@ -4,6 +4,7 @@
 //!   - `target`
 //!   - `page-width`
 //!   - `is-web-target`
+//!   - `is-html-target`
 //!   - `is-pdf-target`
 //!   - `book-sys`
 //!

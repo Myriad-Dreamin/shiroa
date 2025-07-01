@@ -1,26 +1,5 @@
 
-#import "sys.typ": target, page-width
-
-// Export typst.ts variables again, don't use sys arguments directly
-
-// todo: deprecate me which is conflict with sys.target
-/// The default target is _pdf_.
-/// `typst.ts` will set it to _web_ when rendering a dynamic layout.
-///
-/// Example:
-/// ```typc
-/// #let is-web-target() = target.starts-with("web") or target.starts-with("html")
-/// #let is-pdf-target() = target.starts-with("pdf")
-/// ```
-#let target = target
-
-#let x-url-base = sys.inputs.at("x-url-base", default: "/")
-#if not x-url-base.starts-with("/") {
-  x-url-base = "/" + x-url-base
-}
-#if not x-url-base.ends-with("/") {
-  x-url-base = x-url-base + "/"
-}
+#import "sys.typ": page-width, target, x-target, x-url-base
 
 /// The default page width is A4 paper's width (21cm).
 ///
@@ -53,9 +32,8 @@
 /// Store the calculated metadata of the book.
 #let book-meta-state = state("book-meta", none)
 
-
-#let shiroa-sys-target() = if book-sys.sys-is-html-target {
-  std.target()
+#let shiroa-sys-target = if book-sys.sys-is-html-target {
+  std.target
 } else {
-  "paged"
+  () => "paged"
 }
