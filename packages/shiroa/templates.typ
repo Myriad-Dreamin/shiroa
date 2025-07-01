@@ -95,8 +95,66 @@
   body
 }
 
+#let equation-rules(
+  body,
+  web-theme: "starlight",
+  theme-box: none,
+) = {
+  import "supports-html.typ": add-styles
+  let is-starlight-theme = web-theme == "starlight"
+  let in-heading = state("shiroa:in-heading", false)
+
+  /// Creates an embedded block typst frame.
+  let div-frame(content, attrs: (:), tag: "div") = html.elem(tag, html.frame(content), attrs: attrs)
+  let span-frame = div-frame.with(tag: "span")
+  let p-frame = div-frame.with(tag: "p")
+
+
+  let get-main-color(theme) = {
+    if is-starlight-theme and theme.is-dark and in-heading.get() {
+      white
+    } else {
+      theme.main-color
+    }
+  }
+
+  show math.equation: set text(weight: 400)
+  show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
+    theme-box(tag: "div", theme => {
+      set text(fill: get-main-color(theme))
+      p-frame(attrs: ("class": "block-equation", "role": "math"), it)
+    })
+  } else {
+    it
+  }
+  show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
+    theme-box(tag: "span", theme => {
+      set text(fill: get-main-color(theme))
+      span-frame(attrs: (class: "inline-equation", "role": "math"), it)
+    })
+  } else {
+    it
+  }
+
+  add-styles(
+    ```css
+    .inline-equation {
+      display: inline-block;
+      width: fit-content;
+    }
+    .block-equation {
+      display: grid;
+      place-items: center;
+      overflow-x: auto;
+    }
+    ```,
+  )
+  body
+}
+
 #let code-block-rules(
   body,
+  web-theme: "starlight",
   code-font: none,
   themes: none,
   zebraw: "@preview/zebraw:0.5.5",

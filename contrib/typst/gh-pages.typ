@@ -15,11 +15,6 @@
 #let is-web-target = is-web-target()
 #let sys-is-html-target = ("target" in dictionary(std))
 
-/// Creates an embedded block typst frame.
-#let div-frame(content, attrs: (:), tag: "div") = html.elem(tag, html.frame(content), attrs: attrs)
-#let span-frame = div-frame.with(tag: "span")
-#let p-frame = div-frame.with(tag: "p")
-
 // Theme (Colors)
 #let themes = theme-box-styles-from(toml("theme-style.toml"), read: it => read(it))
 #let (
@@ -50,35 +45,6 @@
   // shiroa's embedded font
   "DejaVu Sans Mono",
 )
-
-#let equation-rules(body) = {
-  let get-main-color(theme) = {
-    if is-starlight-theme and theme.is-dark and in-heading.get() {
-      white
-    } else {
-      theme.main-color
-    }
-  }
-
-  show math.equation: set text(weight: 400)
-  show math.equation.where(block: true): it => context if shiroa-sys-target() == "html" {
-    theme-box(tag: "div", theme => {
-      set text(fill: get-main-color(theme))
-      p-frame(attrs: ("class": "block-equation", "role": "math"), it)
-    })
-  } else {
-    it
-  }
-  show math.equation.where(block: false): it => context if shiroa-sys-target() == "html" {
-    theme-box(tag: "span", theme => {
-      set text(fill: get-main-color(theme))
-      span-frame(attrs: (class: "inline-equation", "role": "math"), it)
-    })
-  } else {
-    it
-  }
-  body
-}
 
 #let template-rules(
   body,
@@ -142,11 +108,15 @@
     height: auto,
   ) if is-web-target and not is-html-target
 
+  let common = (
+    web-theme: web-theme,
+  )
+
   show: template-rules.with(
     title: title,
     description: description,
     plain-body: plain-body,
-    web-theme: web-theme,
+    ..common,
   )
 
   // Set main text
@@ -158,11 +128,11 @@
   )
 
   // markup setting
-  show: markup-rules.with(web-theme: web-theme, dash-color: dash-color)
+  show: markup-rules.with(..common, dash-color: dash-color)
   // math setting
-  show: equation-rules
+  show: equation-rules.with(..common, theme-box: theme-box)
   // code block setting
-  show: code-block-rules.with(themes: themes, code-font: code-font)
+  show: code-block-rules.with(..common, themes: themes, code-font: code-font)
 
   // Main body.
   set par(justify: true)
@@ -172,15 +142,6 @@
   // Put your custom CSS here.
   add-styles(
     ```css
-    .inline-equation {
-      display: inline-block;
-      width: fit-content;
-    }
-    .block-equation {
-      display: grid;
-      place-items: center;
-      overflow-x: auto;
-    }
     .site-title {
       font-size: 1.2rem;
       font-weight: 600;
