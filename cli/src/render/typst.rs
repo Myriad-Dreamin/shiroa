@@ -311,11 +311,6 @@ impl TypstRenderer {
                     //     .and_then(|t| t.as_str())
                     //     .ok_or_else(|| error_once!("no name in chapter data"))?;
 
-                    // let search_path = Path::new(path).with_extension("html");
-                    // ctx.search
-                    //     .index_search(&search_path, title.into(),
-                    // art.description.as_str().into());
-
                     // let data = make_item_data(
                     //     RenderItemContext {
                     //         path,

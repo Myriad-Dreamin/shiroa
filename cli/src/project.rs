@@ -657,25 +657,6 @@ impl Project {
 
                 let content = task.report(res.html()).unwrap_or_default().to_owned();
 
-                // todo
-                // let content = self
-                //     .hr
-                //     .handlebars
-                //     .render(
-                //         "typst_load_html_trampoline",
-                //         &json!({
-                //             "rel_data_path": rel_data_path,
-                //         }),
-                //     )
-                //     .map_err(map_string_err(
-                //         "render typst_load_html_trampoline for compile_chapter",
-                //     ))?;
-
-                // format!(
-                //     r#"{content}<div class="typst-preload-content" style="display:
-                // none">{}</div>"#,     task.report(res.body()).
-                // unwrap_or_default().to_owned() )
-
                 let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
                 (description.unwrap_or_else(auto_description)?, content)
             }

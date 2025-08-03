@@ -308,14 +308,6 @@
   inline-assets(raw(lang: "js", read("index.js")))
 })
 
-// typst-load-html-trampoline.hbs
-// <script>
-//     let appContainer = document.currentScript && document.currentScript.parentElement;
-//     window.typstBookJsLoaded.then(() => {
-//        window.typstBookRenderHtmlPage("{{ rel_data_path }}", appContainer);
-//     });
-// </script>
-
 // typst-load-trampoline.hbs
 // <script>
 //     let appContainer = document.currentScript && document.currentScript.parentElement;
