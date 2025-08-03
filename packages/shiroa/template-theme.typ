@@ -15,6 +15,9 @@
   } else {
     "light"
   }
+  if theme-target == "wrapper" {
+    theme-target = "light"
+  }
   let theme-style = preset.at(theme-target)
 
   let is-dark-theme = theme-style.at("color-scheme") == "dark"

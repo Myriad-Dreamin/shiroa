@@ -45,8 +45,7 @@ use tinymist_task::TextExport;
 use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
-    foundations::{IntoValue, Label, Regex, Selector},
-    utils::PicoStr,
+    foundations::{IntoValue, Regex},
 };
 // serialize_doc, LayoutRegionNode,
 
@@ -214,7 +213,7 @@ impl TypstRenderer {
         res.ok_or_else(|| error_once!("compile pages by outline"))
     }
 
-    pub fn compile_page(&self, path: &Path) -> Result<(TypstRenderTask, TypstDocument)> {
+    pub fn compile_page(&self, path: &Path) -> Result<(TypstRenderTask, Arc<TypstHtmlDocument>)> {
         self.compile_page_with(path, CompilePageSetting::default())
     }
 
@@ -222,41 +221,29 @@ impl TypstRenderer {
         &self,
         path: &Path,
         settings: CompilePageSetting,
-    ) -> Result<(TypstRenderTask, TypstDocument)> {
+    ) -> Result<(TypstRenderTask, Arc<TypstHtmlDocument>)> {
         if self.ctx.static_html && settings.with_outline {
             return Err(error_once!("outline is not supported in static paged mode"));
         }
 
-        let task = self.spawn(path)?;
-
-        let doc = if task.ctx.static_html {
-            TypstDocument::Html(task.pure_compile::<TypstHtmlDocument>()?)
-        } else {
-            TypstDocument::Paged(task.pure_compile::<TypstPagedDocument>()?)
-        };
-
-        if task.ctx.static_html {
-            return Ok((task, doc));
-        }
+        let mut task = self.spawn(path)?;
+        let doc = task.compile_html_page_with()?;
+        let ret = (task, doc);
 
         // todo: review me.
-
-        THEME_LIST
-            .into_par_iter()
-            .map(|theme| {
-                let mut task = self.spawn_with_theme(path, theme)?;
-
-                if task.ctx.static_html {
-                    task.compile_html_page_with()?;
-                } else {
+        if !self.ctx.static_html {
+            THEME_LIST
+                .into_par_iter()
+                .map(|theme| {
+                    let mut task = self.spawn_with_theme(path, theme)?;
                     task.compile_paged_page_with(settings.clone())?;
-                }
 
-                Ok(())
-            })
-            .collect::<Result<()>>()?;
+                    Ok(())
+                })
+                .collect::<Result<()>>()?;
+        }
 
-        Ok((task, doc))
+        Ok(ret)
     }
 
     pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
@@ -361,15 +348,18 @@ impl RenderContext {
     }
 
     fn set_theme_target(&mut self, theme: &str) {
-        let prefix = if self.static_html { "html" } else { "web" };
-
         self.compiler.set_target(if theme.is_empty() {
-            prefix.to_owned()
+            if self.static_html {
+                "html".to_owned()
+            } else {
+                "html-wrapper".to_owned()
+            }
         } else {
+            let prefix = if self.static_html { "html" } else { "web" };
             format!("{prefix}-{theme}")
         });
 
-        if self.static_html {
+        if theme.is_empty() || self.static_html {
             self.extension = if theme.is_empty() {
                 "html".into()
             } else {
@@ -840,7 +830,7 @@ impl TypstRenderTask {
             .ok_or_else(|| error_once!("compile page failed"))
     }
 
-    pub fn compile_html_page_with(&mut self) -> Result<TypstDocument> {
+    pub fn compile_html_page_with(&mut self) -> Result<Arc<TypstHtmlDocument>> {
         let doc = self.pure_compile::<TypstHtmlDocument>()?;
         let res = self
             .report(static_html(&doc))
@@ -850,7 +840,7 @@ impl TypstRenderTask {
         let dest = self.ctx.module_dest_path();
         std::fs::write(&dest, body).unwrap_or_exit();
 
-        Ok(TypstDocument::Html(doc.clone()))
+        Ok(doc)
     }
 
     pub fn compile_paged_page_with(&mut self, settings: CompilePageSetting) -> Result<()> {

@@ -1,5 +1,5 @@
 
-#import "sys.typ": page-width, target, x-target, x-url-base
+#import "sys.typ": page-width, target, x-current, x-target, x-url-base
 
 /// The default page width is A4 paper's width (21cm).
 ///

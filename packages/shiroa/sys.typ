@@ -25,6 +25,10 @@
   x-url-base = x-url-base + "/"
 }
 
+/// Experimental.
+/// passing the current file path.
+#let x-current = sys.inputs.at("x-current", default: none)
+
 /// It is in default A4 paper size (21cm)
 /// example:
 /// ```typc

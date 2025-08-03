@@ -10,11 +10,9 @@
 #let search-js = false;
 #let is-debug = true
 
-
 #let replace-raw(it, vars: (:)) = {
   raw(
     lang: it.lang,
-
     {
       let body = it.text
 

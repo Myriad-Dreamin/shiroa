@@ -1,7 +1,7 @@
 
 #import "mod.typ": *
 #import "icons.typ": builtin-icon
-#import "@preview/shiroa:0.2.3": cross-link-path-label, get-book-meta, x-url-base
+#import "@preview/shiroa:0.2.3": cross-link-path-label, get-book-meta, x-current, x-url-base
 
 // todo: path to root
 // todo: divider
@@ -99,7 +99,7 @@ this.parentElement.classList.toggle("open");
 // data.insert("fold_enable".to_owned(), json!(false));
 // data.insert("fold_level".to_owned(), json!(0u64));
 
-#let current = sys.inputs.at("x-current", default: none)
+#let current = x-current
 #context {
   let book-meta = query(<shiroa-book-meta>).at(0, default: none)
   if book-meta != none {

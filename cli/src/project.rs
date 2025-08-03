@@ -615,8 +615,6 @@ impl Project {
     }
 
     fn compile_chapter_(&self, path: &str) -> Result<ChapterArtifact> {
-        let file_name = Path::new(&self.path_to_root).join(path).with_extension("");
-
         // todo: description for single document
         let task_doc = if self.need_compile() {
             Some(self.tr.compile_page(Path::new(path))?)
@@ -624,61 +622,23 @@ impl Project {
             None
         };
 
-        let auto_description = || {
-            let full_digest = task_doc
-                .as_ref()
-                .map(|doc| &doc.1)
-                .map(TypstRenderer::generate_desc)
-                .transpose()?;
-            let full_digest = full_digest.unwrap_or_default();
+        let (task, html_doc) = task_doc.context("no task document")?;
+
+        let res = task
+            .report(static_html(&html_doc))
+            .expect("failed to render static html");
+
+        let content = task.report(res.html()).unwrap_or_default().to_owned();
+
+        let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
+
+        let description = description.unwrap_or_else(|| {
+            let full_digest = TypstRenderer::generate_desc(&TypstDocument::Html(html_doc.clone()))?;
             Result::Ok(match full_digest.char_indices().nth(512) {
                 Some((idx, _)) => full_digest[..idx].to_owned(),
                 None => full_digest,
             })
-        };
-
-        let rel_data_path = file_name
-            .to_str()
-            .ok_or_else(|| error_once!("path_to_root is not a valid utf-8 string"))?
-            // windows
-            .replace('\\', "/");
-
-        let (description, content) = match self.render_mode.clone() {
-            RenderMode::StaticHtml => {
-                let (task, html_doc) = match &task_doc {
-                    Some((task, TypstDocument::Html(doc))) => (task, doc),
-                    None => bail!("no task document for static html"),
-                    _ => bail!("doc is not Html"),
-                };
-
-                let res = task
-                    .report(static_html(html_doc))
-                    .expect("failed to render static html");
-
-                let content = task.report(res.html()).unwrap_or_default().to_owned();
-
-                let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
-                (description.unwrap_or_else(auto_description)?, content)
-            }
-            RenderMode::DynPaged | RenderMode::StaticHtmlDynPaged => {
-                // let content = self
-                //     .hr
-                //     .handlebars
-                //     .render(
-                //         "typst_load_trampoline",
-                //         &json!({
-                //             "rel_data_path": rel_data_path,
-                //         }),
-                //     )
-                //     .map_err(map_string_err(
-                //         "render typst_load_trampoline for compile_chapter",
-                //     ))?;
-
-                // (auto_description()?, content)
-
-                todo!()
-            }
-        };
+        })?;
 
         Ok(ChapterArtifact {
             content,

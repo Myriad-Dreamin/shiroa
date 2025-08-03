@@ -28,13 +28,22 @@
   },
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, plain-text
+  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, plain-text, x-target
+  import "html.typ": inline-assets, meta, span
 
-  if is-html-target() {
+  if not is-html-target() {
     return body
   }
 
-  import "html.typ": inline-assets, meta, span
+  let trampoline = inline-assets(replace-raw(
+    vars: (rel_data_path: x-current.replace(regex(".typ$"), "")),
+    ```js
+    let appContainer = document.currentScript && document.currentScript.parentElement;
+    window.typstRenderModuleReady.then((plugin) => {
+        window.typstBookRenderPage(plugin, "{{ rel_data_path }}", appContainer);
+    });
+    ```,
+  ))
 
   let site-title() = get-book-meta(mapper: it => if it != none {
     if "raw-title" in it {
@@ -52,14 +61,15 @@
     html.elem("title", meta-title(title, site-title()))
   })
   show: set-slot("main-title", html.elem("h1", title))
-  show: set-slot("main-content", body)
+  // todo: determine a good name of html wrapper
+  show: set-slot("main-content", if x-target.starts-with("html-wrapper") { trampoline } else { body })
   show: set-slot("description", if description != none { meta(name: "description", content: description) })
 
   show: set-slot("header", include "page-header.typ")
   show: set-slot("site-title", context {
     span(class: "site-title", site-title())
   })
-  show: set-slot("sl:book-meta", book)
+  show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))
   show: set-slot("sl:search", if enable-search { include "site-search.typ" })
   show: set-slot("sl:search-results", if enable-search { include "site-search-results.typ" })
   show: set-slot("sl:right-group", if right-group != none { right-group } else {
@@ -72,6 +82,4 @@
   // // virt-slot("theme-select"),
   // // virt-slot("language-select"),
   include "index.typ"
-
-  inline-assets(extra-assets.join())
 }
