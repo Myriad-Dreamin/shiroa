@@ -1,7 +1,7 @@
 use std::{
     borrow::Cow,
     cell::RefCell,
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     path::{Path, PathBuf},
     rc::Rc,
     sync::{Arc, OnceLock},
@@ -12,10 +12,12 @@ use crate::{
     error::prelude::*,
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
-    utils::{make_absolute, make_absolute_from, UnwrapOrExit},
+    project::ChapterArtifact,
+    render::{DataDict, SearchCtx},
+    utils::{create_dirs, make_absolute, make_absolute_from, write_file, UnwrapOrExit},
     CompileArgs, RenderMode,
 };
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
@@ -29,7 +31,7 @@ use reflexo_typst::{
     },
     world::EntryOpts,
     CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
-    EntryReader, ExportDynSvgModuleTask, FlagTask, LazyHash, SystemCompilerFeat, TakeAs,
+    EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash, SystemCompilerFeat, TakeAs,
     TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
     TypstSystemWorld,
 };
@@ -260,6 +262,73 @@ impl TypstRenderer {
 
     pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
         TextExport::run_on_doc(doc).context("export text for html description")
+    }
+
+    pub fn render_chapters(
+        &self,
+        ctx: HtmlRenderContext,
+        chapters: &[DataDict],
+        filter: &BTreeMap<ImmutStr, usize>,
+        compiler: impl Fn(&str) -> Result<ChapterArtifact> + Send + Sync,
+    ) -> Result<()> {
+        chapters
+            .into_par_iter()
+            .enumerate()
+            .map(|(idx, ch)| {
+                if let Some(path) = ch.get("path") {
+                    let raw_path: String = serde_json::from_value(path.clone()).map_err(
+                        error_once_map_string!("retrieve path in book.toml", value: path),
+                    )?;
+
+                    if !filter.is_empty() && !filter.contains_key(raw_path.as_str()) {
+                        return Ok(());
+                    }
+
+                    let path = ctx.dest_dir.join(&raw_path);
+
+                    let instant = std::time::Instant::now();
+                    log::info!("rendering chapter {raw_path}");
+
+                    // Compiles the chapter
+                    let art: ChapterArtifact = compiler(&raw_path)?;
+
+                    let content = art.content;
+                    // todo
+                    // let title = chapter_data
+                    //     .get("name")
+                    //     .and_then(|t| t.as_str())
+                    //     .ok_or_else(|| error_once!("no name in chapter data"))?;
+
+                    // let search_path = Path::new(path).with_extension("html");
+                    // ctx.search
+                    //     .index_search(&search_path, title.into(),
+                    // art.description.as_str().into());
+
+                    // let data = make_item_data(
+                    //     RenderItemContext {
+                    //         path,
+                    //         art,
+                    //         title,
+                    //         edit_url: ctx.edit_url,
+                    //     },
+                    //     ctx.book_data.clone(),
+                    // );
+
+                    // let index_html = self.render_index(data);
+                    // Ok(index_html)
+
+                    log::info!("rendering chapter {raw_path} in {:?}", instant.elapsed());
+
+                    create_dirs(path.parent().unwrap())?;
+                    write_file(path.with_extension("html"), &content)?;
+                    if idx == 0 {
+                        write_file(ctx.dest_dir.join("index.html"), content)?;
+                    }
+                }
+
+                Ok(())
+            })
+            .collect::<Result<()>>()
     }
 }
 
@@ -973,4 +1042,11 @@ fn no_foreign_obj_diag(diag: &&typst::diag::SourceDiagnostic) -> bool {
     }
 
     !diag.message.contains("image contains foreign object")
+}
+
+pub struct HtmlRenderContext<'a> {
+    pub book_data: &'a DataDict,
+    pub edit_url: &'a str,
+    pub search: &'a SearchCtx<'a>,
+    pub dest_dir: &'a Path,
 }
