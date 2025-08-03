@@ -19,7 +19,14 @@
   discord-link: none,
   social-links: social-links,
   right-group: none,
+  extra-assets: (),
 ) = {
+  import "@preview/shiroa:0.2.3": is-html-target
+
+  if is-html-target() {
+    return body
+  }
+
   // import "html-bindings-h.typ": span
 
   show: set-slot("meta-title", html.elem("title", [#title - #site-title]))
@@ -43,4 +50,6 @@
   // // virt-slot("theme-select"),
   // // virt-slot("language-select"),
   include "index.typ"
+
+  inline-assets(extra-assets.join())
 }

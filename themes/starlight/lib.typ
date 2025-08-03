@@ -19,6 +19,7 @@
   enable-search: true,
   github-link: none,
   discord-link: none,
+  extra-assets: (),
   meta-title: (title, site-title) => if title != "" [#title -- #site-title] else { site-title },
   social-links: social-links,
   social-icons: {
@@ -27,8 +28,13 @@
   },
   right-group: none,
 ) = {
-  import "html.typ": meta, span
-  import "@preview/shiroa:0.2.3": get-book-meta, plain-text
+  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, plain-text
+
+  if is-html-target() {
+    return body
+  }
+
+  import "html.typ": inline-assets, meta, span
 
   let site-title() = get-book-meta(mapper: it => if it != none {
     if "raw-title" in it {
@@ -66,4 +72,6 @@
   // // virt-slot("theme-select"),
   // // virt-slot("language-select"),
   include "index.typ"
+
+  inline-assets(extra-assets.join())
 }

@@ -1,10 +1,9 @@
 // This is important for shiroa to produce a responsive layout
 // and multiple targets.
 #import "@preview/shiroa:0.2.3": (
-  get-page-width, html-support, is-html-target, is-pdf-target, is-web-target, plain-text, shiroa-sys-target, templates,
+  get-page-width, is-html-target, is-pdf-target, is-web-target, plain-text, shiroa-sys-target, templates,
 )
 #import templates: *
-#import html-support: *
 
 #let web-theme = "mdbook"
 // #let web-theme = "starlight"
@@ -61,46 +60,14 @@
 }
 #let list-indent = 0.5em
 
-#let template-rules(
-  body,
-  title: none,
-  description: none,
-  plain-body: none,
-  web-theme: "starlight",
-  book-meta: include "/github-pages/docs/book.typ",
-  // todo: get this from book.typ
-  github-link: "https://github.com/Myriad-Dreamin/shiroa",
-  starlight: "@preview/shiroa-starlight:0.2.3",
-  mdbook: "@preview/shiroa-mdbook:0.2.3",
-) = if is-html-target {
-  let description = if description != none { description } else {
-    let desc = plain-text(plain-body, limit: 512).trim()
-    if desc.len() > 512 {
-      desc = desc.slice(0, 512) + "..."
-    }
-    desc
-  }
-
-  let template-args = arguments(
-    book-meta,
-    title: title,
-    description: description,
-    github-link: github-link,
-    body,
-  )
-
-  if web-theme == "starlight" {
-    import starlight: starlight
-    starlight(..template-args)
-  } else if web-theme == "mdbook" {
-    import mdbook: mdbook
-    mdbook(..template-args)
-  } else {
-    panic("Unknown web theme: " + web-theme)
-  }
-} else {
-  body
+// Put your custom CSS here.
+#let extra-css = ```css
+.site-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-style: italic;
 }
+```
 
 /// The project function defines how your document looks.
 /// It takes your content and some metadata and formats it.
@@ -140,9 +107,11 @@
   )
 
   show: template-rules.with(
+    book-meta: include "/github-pages/docs/book.typ",
     title: title,
     description: description,
     plain-body: plain-body,
+    extra-assets: (extra-css,),
     ..common,
   )
 
@@ -171,17 +140,6 @@
   set par(justify: true)
 
   plain-body
-
-  // Put your custom CSS here.
-  add-styles(
-    ```css
-    .site-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      font-style: italic;
-    }
-    ```,
-  )
 }
 
 #let part-style = heading

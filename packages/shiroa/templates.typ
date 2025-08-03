@@ -1,6 +1,8 @@
 #import "template-link.typ": *
 #import "template-theme.typ": *
+#import "supports-html.typ": *
 #import "meta-and-state.typ": is-web-target
+
 
 // Sizes
 #let main-size = if is-web-target() {
@@ -271,4 +273,45 @@
     mk-raw(it)
   }
   body
+}
+
+#let template-rules(
+  body,
+  title: none,
+  description: none,
+  plain-body: none,
+  book-meta: none,
+  web-theme: "starlight",
+  // todo: get this from book.typ
+  github-link: "https://github.com/Myriad-Dreamin/shiroa",
+  extra-assets: (),
+  starlight: "@preview/shiroa-starlight:0.2.3",
+  mdbook: "@preview/shiroa-mdbook:0.2.3",
+) = {
+  let description = if description != none { description } else {
+    let desc = plain-text(plain-body, limit: 512).trim()
+    if desc.len() > 512 {
+      desc = desc.slice(0, 512) + "..."
+    }
+    desc
+  }
+
+  let template-args = arguments(
+    book-meta,
+    title: title,
+    description: description,
+    github-link: github-link,
+    extra-assets: extra-assets,
+    body,
+  )
+
+  if web-theme == "starlight" {
+    import starlight: starlight
+    starlight(..template-args)
+  } else if web-theme == "mdbook" {
+    import mdbook: mdbook
+    mdbook(..template-args)
+  } else {
+    panic("Unknown web theme: " + web-theme)
+  }
 }
