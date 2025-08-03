@@ -6,7 +6,6 @@
 // ---
 
 #head({
-  [#metadata[] <keep-html>]
   meta(
     charset: "utf-8",
     name: "viewport",

@@ -235,12 +235,11 @@ impl TypstRenderer {
             TypstDocument::Paged(task.pure_compile::<TypstPagedDocument>()?)
         };
 
-        if task.ctx.static_html && {
-            let label = Selector::Label(Label::new(PicoStr::constant("keep-html")));
-            doc.introspector().query_first(&label).is_some()
-        } {
+        if task.ctx.static_html {
             return Ok((task, doc));
         }
+
+        // todo: review me.
 
         THEME_LIST
             .into_par_iter()

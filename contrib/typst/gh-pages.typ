@@ -67,6 +67,9 @@
   description: none,
   plain-body: none,
   web-theme: "starlight",
+  book-meta: include "/github-pages/docs/book.typ",
+  // todo: get this from book.typ
+  github-link: "https://github.com/Myriad-Dreamin/shiroa",
   starlight: "@preview/shiroa-starlight:0.2.3",
   mdbook: "@preview/shiroa-mdbook:0.2.3",
 ) = if is-html-target {
@@ -78,23 +81,20 @@
     desc
   }
 
+  let template-args = arguments(
+    book-meta,
+    title: title,
+    description: description,
+    github-link: github-link,
+    body,
+  )
+
   if web-theme == "starlight" {
     import starlight: starlight
-    starlight(
-      include "/github-pages/docs/book.typ",
-      title: title,
-      description: description,
-      github-link: "https://github.com/Myriad-Dreamin/shiroa",
-      body,
-    )
+    starlight(..template-args)
   } else if web-theme == "mdbook" {
-    mdbook(
-      include "/github-pages/docs/book.typ",
-      title: title,
-      description: description,
-      github-link: "https://github.com/Myriad-Dreamin/shiroa",
-      body,
-    )
+    import mdbook: mdbook
+    mdbook(..template-args)
   } else {
     panic("Unknown web theme: " + web-theme)
   }

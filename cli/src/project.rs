@@ -731,17 +731,3 @@ pub(crate) enum ServeEvent {
 pub(crate) enum WatchSignal {
     Reload,
 }
-// ThemeAsset::Static(EmbeddedThemeAsset::MdBook) => {
-//     copy_dir_embedded(
-//         &include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/css"),
-//         &dest_dir.join("css"),
-//     )?;
-//     copy_dir_embedded(
-//         &include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook/FontAwesome/css"
-// ),         &dest_dir.join("FontAwesome/css"),
-//     )?;
-//     write_file(
-//         dest_dir.join("index.js"),
-//         include_bytes!("../../themes/mdbook/index.js"),
-//     )?;
-// }
