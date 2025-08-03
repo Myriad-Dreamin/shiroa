@@ -3,6 +3,24 @@
 #import "icons.typ": builtin-icon
 #import "@preview/shiroa:0.2.3": cross-link-path-label, get-book-meta, x-url-base
 
+// // Spacer
+// if item.contains_key("spacer") {
+//     out.write("<li class=\"spacer\"></li>")?;
+//     continue;
+// }
+// todo: fold_level
+// let is_expanded =
+//     if !fold_enable || (!section.is_empty() && current_section.starts_with(section)) {
+//         // Expand if folding is disabled, or if the section is an
+//         // ancestor or the current section itself.
+//         true
+//     } else {
+//         // Levels that are larger than this would be folded.
+//         level - 1 < fold_level as usize
+//     };
+
+// ---
+
 #let render-sidebar(summary-items, visit) = {
   let part = none
   let items = ()
@@ -11,17 +29,19 @@
       let v = none
 
       let link = summary-item.link
-      if link != none {
-        items.push(
-          visit.at("inc")("/" + link, {
+      items.push(
+        visit.at("inc")(
+          if link != none { "/" + link },
+          {
             if "raw-title" in summary-item {
               summary-item.raw-title
             } else {
               summary-item.title.content
             }
-          }),
-        )
-      }
+          },
+          section: summary-item.section,
+        ),
+      )
 
       if "sub" in summary-item {
         items.push(visit.at("sub")(render-sidebar(summary-item.sub, visit)))
@@ -49,7 +69,7 @@
 #let cross-link2(current, dest, it) = {
   // todo: url-base
   let aria-current = if dest == current {
-    (aria-current: "page")
+    (class: "active")
   } else {
     (:)
   }
@@ -74,6 +94,8 @@ this.parentElement.classList.toggle("open");
 ```
 
 // ---
+// data.insert("fold_enable".to_owned(), json!(false));
+// data.insert("fold_level".to_owned(), json!(0u64));
 
 #let current = sys.inputs.at("x-current", default: none)
 #context {
@@ -82,26 +104,43 @@ this.parentElement.classList.toggle("open");
     let sm = book-meta.value.summary
 
     let styles = (
-      inc: (link, it) => cross-link2(current, link, it),
-      sub: it => li(ol(it)),
+      inc: (link, it, section: none) => li(class: "chapter-item expanded", {
+        if section != none {
+          it = [#h.strong(aria-hidden: "true", section). #it]
+        }
+
+        // // Section does not necessarily exist
+        // if let Some(section) = item.get("section") {
+        //     out.write("<strong aria-hidden=\"true\">")?;
+        //     out.write(section)?;
+        //     out.write("</strong> ")?;
+        // }
+
+        if link != none {
+          cross-link2(current, link, it)
+        } else {
+          it
+        }
+      }),
+      sub: it => ol(class: "section", it),
       part: (part, items) => if part != none {
-        li(class: "sidebar-part open", {
-          div.with(class: "sidebar-part-header", onclick: "javascript:" + onclick.text)({
-            div(class: "sidebar-part-title", span(part))
-            builtin-icon("right-caret", class: "sidebar-part-caret")
-          })
-          ol(class: "sidebar-part-chapters", items.sum())
-        })
+        li(class: "chapter-item expanded")[]
+        li(
+          class: "part-title",
+          part,
+        )
+
+        items.sum()
       } else {
         items.sum()
       },
     )
 
-    ul(render-sidebar(sm, styles))
+    ol(class: "chapter", render-sidebar(sm, styles))
   }
 }
 
-#add-styles(
+#add-style(
   ```css
   .sidebar-content {
     --sl-sidebar-item-padding-inline: 0.5rem;

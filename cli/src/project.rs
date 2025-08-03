@@ -571,6 +571,7 @@ impl Project {
                     chapter.insert("path".to_owned(), json!(path));
                 }
             }
+            // todo: divider
             BookMetaElem::Separator {} => {
                 chapter.insert("spacer".to_owned(), json!("_spacer_"));
             }
