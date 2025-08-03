@@ -2,20 +2,6 @@
 #import "template-theme.typ": *
 #import "meta-and-state.typ": is-web-target
 
-// Fonts
-#let main-font = (
-  "Charter",
-  "Source Han Serif SC",
-  // "Source Han Serif TC",
-  // shiroa's embedded font
-  "Libertinus Serif",
-)
-#let code-font = (
-  "BlexMono Nerd Font Mono",
-  // shiroa's embedded font
-  "DejaVu Sans Mono",
-)
-
 // Sizes
 #let main-size = if is-web-target() {
   16pt
