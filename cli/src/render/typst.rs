@@ -1,7 +1,7 @@
 use std::{
     borrow::Cow,
     cell::RefCell,
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     path::{Path, PathBuf},
     rc::Rc,
     sync::{Arc, OnceLock},
@@ -12,10 +12,12 @@ use crate::{
     error::prelude::*,
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
-    utils::{make_absolute, make_absolute_from, UnwrapOrExit},
+    project::ChapterArtifact,
+    render::{DataDict, SearchCtx},
+    utils::{create_dirs, make_absolute, make_absolute_from, write_file, UnwrapOrExit},
     CompileArgs, RenderMode,
 };
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
@@ -29,7 +31,7 @@ use reflexo_typst::{
     },
     world::EntryOpts,
     CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
-    EntryReader, ExportDynSvgModuleTask, FlagTask, LazyHash, SystemCompilerFeat, TakeAs,
+    EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash, SystemCompilerFeat, TakeAs,
     TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
     TypstSystemWorld,
 };
@@ -43,8 +45,7 @@ use tinymist_task::TextExport;
 use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
-    foundations::{IntoValue, Label, Regex, Selector},
-    utils::PicoStr,
+    foundations::{IntoValue, Regex},
 };
 // serialize_doc, LayoutRegionNode,
 
@@ -212,7 +213,7 @@ impl TypstRenderer {
         res.ok_or_else(|| error_once!("compile pages by outline"))
     }
 
-    pub fn compile_page(&self, path: &Path) -> Result<(TypstRenderTask, TypstDocument)> {
+    pub fn compile_page(&self, path: &Path) -> Result<(TypstRenderTask, Arc<TypstHtmlDocument>)> {
         self.compile_page_with(path, CompilePageSetting::default())
     }
 
@@ -220,46 +221,104 @@ impl TypstRenderer {
         &self,
         path: &Path,
         settings: CompilePageSetting,
-    ) -> Result<(TypstRenderTask, TypstDocument)> {
+    ) -> Result<(TypstRenderTask, Arc<TypstHtmlDocument>)> {
         if self.ctx.static_html && settings.with_outline {
             return Err(error_once!("outline is not supported in static paged mode"));
         }
 
-        let task = self.spawn(path)?;
+        let mut task = self.spawn(path)?;
+        let doc = task.compile_html_page_with()?;
 
-        let doc = if task.ctx.static_html {
-            TypstDocument::Html(task.pure_compile::<TypstHtmlDocument>()?)
-        } else {
-            TypstDocument::Paged(task.pure_compile::<TypstPagedDocument>()?)
-        };
-
-        if task.ctx.static_html && {
-            let label = Selector::Label(Label::new(PicoStr::constant("keep-html")));
-            doc.introspector().query_first(&label).is_some()
-        } {
-            return Ok((task, doc));
+        // todo: review me.
+        if !task.ctx.static_html {
+            THEME_LIST
+                .into_par_iter()
+                .map(|theme| {
+                    let mut task = self.spawn_with_theme(path, theme)?;
+                    task.compile_paged_page_with(settings.clone())
+                })
+                .collect::<Result<()>>()?;
         }
-
-        THEME_LIST
-            .into_par_iter()
-            .map(|theme| {
-                let mut task = self.spawn_with_theme(path, theme)?;
-
-                if task.ctx.static_html {
-                    task.compile_html_page_with()?;
-                } else {
-                    task.compile_paged_page_with(settings.clone())?;
-                }
-
-                Ok(())
-            })
-            .collect::<Result<()>>()?;
 
         Ok((task, doc))
     }
 
     pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
         TextExport::run_on_doc(doc).context("export text for html description")
+    }
+
+    pub fn render_chapters(
+        &self,
+        ctx: HtmlRenderContext,
+        chapters: &[DataDict],
+        filter: &BTreeMap<ImmutStr, usize>,
+        compiler: impl Fn(&str) -> Result<ChapterArtifact> + Send + Sync,
+    ) -> Result<()> {
+        chapters
+            .into_par_iter()
+            .enumerate()
+            .map(|(idx, ch)| {
+                if let Some(path) = ch.get("path") {
+                    let raw_path: String = serde_json::from_value(path.clone()).map_err(
+                        error_once_map_string!("retrieve path in book.toml", value: path),
+                    )?;
+
+                    if !filter.is_empty() && !filter.contains_key(raw_path.as_str()) {
+                        return Ok(());
+                    }
+
+                    let path = ctx.dest_dir.join(&raw_path);
+
+                    let instant = std::time::Instant::now();
+                    log::info!("rendering chapter {raw_path}");
+
+                    // Compiles the chapter
+                    let art: ChapterArtifact = compiler(&raw_path)?;
+
+                    let title = ch
+                        .get("name")
+                        .and_then(|t| t.as_str())
+                        .ok_or_else(|| error_once!("no name in chapter data"))?;
+
+                    let search_path = Path::new(&raw_path).with_extension("html");
+                    ctx.search.index_search(
+                        &search_path,
+                        title.into(),
+                        art.description.as_str().into(),
+                    );
+
+                    let content = art.content;
+                    // todo
+                    // let title = chapter_data
+                    //     .get("name")
+                    //     .and_then(|t| t.as_str())
+                    //     .ok_or_else(|| error_once!("no name in chapter data"))?;
+
+                    // let data = make_item_data(
+                    //     RenderItemContext {
+                    //         path,
+                    //         art,
+                    //         title,
+                    //         edit_url: ctx.edit_url,
+                    //     },
+                    //     ctx.book_data.clone(),
+                    // );
+
+                    // let index_html = self.render_index(data);
+                    // Ok(index_html)
+
+                    log::info!("rendering chapter {raw_path} in {:?}", instant.elapsed());
+
+                    create_dirs(path.parent().unwrap())?;
+                    write_file(path.with_extension("html"), &content)?;
+                    if idx == 0 {
+                        write_file(ctx.dest_dir.join("index.html"), content)?;
+                    }
+                }
+
+                Ok(())
+            })
+            .collect::<Result<()>>()
     }
 }
 
@@ -286,15 +345,18 @@ impl RenderContext {
     }
 
     fn set_theme_target(&mut self, theme: &str) {
-        let prefix = if self.static_html { "html" } else { "web" };
-
         self.compiler.set_target(if theme.is_empty() {
-            prefix.to_owned()
+            if self.static_html {
+                "html".to_owned()
+            } else {
+                "html-wrapper".to_owned()
+            }
         } else {
+            let prefix = if self.static_html { "html" } else { "web" };
             format!("{prefix}-{theme}")
         });
 
-        if self.static_html {
+        if theme.is_empty() || self.static_html {
             self.extension = if theme.is_empty() {
                 "html".into()
             } else {
@@ -765,17 +827,17 @@ impl TypstRenderTask {
             .ok_or_else(|| error_once!("compile page failed"))
     }
 
-    pub fn compile_html_page_with(&mut self) -> Result<TypstDocument> {
+    pub fn compile_html_page_with(&mut self) -> Result<Arc<TypstHtmlDocument>> {
         let doc = self.pure_compile::<TypstHtmlDocument>()?;
         let res = self
             .report(static_html(&doc))
-            .expect("failed to render static html");
+            .ok_or_else(|| error_once!("failed to render html page"))?;
         let body = self.report(res.body()).expect("failed to render body");
 
         let dest = self.ctx.module_dest_path();
         std::fs::write(&dest, body).unwrap_or_exit();
 
-        Ok(TypstDocument::Html(doc.clone()))
+        Ok(doc)
     }
 
     pub fn compile_paged_page_with(&mut self, settings: CompilePageSetting) -> Result<()> {
@@ -973,4 +1035,11 @@ fn no_foreign_obj_diag(diag: &&typst::diag::SourceDiagnostic) -> bool {
     }
 
     !diag.message.contains("image contains foreign object")
+}
+
+pub struct HtmlRenderContext<'a> {
+    pub book_data: &'a DataDict,
+    pub edit_url: &'a str,
+    pub search: &'a SearchCtx<'a>,
+    pub dest_dir: &'a Path,
 }

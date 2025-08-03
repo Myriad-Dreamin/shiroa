@@ -1,11 +1,9 @@
 use std::convert::Infallible;
 use std::net::SocketAddr;
-use std::path::Path;
 
 use crate::project::{ServeEvent, WatchSignal};
 use crate::tui_hint;
 use crate::{project::Project, ServeArgs};
-use notify::Watcher;
 use reflexo_typst::error::prelude::*;
 use reflexo_typst::ImmutStr;
 use serde::{Deserialize, Serialize};
@@ -53,33 +51,6 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
     let (hb_tx, hb_rx) = tokio::sync::mpsc::unbounded_channel();
     let (backend_tx, _) = tokio::sync::broadcast::channel(128);
     let btx = backend_tx.clone();
-
-    // watch theme files
-    let mut _watcher_stack = None;
-    if let Some(theme_dir) = proj.args.theme.clone() {
-        let hb_tx2 = hb_tx.clone();
-        let mut watcher =
-            notify::recommended_watcher(move |res: notify::Result<notify::Event>| match res {
-                Ok(event) => {
-                    let paths = event.paths.into_iter().collect::<Vec<_>>();
-                    hb_tx2
-                        .send(ServeEvent::ThemeChange(paths))
-                        .unwrap_or_else(|e| {
-                            tui_hint!("Failed to send heartbeat: {e}");
-                        });
-                }
-                Err(e) => tui_hint!("Watcher error: {e}"),
-            })
-            .context_ut("Failed to create file watcher")?;
-
-        if let Err(e) = watcher.watch(Path::new(&theme_dir), notify::RecursiveMode::Recursive) {
-            tui_hint!("Failed to watch theme directory: {e}");
-        } else {
-            tui_hint!("Watching theme directory: {theme_dir:?}");
-        }
-
-        _watcher_stack = Some(watcher);
-    }
 
     #[derive(Serialize, Deserialize)]
     struct LocationQuery {

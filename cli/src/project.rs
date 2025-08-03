@@ -17,16 +17,12 @@ use reflexo_typst::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::{broadcast, mpsc};
-use typst::{
-    foundations::{Content, Label, Selector},
-    utils::PicoStr,
-};
+use typst::foundations::Content;
 
 use crate::{
     error::prelude::*,
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
-    render::{DataDict, HtmlRenderContext, HtmlRenderer, SearchCtx, SearchRenderer, TypstRenderer},
-    theme::Theme,
+    render::{DataDict, HtmlRenderContext, SearchCtx, SearchRenderer, TypstRenderer},
     tui, tui_error, tui_hint, tui_info,
     utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
     CompileArgs, MetaSource, RenderMode,
@@ -61,11 +57,8 @@ impl fmt::Display for JsonContent {
 }
 
 pub struct Project {
-    pub theme: Theme,
-
     pub render_mode: RenderMode,
     pub tr: TypstRenderer,
-    pub hr: HtmlRenderer,
 
     pub book_meta: BookMeta,
     pub build_meta: Option<BuildMeta>,
@@ -110,22 +103,14 @@ impl Project {
             args.workspace.clone_from(&args.dir);
         }
 
-        let theme = match &args.theme {
-            Some(theme) => Theme::new(Path::new(theme))?,
-            None => Theme::default(),
-        };
-
         let raw_args = args.clone();
         let tr = TypstRenderer::new(args);
-        let hr = HtmlRenderer::new(&theme);
 
         let mut proj = Self {
             dest_dir: tr.ctx.dest_dir.clone(),
             args: raw_args,
 
-            theme,
             tr,
-            hr,
             render_mode,
 
             book_meta: Default::default(),
@@ -142,6 +127,10 @@ impl Project {
         release_packages(
             &mut proj.tr.universe_mut().snapshot(),
             include_dir!("$CARGO_MANIFEST_DIR/../themes/starlight"),
+        );
+        release_packages(
+            &mut proj.tr.universe_mut().snapshot(),
+            include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook"),
         );
 
         proj.build_meta()?;
@@ -360,20 +349,6 @@ impl Project {
                     snap = self.tr.snapshot();
                     world = snap.world.clone();
                 }
-                WatchEvent::Serve(ServeEvent::ThemeChange(themes)) => {
-                    if !self
-                        .theme
-                        .reload(Path::new(self.args.theme.as_ref().unwrap()), themes)
-                    {
-                        continue;
-                    }
-                    tui_info!("Theme files changed");
-                    // Create a new HtmlRenderer with the updated theme
-                    self.hr = HtmlRenderer::new(&self.theme);
-
-                    let _ = tui::clear();
-                    let _ = self.build_meta();
-                }
                 WatchEvent::Serve(ServeEvent::HoldPath(path, inc)) => {
                     let path = if path.as_ref() == "/" || path.is_empty() {
                         if let Some(f) = self.chapters.first() {
@@ -443,14 +418,6 @@ impl Project {
     }
 
     fn extract_assets(&mut self, sr: &SearchRenderer) -> Result<()> {
-        // Always update the theme if it is static
-        // Or copy on first build
-        let theme_dir = self.dest_dir.join("theme");
-        if self.theme.is_static() || !theme_dir.exists() {
-            log::info!("copying theme assets to {theme_dir:?}");
-            self.theme.copy_assets(&theme_dir)?;
-        }
-
         // copy internal files
         create_dirs(self.dest_dir.join("internal"))?;
         write_file(
@@ -459,11 +426,11 @@ impl Project {
         )?;
         write_file(
             self.dest_dir.join("internal/svg_utils.js"),
-            include_bytes!("../../assets/artifacts/svg_utils.cjs"),
+            include_bytes!("../../assets/artifacts/svg_utils.js"),
         )?;
         write_file(
             self.dest_dir.join("internal/shiroa.js"),
-            include_bytes!("../../assets/artifacts/book.mjs"),
+            include_bytes!("../../assets/artifacts/shiroa.js"),
         )?;
 
         if sr.config.copy_js {
@@ -534,7 +501,7 @@ impl Project {
         data.insert("preferred_dark_theme".to_owned(), json!("ayu"));
         data.insert("default_theme".to_owned(), json!("light"));
 
-        self.hr.render_chapters(
+        self.tr.render_chapters(
             HtmlRenderContext {
                 book_data: &data,
                 edit_url: &book_meta.repository_edit,
@@ -604,6 +571,7 @@ impl Project {
                     chapter.insert("path".to_owned(), json!(path));
                 }
             }
+            // todo: divider
             BookMetaElem::Separator {} => {
                 chapter.insert("spacer".to_owned(), json!("_spacer_"));
             }
@@ -647,8 +615,6 @@ impl Project {
     }
 
     fn compile_chapter_(&self, path: &str) -> Result<ChapterArtifact> {
-        let file_name = Path::new(&self.path_to_root).join(path).with_extension("");
-
         // todo: description for single document
         let task_doc = if self.need_compile() {
             Some(self.tr.compile_page(Path::new(path))?)
@@ -656,91 +622,25 @@ impl Project {
             None
         };
 
-        let auto_description = || {
-            let full_digest = task_doc
-                .as_ref()
-                .map(|doc| &doc.1)
-                .map(TypstRenderer::generate_desc)
-                .transpose()?;
-            let full_digest = full_digest.unwrap_or_default();
+        let (task, html_doc) = task_doc.context("no task document")?;
+
+        let res = task
+            .report(static_html(&html_doc))
+            .expect("failed to render static html");
+
+        let content = task.report(res.html()).unwrap_or_default().to_owned();
+
+        let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
+
+        let description = description.unwrap_or_else(|| {
+            let full_digest = TypstRenderer::generate_desc(&TypstDocument::Html(html_doc.clone()))?;
             Result::Ok(match full_digest.char_indices().nth(512) {
                 Some((idx, _)) => full_digest[..idx].to_owned(),
                 None => full_digest,
             })
-        };
-
-        let rel_data_path = file_name
-            .to_str()
-            .ok_or_else(|| error_once!("path_to_root is not a valid utf-8 string"))?
-            // windows
-            .replace('\\', "/");
-
-        let (keep_html, description, content) = match self.render_mode.clone() {
-            RenderMode::StaticHtml => {
-                let (task, html_doc) = match &task_doc {
-                    Some((task, TypstDocument::Html(doc))) => (task, doc),
-                    None => bail!("no task document for static html"),
-                    _ => bail!("doc is not Html"),
-                };
-
-                let res = task
-                    .report(static_html(html_doc))
-                    .expect("failed to render static html");
-
-                let keep_html = {
-                    let label = Selector::Label(Label::new(PicoStr::constant("keep-html")));
-                    html_doc.introspector.query_first(&label).is_some()
-                };
-
-                let content = if keep_html {
-                    task.report(res.html()).unwrap_or_default().to_owned()
-                } else {
-                    let content = self
-                        .hr
-                        .handlebars
-                        .render(
-                            "typst_load_html_trampoline",
-                            &json!({
-                                "rel_data_path": rel_data_path,
-                            }),
-                        )
-                        .map_err(map_string_err(
-                            "render typst_load_html_trampoline for compile_chapter",
-                        ))?;
-
-                    format!(
-                        r#"{content}<div class="typst-preload-content" style="display: none">{}</div>"#,
-                        task.report(res.body()).unwrap_or_default().to_owned()
-                    )
-                };
-
-                let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
-                (
-                    keep_html,
-                    description.unwrap_or_else(auto_description)?,
-                    content,
-                )
-            }
-            RenderMode::DynPaged | RenderMode::StaticHtmlDynPaged => {
-                let content = self
-                    .hr
-                    .handlebars
-                    .render(
-                        "typst_load_trampoline",
-                        &json!({
-                            "rel_data_path": rel_data_path,
-                        }),
-                    )
-                    .map_err(map_string_err(
-                        "render typst_load_trampoline for compile_chapter",
-                    ))?;
-
-                (false, auto_description()?, content)
-            }
-        };
+        })?;
 
         Ok(ChapterArtifact {
-            keep_html,
             content,
             description,
         })
@@ -780,12 +680,10 @@ impl Project {
 pub struct ChapterArtifact {
     pub description: String,
     pub content: String,
-    pub keep_html: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum ServeEvent {
-    ThemeChange(Vec<PathBuf>),
     HoldPath(ImmutStr, bool),
 }
 

@@ -1,5 +1,5 @@
 
-#import "sys.typ": page-width, target, x-target, x-url-base
+#import "sys.typ": page-width, target, x-current, x-target, x-url-base
 
 /// The default page width is A4 paper's width (21cm).
 ///
@@ -13,9 +13,11 @@
 #let get-page-width() = page-width
 
 /// Whether the current compilation is for _html_
-#let is-html-target() = target.starts-with("html") or target.starts-with("html")
+#let is-html-target(exclude-wrapper: false) = (
+  target.starts-with("html") and (not exclude-wrapper or not x-target.starts-with("html-wrapper"))
+)
 /// Whether the current compilation is for _web_
-#let is-web-target() = target.starts-with("web") or target.starts-with("html")
+#let is-web-target() = target.starts-with("web")
 /// Whether the current compilation is for _pdf_
 #let is-pdf-target() = target.starts-with("pdf")
 

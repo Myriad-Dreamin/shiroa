@@ -1,7 +1,8 @@
 #import "template-link.typ": *
 #import "template-theme.typ": *
-
+#import "supports-html.typ": *
 #import "meta-and-state.typ": is-web-target
+
 
 // Sizes
 #let main-size = if is-web-target() {
@@ -16,16 +17,23 @@
 }
 #let list-indent = 0.5em
 
+
 #let markup-rules(
   body,
-  dash-color: none,
   web-theme: "starlight",
+  themes: none,
   main-size: main-size,
   heading-sizes: heading-sizes,
   list-indent: list-indent,
   starlight: "@preview/shiroa-starlight:0.2.3",
 ) = {
-  assert(dash-color != none, message: "dash-color must be set")
+  assert(themes != none, message: "themes must be set")
+  let (
+    default-theme: (
+      dash-color: dash-color,
+    ),
+  ) = themes
+
 
   let is-starlight-theme = web-theme == "starlight"
   let in-heading = state("shiroa:in-heading", false)
@@ -265,4 +273,50 @@
     mk-raw(it)
   }
   body
+}
+
+#let template-rules(
+  body,
+  title: none,
+  description: none,
+  plain-body: none,
+  book-meta: none,
+  web-theme: "starlight",
+  // todo: get this from book.typ
+  github-link: "https://github.com/Myriad-Dreamin/shiroa",
+  extra-assets: (),
+  starlight: "@preview/shiroa-starlight:0.2.3",
+  mdbook: "@preview/shiroa-mdbook:0.2.3",
+) = {
+  let description = if description != none { description } else {
+    let desc = plain-text(plain-body, limit: 512).trim()
+    if desc.len() > 512 {
+      desc = desc.slice(0, 512) + "..."
+    }
+    desc
+  }
+
+  let template-args = arguments(
+    book-meta,
+    title: title,
+    description: description,
+    github-link: github-link,
+    extra-assets: extra-assets,
+    body,
+  )
+
+  if web-theme == "starlight" {
+    if not is-html-target() {
+      panic(
+        "Starlight theme is only available with `--mode=static-html`. Either change theme to mdbook or turn mode into `static-html`.",
+      )
+    }
+    import starlight: starlight
+    starlight(..template-args)
+  } else if web-theme == "mdbook" {
+    import mdbook: mdbook
+    mdbook(..template-args)
+  } else {
+    panic("Unknown web theme: " + web-theme)
+  }
 }

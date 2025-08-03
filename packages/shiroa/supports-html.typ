@@ -1,5 +1,6 @@
 
 #import "meta-and-state.typ": is-html-target
+#import "supports-html-internal.typ"
 #let data-url(mime, src) = {
   import "@preview/based:0.2.0": base64
   "data:" + mime + ";base64," + base64.encode(src)

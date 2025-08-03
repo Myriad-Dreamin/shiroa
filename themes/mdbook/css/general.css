@@ -411,3 +411,19 @@ a.focus {
   transition: 0.1s;
   transition-property: fill, stroke, color;
 }
+
+.typst-app { position: relative; }
+	
+.code-image.themed .light {
+  display: none;
+}
+.code-image.themed .dark {
+  display: initial;
+}
+:root[data-theme='light'] .code-image.themed .light{
+  display: initial;
+}
+
+:root[data-theme='light'] .code-image.themed .dark {
+  display: none;
+}

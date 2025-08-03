@@ -2,6 +2,8 @@
 
 #show: book-page.with(title: "Theme")
 
+// todo: rewrite me
+
 The default renderer uses a #link("https://handlebarsjs.com")[handlebars] template to
 render your typst source files and comes with a default theme included in the `shiroa`
 binary.

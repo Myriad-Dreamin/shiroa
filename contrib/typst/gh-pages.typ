@@ -1,12 +1,15 @@
 // This is important for shiroa to produce a responsive layout
 // and multiple targets.
 #import "@preview/shiroa:0.2.3": (
-  get-page-width, html-support, is-html-target, is-pdf-target, is-web-target, plain-text, shiroa-sys-target, templates,
+  get-page-width, is-html-target, is-pdf-target, is-web-target, plain-text, shiroa-sys-target, templates,
 )
 #import templates: *
-#import html-support: *
 
-#let web-theme = "starlight"
+/// The site theme to use. If we renders to static HTML, it is suggested to use `starlight`.
+/// otherwise, since `starlight` with dynamic SVG HTML is not supported, `mdbook` is used.
+/// The `is-html-target(exclude-wrapper: true)` is currently a bit internal so you shouldn't use it other place.
+#let web-theme = if is-html-target(exclude-wrapper: true) { "starlight" } else { "mdbook" }
+#let is-starlight-theme = web-theme == "starlight"
 
 // Metadata
 #let page-width = get-page-width()
@@ -46,34 +49,27 @@
   "DejaVu Sans Mono",
 )
 
-#let template-rules(
-  body,
-  title: none,
-  description: none,
-  plain-body: none,
-  web-theme: "starlight",
-  starlight: "@preview/shiroa-starlight:0.2.3",
-) = if is-html-target and web-theme == "starlight" {
-  import starlight: starlight
-
-  let description = if description != none { description } else {
-    let desc = plain-text(plain-body, limit: 512).trim()
-    if desc.len() > 512 {
-      desc = desc.slice(0, 512) + "..."
-    }
-    desc
-  }
-
-  starlight(
-    include "/github-pages/docs/book.typ",
-    title: title,
-    description: description,
-    github-link: "https://github.com/Myriad-Dreamin/shiroa",
-    body,
-  )
+// Sizes
+#let main-size = if is-web-target {
+  16pt
 } else {
-  body
+  10.5pt
 }
+#let heading-sizes = if is-web-target {
+  (2, 1.5, 1.17, 1, 0.83).map(it => it * main-size)
+} else {
+  (26pt, 22pt, 14pt, 12pt, main-size)
+}
+#let list-indent = 0.5em
+
+// Put your custom CSS here.
+#let extra-css = ```css
+.site-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-style: italic;
+}
+```
 
 /// The project function defines how your document looks.
 /// It takes your content and some metadata and formats it.
@@ -113,9 +109,11 @@
   )
 
   show: template-rules.with(
+    book-meta: include "/github-pages/docs/book.typ",
     title: title,
     description: description,
     plain-body: plain-body,
+    extra-assets: (extra-css,),
     ..common,
   )
 
@@ -128,7 +126,13 @@
   )
 
   // markup setting
-  show: markup-rules.with(..common, dash-color: dash-color)
+  show: markup-rules.with(
+    ..common,
+    themes: themes,
+    heading-sizes: heading-sizes,
+    list-indent: list-indent,
+    main-size: main-size,
+  )
   // math setting
   show: equation-rules.with(..common, theme-box: theme-box)
   // code block setting
@@ -138,17 +142,6 @@
   set par(justify: true)
 
   plain-body
-
-  // Put your custom CSS here.
-  add-styles(
-    ```css
-    .site-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      font-style: italic;
-    }
-    ```,
-  )
 }
 
 #let part-style = heading

@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 
     // copy to assets\artifacts\book.mjs
     let src = project.join("frontend/dist/book.mjs");
-    let dst = project.join("assets/artifacts/book.mjs");
+    let dst = project.join("assets/artifacts/shiroa.js");
     std::fs::copy(src, dst)?;
 
     // copy typst ts renderer wasm module

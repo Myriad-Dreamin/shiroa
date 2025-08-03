@@ -5,7 +5,6 @@ pub mod meta;
 pub mod outline;
 pub mod project;
 pub mod render;
-pub mod theme;
 pub mod tui;
 pub mod utils;
 pub mod version;
@@ -127,13 +126,6 @@ pub struct CompileArgs {
     /// Reset path to root in html files.
     #[clap(long, default_value = "/")]
     pub path_to_root: String,
-
-    /// Specify a theme directory to copy recursively.
-    ///
-    /// The files will be copied to the `theme/` in the output
-    /// directory.
-    #[clap(long)]
-    pub theme: Option<String>,
 
     /// Add additional directories to search for fonts
     #[clap(
