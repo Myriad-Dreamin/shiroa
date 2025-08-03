@@ -5,8 +5,8 @@
 )
 #import templates: *
 
-#let web-theme = "mdbook"
-// #let web-theme = "starlight"
+// #let web-theme = "mdbook"
+#let web-theme = "starlight"
 #let is-starlight-theme = web-theme == "starlight"
 
 // Metadata

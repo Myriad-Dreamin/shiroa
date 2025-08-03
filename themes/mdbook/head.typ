@@ -1,8 +1,6 @@
 
 #import "mod.typ": *
 
-#let is-debug = true;
-
 // ---
 
 #head({
@@ -26,50 +24,7 @@
     // todo: esm?
     ..styles.final().values(),
   ).join())
-  script(
-    src: data-url("application/javascript", shiroa-asset-file("shiroa.js", lang: "esm", inline: false).text),
-    id: "shiroa-js",
-    type: "module",
-  )[]
-
-  inline-assets(
-    replace-raw(
-      // fetch()
-      vars: (
-        renderer_module: if is-debug {
-          data-url(
-            "application/wasm",
-            read("/assets/artifacts/typst_ts_renderer_bg.wasm", encoding: none),
-          )
-        } else {
-          // todo: path to root
-          "/internal/renderer.wasm"
-        },
-      ),
-      ```js
-      window.typstRerender = () => { };
-      window.typstChangeTheme = () => { };
-
-      var typstBookJsLoaded = new Promise((resolve, reject) => {
-          document.getElementById('shiroa-js').addEventListener('load', resolve);
-          document.getElementById('shiroa-js').addEventListener('error', reject);
-      });
-
-      var rendererWasmModule = fetch('{{ renderer_module }}');
-      window.typstBookJsLoaded = typstBookJsLoaded;
-      window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
-          var typstRenderModule = window.typstRenderModule =
-              window.TypstRenderModule.createTypstRenderer();
-          return typstRenderModule
-              .init({
-                  getModule: () => rendererWasmModule,
-              }).then(() => typstRenderModule);
-      }).catch((err) => {
-          console.error('shiroa.js failed to load', err);
-      });
-      ```,
-    ),
-  )
+  dyn-svg-support()
 
   virt-slot("sl:book-meta")
 })

@@ -28,8 +28,9 @@
   },
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, plain-text, x-target
+  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, plain-text, x-current, x-target
   import "html.typ": inline-assets, meta, span
+  import "mod.typ": replace-raw
 
   if not is-html-target() {
     return body
