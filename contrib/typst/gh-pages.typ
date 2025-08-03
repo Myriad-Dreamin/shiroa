@@ -6,7 +6,9 @@
 #import templates: *
 #import html-support: *
 
-#let web-theme = "starlight"
+#let web-theme = "mdbook"
+// #let web-theme = "starlight"
+#let is-starlight-theme = web-theme == "starlight"
 
 // Metadata
 #let page-width = get-page-width()
@@ -46,6 +48,19 @@
   "DejaVu Sans Mono",
 )
 
+// Sizes
+#let main-size = if is-web-target {
+  16pt
+} else {
+  10.5pt
+}
+#let heading-sizes = if is-web-target {
+  (2, 1.5, 1.17, 1, 0.83).map(it => it * main-size)
+} else {
+  (26pt, 22pt, 14pt, 12pt, main-size)
+}
+#let list-indent = 0.5em
+
 #let template-rules(
   body,
   title: none,
@@ -53,9 +68,8 @@
   plain-body: none,
   web-theme: "starlight",
   starlight: "@preview/shiroa-starlight:0.2.3",
-) = if is-html-target and web-theme == "starlight" {
-  import starlight: starlight
-
+  mdbook: "@preview/shiroa-mdbook:0.2.3",
+) = if is-html-target {
   let description = if description != none { description } else {
     let desc = plain-text(plain-body, limit: 512).trim()
     if desc.len() > 512 {
@@ -64,13 +78,26 @@
     desc
   }
 
-  starlight(
-    include "/github-pages/docs/book.typ",
-    title: title,
-    description: description,
-    github-link: "https://github.com/Myriad-Dreamin/shiroa",
-    body,
-  )
+  if web-theme == "starlight" {
+    import starlight: starlight
+    starlight(
+      include "/github-pages/docs/book.typ",
+      title: title,
+      description: description,
+      github-link: "https://github.com/Myriad-Dreamin/shiroa",
+      body,
+    )
+  } else if web-theme == "mdbook" {
+    mdbook(
+      include "/github-pages/docs/book.typ",
+      title: title,
+      description: description,
+      github-link: "https://github.com/Myriad-Dreamin/shiroa",
+      body,
+    )
+  } else {
+    panic("Unknown web theme: " + web-theme)
+  }
 } else {
   body
 }
@@ -128,7 +155,13 @@
   )
 
   // markup setting
-  show: markup-rules.with(..common, dash-color: dash-color)
+  show: markup-rules.with(
+    ..common,
+    themes: themes,
+    heading-sizes: heading-sizes,
+    list-indent: list-indent,
+    main-size: main-size,
+  )
   // math setting
   show: equation-rules.with(..common, theme-box: theme-box)
   // code block setting

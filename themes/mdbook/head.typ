@@ -1,12 +1,11 @@
 
 #import "mod.typ": *
 
-#let is-debug = false;
+#let is-debug = true;
 
 // ---
 
 #head({
-  [#metadata[] <keep-html>]
   meta(charset: "utf-8")
   virt-slot("meta-title")
   meta(
@@ -23,41 +22,54 @@
     raw(lang: "css", read("css/chrome.css")),
     raw(lang: "css", read("css/general.css")),
     raw(lang: "css", read("css/variables.css")),
-    raw(lang: "css", read("FontAwesome/css/font-awesome.css")),
-    if is-debug {
-      raw(lang: "js", read("/assets/artifacts/elasticlunr.min.js"))
-      raw(lang: "js", read("/assets/artifacts/mark.min.js"))
-      raw(lang: "js", read("/assets/artifacts/searcher.js"))
-    },
     raw(lang: "js", read("pollyfill.js")),
+    // todo: esm?
     ..styles.final().values(),
   ).join())
+  script(
+    src: data-url("application/javascript", shiroa-asset-file("shiroa.js", lang: "esm", inline: false).text),
+    id: "shiroa-js",
+    type: "module",
+  )[]
 
-  // <script id="shiroa-js" type="module" src="{{ path_to_root }}internal/shiroa.js"></script>
-  // {{!-- <script id="shiroa-js" type="module" src="/dev/frontend/dist/book.mjs"></script> --}}
-  // <script>
-  //     window.typstRerender = () => { };
-  //     window.typstChangeTheme = () => { };
+  inline-assets(
+    replace-raw(
+      // fetch()
+      vars: (
+        renderer_module: if is-debug {
+          data-url(
+            "application/wasm",
+            read("/assets/artifacts/typst_ts_renderer_bg.wasm", encoding: none),
+          )
+        } else {
+          // todo: path to root
+          "/internal/renderer.wasm"
+        },
+      ),
+      ```js
+      window.typstRerender = () => { };
+      window.typstChangeTheme = () => { };
 
-  //     var typstBookJsLoaded = new Promise((resolve, reject) => {
-  //         document.getElementById('shiroa-js').addEventListener('load', resolve);
-  //         document.getElementById('shiroa-js').addEventListener('error', reject);
-  //     });
+      var typstBookJsLoaded = new Promise((resolve, reject) => {
+          document.getElementById('shiroa-js').addEventListener('load', resolve);
+          document.getElementById('shiroa-js').addEventListener('error', reject);
+      });
 
-  //     var rendererWasmModule = fetch('{{ renderer_module }}');
-  //     {{!-- var rendererWasmModule = fetch('/dev/frontend/node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm'); --}}
-  //     window.typstBookJsLoaded = typstBookJsLoaded;
-  //     window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
-  //         var typstRenderModule = window.typstRenderModule =
-  //             window.TypstRenderModule.createTypstRenderer();
-  //         return typstRenderModule
-  //             .init({
-  //                 getModule: () => rendererWasmModule,
-  //             }).then(() => typstRenderModule);
-  //     }).catch((err) => {
-  //         console.error('shiroa.js failed to load', err);
-  //     });
-  // </script>
+      var rendererWasmModule = fetch('{{ renderer_module }}');
+      window.typstBookJsLoaded = typstBookJsLoaded;
+      window.typstRenderModuleReady = typstBookJsLoaded.then(() => {
+          var typstRenderModule = window.typstRenderModule =
+              window.TypstRenderModule.createTypstRenderer();
+          return typstRenderModule
+              .init({
+                  getModule: () => rendererWasmModule,
+              }).then(() => typstRenderModule);
+      }).catch((err) => {
+          console.error('shiroa.js failed to load', err);
+      });
+      ```,
+    ),
+  )
 
   virt-slot("sl:book-meta")
 })

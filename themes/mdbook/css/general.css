@@ -413,3 +413,17 @@ a.focus {
 }
 
 .typst-app { position: relative; }
+	
+.code-image.themed .light {
+  display: none;
+}
+.code-image.themed .dark {
+  display: initial;
+}
+:root[data-theme='light'] .code-image.themed .light{
+  display: initial;
+}
+
+:root[data-theme='light'] .code-image.themed .dark {
+  display: none;
+}

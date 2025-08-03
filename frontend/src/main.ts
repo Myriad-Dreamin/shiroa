@@ -1,5 +1,4 @@
 //#/dev/frontend/dist/book.mjs
-import { kObject } from '@myriaddreamin/typst.ts/dist/esm/internal.types.mjs';
 import {
   RenderSession,
   TypstRenderer,

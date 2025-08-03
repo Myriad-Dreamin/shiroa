@@ -1,7 +1,20 @@
 #import "template-link.typ": *
 #import "template-theme.typ": *
-
 #import "meta-and-state.typ": is-web-target
+
+// Fonts
+#let main-font = (
+  "Charter",
+  "Source Han Serif SC",
+  // "Source Han Serif TC",
+  // shiroa's embedded font
+  "Libertinus Serif",
+)
+#let code-font = (
+  "BlexMono Nerd Font Mono",
+  // shiroa's embedded font
+  "DejaVu Sans Mono",
+)
 
 // Sizes
 #let main-size = if is-web-target() {
@@ -16,16 +29,23 @@
 }
 #let list-indent = 0.5em
 
+
 #let markup-rules(
   body,
-  dash-color: none,
   web-theme: "starlight",
+  themes: none,
   main-size: main-size,
   heading-sizes: heading-sizes,
   list-indent: list-indent,
   starlight: "@preview/shiroa-starlight:0.2.3",
 ) = {
-  assert(dash-color != none, message: "dash-color must be set")
+  assert(themes != none, message: "themes must be set")
+  let (
+    default-theme: (
+      dash-color: dash-color,
+    ),
+  ) = themes
+
 
   let is-starlight-theme = web-theme == "starlight"
   let in-heading = state("shiroa:in-heading", false)
@@ -151,6 +171,7 @@
   )
   body
 }
+
 
 #let code-block-rules(
   body,

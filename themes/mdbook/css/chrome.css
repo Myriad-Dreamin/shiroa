@@ -59,17 +59,22 @@ a > .hljs {
 #menu-bar.bordered {
   border-bottom-color: var(--table-border-color);
 }
-#menu-bar i,
-#menu-bar .icon-button {
+
+.icon-button {
+   font-size: 1em;
+}
+
+#menu-bar svg.fa {
+  display: inline-block;
+  font-size: 1em;
   position: relative;
-  padding: 0 8px;
+  padding: calc(var(--menu-bar-height) / 2 - 0.5em) 16px;
   z-index: 10;
-  line-height: var(--menu-bar-height);
   cursor: pointer;
   transition: color 0.5s;
 }
 @media only screen and (max-width: 420px) {
-  #menu-bar i,
+  #menu-bar svg.fa,
   #menu-bar .icon-button {
     padding: 0 5px;
   }
@@ -81,7 +86,7 @@ a > .hljs {
   padding: 0;
   color: inherit;
 }
-.icon-button i {
+.icon-button svg.fa {
   margin: 0;
 }
 
@@ -123,14 +128,14 @@ a > .hljs {
 .mobile-nav-chapters,
 .mobile-nav-chapters:visited,
 .menu-bar .icon-button,
-.menu-bar a i {
+.menu-bar a svg.fa {
   color: var(--icons);
 }
 
-.menu-bar i:hover,
+.menu-bar svg.fa:hover,
 .menu-bar .icon-button:hover,
 .nav-chapters:hover,
-.mobile-nav-chapters i:hover {
+.mobile-nav-chapters svg.fa:hover {
   color: var(--icons-hover);
 }
 
@@ -246,7 +251,7 @@ pre > .buttons :hover {
   border-color: var(--icons-hover);
   background-color: var(--theme-hover);
 }
-pre > .buttons i {
+pre > .buttons svg.fa {
   margin-left: 8px;
 }
 pre > .buttons button {
