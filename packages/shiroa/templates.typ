@@ -306,6 +306,11 @@
   )
 
   if web-theme == "starlight" {
+    if not is-html-target() {
+      panic(
+        "Starlight theme is only available with `--mode=static-html`. Either change theme to mdbook or turn mode into `static-html`.",
+      )
+    }
     import starlight: starlight
     starlight(..template-args)
   } else if web-theme == "mdbook" {

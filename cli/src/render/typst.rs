@@ -228,22 +228,19 @@ impl TypstRenderer {
 
         let mut task = self.spawn(path)?;
         let doc = task.compile_html_page_with()?;
-        let ret = (task, doc);
 
         // todo: review me.
-        if !self.ctx.static_html {
+        if !task.ctx.static_html {
             THEME_LIST
                 .into_par_iter()
                 .map(|theme| {
                     let mut task = self.spawn_with_theme(path, theme)?;
-                    task.compile_paged_page_with(settings.clone())?;
-
-                    Ok(())
+                    task.compile_paged_page_with(settings.clone())
                 })
                 .collect::<Result<()>>()?;
         }
 
-        Ok(ret)
+        Ok((task, doc))
     }
 
     pub fn generate_desc(doc: &TypstDocument) -> Result<String> {
@@ -834,7 +831,7 @@ impl TypstRenderTask {
         let doc = self.pure_compile::<TypstHtmlDocument>()?;
         let res = self
             .report(static_html(&doc))
-            .expect("failed to render static html");
+            .ok_or_else(|| error_once!("failed to render html page"))?;
         let body = self.report(res.body()).expect("failed to render body");
 
         let dest = self.ctx.module_dest_path();

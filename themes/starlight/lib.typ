@@ -33,6 +33,9 @@
   import "mod.typ": replace-raw
 
   if not is-html-target() {
+    panic(
+      "Starlight theme is only available with `--mode=static-html`. Either change theme to mdbook or turn mode into `static-html`.",
+    )
     return body
   }
 
