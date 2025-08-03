@@ -158,7 +158,6 @@
   body
 }
 
-
 #let code-block-rules(
   body,
   web-theme: "starlight",
