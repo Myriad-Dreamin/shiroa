@@ -78,7 +78,7 @@
         "width: "
         str(outer-width.pt())
         "px; height: "
-        str(outer-width.pt())
+        str(outer-height.pt())
         "px"
       },
     ),
