@@ -273,18 +273,18 @@ impl Project {
         Ok(())
     }
 
-    pub(crate) async fn watch(
+    pub(crate) fn watch(
         &mut self,
-        // active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
-        mut hb_rx: mpsc::UnboundedReceiver<ServeEvent>,
+        handle: tokio::runtime::Handle,
+        hb_tx: mpsc::UnboundedSender<WatchEvent>,
+        mut hb_rx: mpsc::UnboundedReceiver<WatchEvent>,
         tx: broadcast::Sender<WatchSignal>,
         addr: Option<SocketAddr>,
     ) {
         let _ = self.build();
         let (dep_tx, dep_rx) = mpsc::unbounded_channel();
-        let (fs_tx, mut fs_rx) = mpsc::unbounded_channel();
-        tokio::spawn(watch_deps(dep_rx, move |event| {
-            fs_tx.send(event).unwrap();
+        handle.spawn(watch_deps(dep_rx, move |event| {
+            hb_tx.send(WatchEvent::Fs(event)).unwrap();
         }));
 
         let need_compile = self.need_compile();
@@ -317,25 +317,15 @@ impl Project {
         finish(&mut world);
 
         let mut active_files: BTreeMap<ImmutStr, usize> = BTreeMap::new();
+        let mut last_active_file: BTreeMap<ImmutStr, usize> = BTreeMap::new();
         loop {
-            enum WatchEvent {
-                Fs(FilesystemEvent),
-                Serve(ServeEvent),
-            }
-
-            let event = tokio::select! {
-                event = fs_rx.recv() => {
-                    match event {
-                        Some(e) => WatchEvent::Fs(e),
-                        None => break,
-                    }
-                }
-               Some(c) = hb_rx.recv() => WatchEvent::Serve(c),
+            let Some(event) = hb_rx.blocking_recv() else {
+                break;
             };
 
             // todo: reset_snapshot looks not good
 
-            let is_heartbeat = matches!(event, WatchEvent::Serve(ServeEvent::HoldPath(..)));
+            let is_heartbeat = matches!(event, WatchEvent::HoldPath(..));
             match event {
                 WatchEvent::Fs(event) => {
                     self.tr.reset_snapshot();
@@ -349,7 +339,8 @@ impl Project {
                     snap = self.tr.snapshot();
                     world = snap.world.clone();
                 }
-                WatchEvent::Serve(ServeEvent::HoldPath(path, inc)) => {
+                WatchEvent::HoldPath(path, inc) => {
+                    // tui_hint!("{path} changes: {inc}");
                     let path = if path.as_ref() == "/" || path.is_empty() {
                         if let Some(f) = self.chapters.first() {
                             f.get("path").unwrap().as_str().unwrap().into()
@@ -372,7 +363,7 @@ impl Project {
                             0
                         }) += 1;
                     } else {
-                        let count = active_files.entry(path);
+                        let count = active_files.entry(path.clone());
                         // erase if the count is 1, otherwise decrement
                         match count {
                             std::collections::btree_map::Entry::Occupied(mut e) => {
@@ -381,6 +372,10 @@ impl Project {
                                 } else {
                                     changed = true;
                                     e.remove();
+
+                                    if active_files.len() == 1 {
+                                        last_active_file = [(path, 1)].into();
+                                    }
                                 }
                             }
                             std::collections::btree_map::Entry::Vacant(_) => {}
@@ -399,8 +394,15 @@ impl Project {
                 }
             }
 
-            // todo: blocking?
-            let _ = self.compile_once(&active_files, SearchRenderer::new());
+            // We only compile active files or the last active file once the user visited
+            // the dev server.
+            let files = if active_files.is_empty() {
+                &last_active_file
+            } else {
+                &active_files
+            };
+
+            let _ = self.compile_once(files, SearchRenderer::new());
 
             if !is_heartbeat {
                 let _ = tx.send(WatchSignal::Reload);
@@ -682,8 +684,9 @@ pub struct ChapterArtifact {
     pub content: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum ServeEvent {
+#[derive(Debug)]
+pub(crate) enum WatchEvent {
+    Fs(FilesystemEvent),
     HoldPath(ImmutStr, bool),
 }
 

@@ -1,13 +1,15 @@
 use std::convert::Infallible;
 use std::net::SocketAddr;
 
-use crate::project::{ServeEvent, WatchSignal};
+use crate::project::{WatchEvent, WatchSignal};
 use crate::tui_hint;
 use crate::{project::Project, ServeArgs};
 use reflexo_typst::error::prelude::*;
+use reflexo_typst::path::unix_slash;
 use reflexo_typst::ImmutStr;
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
+use tokio::time::Duration;
 use warp::Filter;
 use warp::Reply;
 
@@ -48,9 +50,20 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         .map_err(map_string_err("ParseServeAddr"))?;
     let dest_dir = proj.dest_dir.clone();
 
-    let (hb_tx, hb_rx) = tokio::sync::mpsc::unbounded_channel();
     let (backend_tx, _) = tokio::sync::broadcast::channel(128);
     let btx = backend_tx.clone();
+
+    let (hb_tx, hb_rx) = tokio::sync::mpsc::unbounded_channel();
+    let hb_tx1 = hb_tx.clone();
+    let heartbeat = move |location: ImmutStr, duration: Duration| {
+        let _ = hb_tx.send(WatchEvent::HoldPath(location.clone(), true));
+        let hb_tx = hb_tx.clone();
+        tokio::spawn(async move {
+            // Simulate some work
+            tokio::time::sleep(duration).await;
+            let _ = hb_tx.send(WatchEvent::HoldPath(location, false));
+        });
+    };
 
     #[derive(Serialize, Deserialize)]
     struct LocationQuery {
@@ -66,22 +79,22 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
                 }
             }))
         });
-    let heartbeat = warp::path("heartbeat")
+    let heartbeat1 = heartbeat.clone();
+    let heartbeat_route = warp::path("heartbeat")
         .and(warp::get())
         .and(warp::query::<LocationQuery>())
         .map(move |query: LocationQuery| {
-            let location = ImmutStr::from(query.location);
-            let _ = hb_tx.send(ServeEvent::HoldPath(location.clone(), true));
-            let hb_tx = hb_tx.clone();
-            tokio::spawn(async move {
-                // Simulate some work
-                tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-                let _ = hb_tx.send(ServeEvent::HoldPath(location, false));
-            });
+            heartbeat1(query.location.into(), Duration::from_secs(5));
             warp::reply::with_status("", warp::http::StatusCode::OK)
         });
-    let fallback = warp::fs::dir(dest_dir).map(|reply: warp::filters::fs::File| {
+    let fallback = warp::fs::dir(dest_dir.clone()).map(move |reply: warp::filters::fs::File| {
         if reply.path().extension().is_some_and(|ext| ext == "html") {
+            let Ok(location) = reply.path().strip_prefix(&dest_dir) else {
+                return reply.into_response();
+            };
+
+            heartbeat(unix_slash(location).into(), Duration::from_secs(15));
+
             let file = match std::fs::File::open(reply.path()) {
                 Ok(file) => file,
                 Err(e) => {
@@ -107,7 +120,7 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
         }
     });
 
-    let server = live_reload.boxed().or(heartbeat
+    let server = live_reload.boxed().or(heartbeat_route
         .boxed()
         .or(fallback.boxed())
         .with(warp::compression::gzip()));
@@ -117,7 +130,8 @@ pub async fn serve(args: ServeArgs) -> Result<()> {
 
     // Build the book if it hasn't been built yet
     if !args.no_build {
-        tokio::spawn(async move { proj.watch(hb_rx, backend_tx, Some(addr)).await });
+        let handle = tokio::runtime::Handle::current();
+        std::thread::spawn(move || proj.watch(handle, hb_tx1, hb_rx, backend_tx, Some(addr)));
     };
 
     server.await;
