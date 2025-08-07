@@ -25,12 +25,12 @@
       } else {
         let content-sum = 0
         let result = ()
-        for char-code in ret.codepoints().map(str.to-unicode) {
+        for char-code in ret.clusters() {
           if content-sum >= limit {
             break
           }
           content-sum += 1
-          result.push(str.from-unicode(char-code))
+          result.push(char-code)
         }
         results.push(result.join(""))
       }

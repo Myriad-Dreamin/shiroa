@@ -290,7 +290,7 @@
 ) = {
   let description = if description != none { description } else {
     let desc = plain-text(plain-body, limit: 512).trim()
-    let desc_chars = desc.codepoints()
+    let desc_chars = desc.clusters()
     if desc_chars.len() >= 512 {
       desc = desc_chars.slice(0, 512).join("") + "..."
     }
