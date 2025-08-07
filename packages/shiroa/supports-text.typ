@@ -18,15 +18,21 @@
     return plain-text_(it.body)
   } else if it.has("children") {
     let results = ()
-    let content-sum = 0
     for child in it.children {
       let ret = plain-text_(child)
-      results.push(ret)
-      if limit != none {
-        content-sum += ret.len()
-        if content-sum >= limit {
-          break
+      if limit == none {
+        results.push(ret)
+      } else {
+        let content-sum = 0
+        let result = ()
+        for char-code in ret.codepoints().map(str.to-unicode) {
+          if content-sum >= limit {
+            break
+          }
+          content-sum += 1
+          result.push(str.from-unicode(char-code))
         }
+        results.push(result.join(""))
       }
     }
 
