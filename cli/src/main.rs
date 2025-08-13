@@ -156,7 +156,10 @@ Sample page
         include_str!("../../contrib/typst/gh-pages.typ").replace(
             r#""/contrib/typst/gh-pages.typ""#,
             &format!("{page_template:?}"),
-        ),
+        ).replace(
+						r#""/github-pages/docs/book.typ""#,
+						&format!("{book_typ:?}")
+				),
     )?;
     write_file(
         dir.join("templates/ebook.typ"),
