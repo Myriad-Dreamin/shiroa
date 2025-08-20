@@ -1,75 +1,61 @@
 
-#let _equation = $1$.func();
-#let _sequence = [].func();
+#let plain-text(it, limit: none) = {
+  let effective-limit = if limit == none { 9223372036854775807 /* integer max (2^63 - 1) */ } else { limit }
 
-/// Collect text content of element recursively into a single string
-/// https://discord.com/channels/1054443721975922748/1088371919725793360/1138586827708702810
-/// https://github.com/Myriad-Dreamin/shiroa/issues/55
-#let plain-text_(it, limit: none) = {
-  if type(it) == str {
-    return it
-  } else if it == [ ] {
-    return " "
-  } else if it == none {
-    return ""
-  } else if it.has("child") {
-    return plain-text_(it.child)
-  } else if it.has("body") {
-    return plain-text_(it.body)
-  } else if it.has("children") {
-    let results = ()
-    for child in it.children {
-      let ret = plain-text_(child)
-      if limit == none {
-        results.push(ret)
+  /// Collect text content of element recursively into a single string
+  let converter(it, limit) = {
+    if limit <= 0 or it == none { return "" }
+    if it == [] { return converter(" ", limit) }
+
+    if type(it) == str {
+      let s-len = it.clusters().len()
+      if s-len > limit {
+        return it.clusters().slice(0, limit).join()
       } else {
-        let content-sum = 0
-        let result = ()
-        for char-code in ret.clusters() {
-          if content-sum >= limit {
-            break
-          }
-          content-sum += 1
-          result.push(char-code)
-        }
-        results.push(result.join(""))
+        return it
       }
     }
 
-    if results.len() == 0 {
-      return ""
-    } else if results.len() == 1 {
-      return results.at(0)
-    } else {
-      return results.join()
+    if it.has("text") {
+      return converter(it.text, limit)
+    } else if it.has("child") {
+      return converter(it.child, limit)
+    } else if it.has("body") {
+      return converter(it.body, limit)
+    } else if it.has("children") {
+      let parts = ()
+      let current-limit = limit
+      for child in it.children {
+        let fragment = converter(child, current-limit)
+        let fragment-len = fragment.clusters().len()
+
+        if fragment-len > 0 {
+          parts.push(fragment)
+          current-limit -= fragment-len
+        }
+        if current-limit <= 0 { break }
+      }
+      // The loop logic ensures the length, so just join and return.
+      return parts.join()
     }
-  } else if it.has("text") {
-    return it.text
+
+    let f = it.func()
+    let candidate = if f == parbreak {
+      "\n\n"
+    } else if f == linebreak {
+      "\n"
+    } else if f == image and it.has("alt") and it.alt != none {
+      it.alt
+    } else {
+      ""
+    }
+
+    return converter(candidate, limit)
   }
 
-  let f = it.func()
-  if f == smartquote {
-    if it.double {
-      "\""
-    } else {
-      "'"
-    }
-  } else if f == parbreak {
-    "\n\n"
-  } else if f == linebreak {
-    "\n"
-  } else if f == image {
-    it.alt + ""
-  } else {
-    ""
+  let res = converter(it, effective-limit)
+  if limit != none {
+    assert(res.clusters().len() <= limit, message: "plain-text length limit exceeded")
   }
-}
-
-#let plain-text(it, limit: none) = {
-  let res = plain-text_(it, limit: limit)
-  if res == none {
-    ""
-  } else {
-    res
-  }
+  return res
 }
