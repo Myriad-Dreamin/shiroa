@@ -40,7 +40,13 @@
     }
 
     let f = it.func()
-    let candidate = if f == parbreak {
+    let candidate = if f == smartquote {
+      if it.double { 
+        "\"" 
+      } else { 
+        "'" 
+      } 
+    } else if f == parbreak {
       "\n\n"
     } else if f == linebreak {
       "\n"
