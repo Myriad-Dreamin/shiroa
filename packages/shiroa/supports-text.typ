@@ -4,8 +4,8 @@
 
   /// Collect text content of element recursively into a single string
   let converter(it, limit) = {
-    if limit <= 0 or it == none { return "" }
-    if it == [] { return converter(" ", limit) }
+    if limit <= 0 or it == none or it == [] { return "" }
+    if it == [ ] { return converter(" ", limit) }
 
     if type(it) == str {
       let s-len = it.clusters().len()
