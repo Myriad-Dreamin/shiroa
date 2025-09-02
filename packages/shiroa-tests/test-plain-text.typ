@@ -10,15 +10,24 @@
 #let test-text5() = plain-text[ ].trim()
 #let test-text6() = plain-text[a].trim()
 #let test-text7() = plain-text[ λ ].trim()
+// https://github.com/Myriad-Dreamin/shiroa/issues/176
+#let test-text8() = plain-text({ "啊" * 123 }, limit: 25).trim()
 #let test-smartquote() = plain-text[ "a" ].trim()
 #let test-equation() = plain-text[ $AA$ ].trim()
 #let test-equation2() = plain-text[ $integral_1^oo Gamma(x) dif x$ ].trim()
+// https://github.com/Myriad-Dreamin/shiroa/issues/175
+#let test-equation3() = plain-text([
+  #let gal = math.op("Gal")
+  你好, 你好! $gal()$
+]).trim()
 #let test-syntax() = plain-text(include "fixtures/plain-text/syntax.typ").trim()
 #let test-smallcaps() = plain-text(smallcaps[]).trim()
 #let test-smallcaps2() = plain-text(smallcaps[A]).trim()
 #let test-link() = plain-text[ #link("https://www.baidu.com")[Content] ].trim()
 #let test-link2() = plain-text[ https://www.baidu.com ].trim()
 #let test-link3() = plain-text[ #link("https://www.baidu.com") ].trim()
+#let test-image() = plain-text(image("fixtures/plain-text/image.svg")).trim()
+#let test-image2() = plain-text(image("fixtures/plain-text/image.svg", alt: "alt")).trim()
 #let test-styled() = plain-text(text(red, [Nya])).trim()
 #let test-styled2() = plain-text({
   show raw: set text(red)
