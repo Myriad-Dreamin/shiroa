@@ -282,8 +282,6 @@
   plain-body: none,
   book-meta: none,
   web-theme: "starlight",
-  // todo: get this from book.typ
-  github-link: "https://github.com/Myriad-Dreamin/shiroa",
   extra-assets: (),
   starlight: "@preview/shiroa-starlight:0.2.3",
   mdbook: "@preview/shiroa-mdbook:0.2.3",
@@ -301,7 +299,6 @@
     book-meta,
     title: title,
     description: description,
-    github-link: github-link,
     extra-assets: extra-assets,
     body,
   )

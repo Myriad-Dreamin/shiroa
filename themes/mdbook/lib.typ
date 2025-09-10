@@ -15,14 +15,12 @@
   title: [Shiroa Site],
   site-title: [Shiroa],
   enable-search: true,
-  github-link: none,
-  discord-link: none,
   social-links: social-links,
   description: none,
   right-group: none,
   extra-assets: (),
 ) = {
-  import "@preview/shiroa:0.2.3": is-html-target, x-current, x-target
+  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, x-current, x-target
   import "mod.typ": inline-assets, replace-raw
   import "html.typ": a, div
   import "icons.typ": builtin-icon
@@ -56,48 +54,46 @@
   // show: set-slot("site-title", span(class: "site-title", site-title))
   show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))
   // show: set-slot("sl:search", if enable-search { include "site-search.typ" })
-  // show: set-slot(
-  //   "sl:right-group",
-  //   if right-group != none { right-group } else {
-  //     right-group-item(class: "social-icons", social-icons(social-links(github: github-link, discord: discord-link)))
-  //     right-group-item(include "theme-select.typ")
-  //   },
-  // )
 
-  show: set-slot("sa:right-buttons", {
-    div.with(class: "right-buttons")({
-      if print-enable {
-        a.with(
-          href: "{{ path_to_root }}theme/print.html",
-          title: "Print this book",
-          aria-label: "Print this book",
-        )({
-          builtin-icon("print", class: "fa", id: "print-button")
-        })
+  let right-buttons() = get-book-meta(mapper: it => if it != none {
+    let repository = it.at("repository", default: none)
+    let repository-edit = it.at("repository_edit", default: if repository != none {
+      let repository = repository
+      if repository.ends-with("/") {
+        repository = repository.slice(0, -1)
       }
-      if github-link != none {
-        a.with(href: github-link, title: "Git repository", aria-label: "Git repository")({
-          builtin-icon(git-repository-icon, class: "fa", id: "git-repository-button")
-        })
-      }
-
-      if github-link.ends-with("/") {
-        github-link = github-link.slice(0, -1)
-      }
-
-      let git-repository-edit-url = github-link + "/edit/main/github-pages/docs/{path}"
-      if git-repository-edit-url != none {
-        let current = if x-current != none { x-current } else { "" }
-        if current.starts-with("/") {
-          current = current.slice(1)
-        }
-        let git-repository-edit-url = git-repository-edit-url.replace("{path}", current)
-        a.with(href: git-repository-edit-url, title: "Suggest an edit", aria-label: "Suggest an edit")({
-          builtin-icon(git-repository-edit-icon, class: "fa", id: "git-edit-button")
-        })
-      }
+      repository + "/edit/main/github-pages/docs/{path}"
     })
+    let discord = it.at("discord", default: none)
+
+    if print-enable {
+      a.with(
+        href: "{{ path_to_root }}theme/print.html",
+        title: "Print this book",
+        aria-label: "Print this book",
+      )({
+        builtin-icon("print", class: "fa", id: "print-button")
+      })
+    }
+    if repository != none {
+      a.with(href: repository, title: "Git repository", aria-label: "Git repository")({
+        builtin-icon(git-repository-icon, class: "fa", id: "git-repository-button")
+      })
+    }
+
+    if repository-edit != none {
+      let current = if x-current != none { x-current } else { "" }
+      if current.starts-with("/") {
+        current = current.slice(1)
+      }
+      let repository-edit = repository-edit.replace("{path}", current)
+      a.with(href: repository-edit, title: "Suggest an edit", aria-label: "Suggest an edit")({
+        builtin-icon(git-repository-edit-icon, class: "fa", id: "git-edit-button")
+      })
+    }
   })
+
+  show: set-slot("sa:right-buttons", div(class: "right-buttons", right-buttons()))
 
   // div(class: "sl-flex social-icons", virt-slot("social-icons")),
   // // virt-slot("theme-select"),
