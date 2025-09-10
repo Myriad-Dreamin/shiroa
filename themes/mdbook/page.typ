@@ -1,6 +1,7 @@
 
 #import "mod.typ": *
 #import "icons.typ": builtin-icon
+#import "@preview/shiroa:0.2.3": x-current
 
 // ---
 
@@ -9,12 +10,12 @@
   inline-assets(
     replace-raw(
       vars: (
-        path_to_root: "/",
+        path_to_root: json.encode(x-url-base),
         preferred_dark_theme: "ayu",
         default_theme: "light",
       ),
       ```js
-      var path_to_root = "{{ path_to_root }}";
+      var path_to_root = {{ path_to_root }};
       window.typstPathToRoot = path_to_root;
       var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "{{ preferred_dark_theme }}" : "{{ default_theme }}";
       ```,
@@ -194,33 +195,9 @@
         })
 
         virt-slot("main-title")
-
-        div.with(class: "right-buttons")({
-          let print-enable = false
-          let git-repository-url = "https://github.com/Myriad-Dreamin/shiroa"
-          let git-repository-icon = "github"
-          let git-repository-edit-url = "https://github.com/Myriad-Dreamin/shiroa/edit/main/github-pages/docs/{path}"
-          if print-enable {
-            a.with(
-              href: "{{ path_to_root }}theme/print.html",
-              title: "Print this book",
-              aria-label: "Print this book",
-            )({
-              builtin-icon("print", class: "fa", id: "print-button")
-            })
-          }
-          if git-repository-url != none {
-            a.with(href: git-repository-url, title: "Git repository", aria-label: "Git repository")({
-              builtin-icon(git-repository-icon, class: "fa", id: "git-repository-button")
-            })
-          }
-          if git-repository-edit-url != none {
-            a.with(href: git-repository-edit-url, title: "Suggest an edit", aria-label: "Suggest an edit")({
-              builtin-icon("edit", class: "fa", id: "git-edit-button")
-            })
-          }
-        })
+        virt-slot("sa:right-buttons")
       })
+
       // xxxxxxxxxxxx
 
       if search-enabled {
