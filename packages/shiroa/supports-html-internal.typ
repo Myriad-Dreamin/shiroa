@@ -1,5 +1,6 @@
 
 #import "html-bindings.typ": *
+#import "sys.typ": x-url-base
 
 #import "@preview/based:0.2.0": base64
 #let data-url(mime, src) = {
@@ -44,9 +45,9 @@
     }
   } else {
     if lang == "js" {
-      script(src: "/internal/" + name, ..rest)[]
+      script(src: x-url-base + "internal/" + name, ..rest)[]
     } else if lang == "css" {
-      h.link(rel: "stylesheet", href: "/internal/" + name, ..rest)[]
+      h.link(rel: "stylesheet", href: x-url-base + "internal/" + name, ..rest)[]
     } else {
       panic("Unsupported asset language: " + lang)
     }
@@ -79,10 +80,7 @@
             "application/wasm",
             read("/assets/artifacts/typst_ts_renderer_bg.wasm", encoding: none),
           )
-        } else {
-          // todo: path to root
-          "/internal/typst_ts_renderer_bg.wasm"
-        },
+        } else { x-url-base + "internal/typst_ts_renderer_bg.wasm" },
       ),
       ```js
       window.typstRerender = () => { };

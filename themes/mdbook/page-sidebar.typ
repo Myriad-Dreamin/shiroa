@@ -3,7 +3,6 @@
 #import "icons.typ": builtin-icon
 #import "@preview/shiroa:0.2.3": cross-link-path-label, get-book-meta, x-current, x-url-base
 
-// todo: path to root
 // todo: divider
 // // Spacer
 // if item.contains_key("spacer") {
