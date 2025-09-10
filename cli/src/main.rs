@@ -101,6 +101,14 @@ async fn init(args: InitArgs) -> Result<()> {
     create_dirs(&dir)?;
     create_dirs(dir.join("templates"))?;
 
+    let subst = |s: &str| {
+        s.replace(
+            r#""/contrib/typst/gh-pages.typ""#,
+            &format!("{page_template:?}"),
+        )
+        .replace(r#""/github-pages/docs/book.typ""#, &format!("{book_typ:?}"))
+    };
+
     write_file(
         dir.join("book.typ"),
         format!(
@@ -153,17 +161,11 @@ Sample page
     )?;
     write_file(
         dir.join("templates/page.typ"),
-        include_str!("../../contrib/typst/gh-pages.typ")
-            .replace(
-                r#""/contrib/typst/gh-pages.typ""#,
-                &format!("{page_template:?}"),
-            )
-            .replace(r#""/github-pages/docs/book.typ""#, &format!("{book_typ:?}")),
+        subst(include_str!("../../contrib/typst/gh-pages.typ")),
     )?;
     write_file(
         dir.join("templates/ebook.typ"),
-        include_str!("../../contrib/typst/gh-ebook.typ")
-            .replace(r#""/github-pages/docs/book.typ""#, &format!("{book_typ:?}")),
+        subst(include_str!("../../contrib/typst/gh-ebook.typ")),
     )?;
     write_file(
         dir.join("templates/theme-style.toml"),
