@@ -3,12 +3,6 @@
 #import "icons.typ": builtin-icon
 #import "@preview/shiroa:0.2.3": cross-link-path-label, get-book-meta, x-current, x-url-base
 
-// todo: divider
-// // Spacer
-// if item.contains_key("spacer") {
-//     out.write("<li class=\"spacer\"></li>")?;
-//     continue;
-// }
 // todo: fold_level
 // let is_expanded =
 //     if !fold_enable || (!section.is_empty() && current_section.starts_with(section)) {
@@ -56,6 +50,8 @@
 
       part = summary-item.at("title").at("content")
       items = ()
+    } else if summary-item.kind == "divider" {
+      items.push(visit.at("divider")())
     } else {
       // repr(x)
     }
@@ -124,6 +120,7 @@ this.parentElement.classList.toggle("open");
         }
       }),
       sub: it => ol(class: "section", it),
+      divider: () => li(class: "spacer")[],
       part: (part, items) => if part != none {
         li(class: "chapter-item expanded")[]
         li(
