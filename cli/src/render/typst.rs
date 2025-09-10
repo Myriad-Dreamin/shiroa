@@ -1038,8 +1038,6 @@ fn no_foreign_obj_diag(diag: &&typst::diag::SourceDiagnostic) -> bool {
 }
 
 pub struct HtmlRenderContext<'a> {
-    pub book_data: &'a DataDict,
-    pub edit_url: &'a str,
     pub search: &'a SearchCtx<'a>,
     pub dest_dir: &'a Path,
 }
