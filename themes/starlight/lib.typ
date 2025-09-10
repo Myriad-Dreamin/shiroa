@@ -17,8 +17,6 @@
   title: "",
   description: none,
   enable-search: true,
-  github-link: none,
-  discord-link: none,
   extra-assets: (),
   meta-title: (title, site-title) => if title != "" [#title -- #site-title] else { site-title },
   social-links: social-links,
@@ -61,6 +59,15 @@
     }
   })
 
+  let default-right-group() = get-book-meta(mapper: it => if it != none {
+    let github-link = it.at("repository", default: none)
+    let discord-link = it.at("discord", default: none)
+
+    right-group-item(class: "social-icons", social-icons(social-links(github: github-link, discord: discord-link)))
+    right-group-item(include "theme-select.typ")
+    right-group-item(class: "md:sl-hidden", include "page-sidebar-mobile.typ")
+  })
+
   show: set-slot("meta-title", context {
     html.elem("title", meta-title(title, site-title()))
   })
@@ -76,11 +83,7 @@
   show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))
   show: set-slot("sl:search", if enable-search { include "site-search.typ" })
   show: set-slot("sl:search-results", if enable-search { include "site-search-results.typ" })
-  show: set-slot("sl:right-group", if right-group != none { right-group } else {
-    right-group-item(class: "social-icons", social-icons(social-links(github: github-link, discord: discord-link)))
-    right-group-item(include "theme-select.typ")
-    right-group-item(class: "md:sl-hidden", include "page-sidebar-mobile.typ")
-  })
+  show: set-slot("sl:right-group", if right-group != none { right-group } else { default-right-group() })
 
   // div(class: "sl-flex social-icons", virt-slot("social-icons")),
   // // virt-slot("theme-select"),
