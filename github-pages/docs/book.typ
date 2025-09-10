@@ -54,7 +54,7 @@
 // #get-book-meta()
 
 // re-export page template
-#import "/contrib/typst/gh-pages.typ": project, heading-reference
+#import "/contrib/typst/gh-pages.typ": heading-reference, project
 #let book-page = project
 #let cross-link = cross-link
 #let heading-reference = heading-reference
