@@ -8,7 +8,6 @@ use std::{
 };
 
 use crate::{
-    diag::print_diagnostics,
     error::prelude::*,
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
@@ -29,7 +28,7 @@ use reflexo_typst::{
         pass::Typst2VecPass,
         IntoTypst,
     },
-    world::EntryOpts,
+    world::{diag::print_diagnostics_to, EntryOpts},
     CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
     EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash, SystemCompilerFeat, TakeAs,
     TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
@@ -47,7 +46,6 @@ use typst::{
     ecow::{EcoString, EcoVec},
     foundations::{IntoValue, Regex},
 };
-// serialize_doc, LayoutRegionNode,
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
 
@@ -279,26 +277,8 @@ impl TypstRenderer {
                     );
 
                     let content = art.content;
-                    // todo
-                    // let title = chapter_data
-                    //     .get("name")
-                    //     .and_then(|t| t.as_str())
-                    //     .ok_or_else(|| error_once!("no name in chapter data"))?;
 
-                    // let data = make_item_data(
-                    //     RenderItemContext {
-                    //         path,
-                    //         art,
-                    //         title,
-                    //         edit_url: ctx.edit_url,
-                    //     },
-                    //     ctx.book_data.clone(),
-                    // );
-
-                    // let index_html = self.render_index(data);
-                    // Ok(index_html)
-
-                    log::info!("rendering chapter {raw_path} in {:?}", instant.elapsed());
+                    log::info!("rendered chapter {raw_path} in {:?}", instant.elapsed());
 
                     create_dirs(path.parent().unwrap())?;
                     write_file(path.with_extension("html"), &content)?;
@@ -407,19 +387,15 @@ impl TypstRenderTask {
             }
         };
 
-        // We currently ignore export error here
-        // We lock it once to avoid concurrent write
-        // todo: merge to upstream
-        // self.diag_handler
-        //     .report(&world, diag.iter().chain(may_value.warnings.iter()));
-
         let diag = diag.iter().chain(may_value.warnings.iter());
         let diagnostics = diag.filter(no_foreign_obj_diag);
-        let _ = print_diagnostics(
+        // We currently ignore export error here
+        // We lock it once to avoid concurrent write
+        let _ = print_diagnostics_to(
             self.world(),
             diagnostics,
-            DiagnosticFormat::Human,
             &mut crate::tui::out().lock(),
+            DiagnosticFormat::Human,
         );
 
         self.ctx.diag_handler.status(&rep);
