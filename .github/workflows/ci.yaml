@@ -23,6 +23,8 @@ jobs:
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Myriad-Dreamin/tinymist/releases/download/${TINYMIST_VERRION}/tinymist-installer.sh | sh
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Install Typst
+        uses: typst-community/setup-typst@v4
       - name: Install Artifact Cache
         uses: Swatinem/rust-cache@v2
       - name: Fmt check
@@ -40,7 +42,15 @@ jobs:
       - name: Build Book (HTML Target)
         run: |
           cargo run --release --bin shiroa -- build --path-to-root /shiroa/ -w . github-pages/docs --mode static-html
-      - name: Test
+      - name: Test (Rust)
         run: cargo test --workspace --no-fail-fast
-      - name: Test
+      - name: Test (Typst)
         run: tinymist test packages/shiroa-tests/main.typ --root . --ignore-system-fonts --font-path ./assets/fonts/ --coverage --print-coverage=full
+      - name: Test CLI
+        run: /usr/bin/timeout 10s cargo run --release --bin shiroa -- init test-book || true
+      - name: Test CLI (Build Paged)
+        run: cargo run --release --bin shiroa -- build test-book
+      - name: Test CLI (Build Html)
+        run: cargo run --release --bin shiroa -- build --mode static-html test-book
+      - name: Test CLI (Build Pdf)
+        run: typst compile test-book/ebook.typ
