@@ -463,48 +463,8 @@ impl Project {
             items: Mutex::new(vec![]),
         };
 
-        // Prepare the rendering settings early, to avoid pour {book,html}_meta type
-        // details to the renderer.
-        let mut data = DataDict::new();
-
-        let book_meta = &self.book_meta;
-
-        data.insert("title".to_owned(), json!(book_meta.title));
-        data.insert("book_title".to_owned(), json!(book_meta.title));
-        data.insert("authors".to_owned(), json!(book_meta.authors));
-        data.insert("description".to_owned(), json!(book_meta.description));
-        data.insert("language".to_owned(), json!(book_meta.language));
-        // todo: is `repository` key ever used??
-        data.insert("repository".to_owned(), json!(book_meta.repository));
-        data.insert("git_repository_url".to_owned(), json!(book_meta.repository));
-
-        data.insert("path_to_root".to_owned(), json!(self.path_to_root));
-
-        // todo: we clone all chapters here, which looks inefficient.
-        data.insert("chapters".to_owned(), json!(self.chapters));
-
-        // Injects search configuration
-        let search_config = &serach_ctx.config;
-        data.insert("search_enabled".to_owned(), json!(search_config.enable));
-        data.insert(
-            "search_js".to_owned(),
-            json!(search_config.enable && search_config.copy_js),
-        );
-
-        // Injects module path
-        let renderer_module = format!("{}internal/typst_ts_renderer_bg.wasm", self.path_to_root);
-        data.insert("renderer_module".to_owned(), json!(renderer_module));
-
-        // dummy settings, will remove in future
-        data.insert("fold_enable".to_owned(), json!(false));
-        data.insert("fold_level".to_owned(), json!(0u64));
-        data.insert("preferred_dark_theme".to_owned(), json!("ayu"));
-        data.insert("default_theme".to_owned(), json!("light"));
-
         self.tr.render_chapters(
             HtmlRenderContext {
-                book_data: &data,
-                edit_url: &book_meta.repository_edit,
                 search: &serach_ctx,
                 dest_dir: &self.dest_dir,
             },
