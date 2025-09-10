@@ -1,6 +1,6 @@
 
 
-/// Collect text content of element recursively into a single string
+/// Collects text content of element recursively into a single string
 #let converter(it, limit) = {
   if limit <= 0 or it == none or it == [] { return "" }
   if it == [ ] { return converter(" ", limit) }
@@ -57,6 +57,11 @@
   return converter(candidate, limit)
 }
 
+/// Converts the content to plain text
+///
+/// - it (content): The content to convert
+/// - limit (integer): The maximum length of the text
+/// -> string
 #let plain-text(it, limit: none) = {
   let effective-limit = if limit == none {
     9223372036854775807 /* integer max (2^63 - 1) */
