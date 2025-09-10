@@ -24,10 +24,15 @@
 ) = {
   import "@preview/shiroa:0.2.3": is-html-target, x-current, x-target
   import "mod.typ": inline-assets, replace-raw
+  import "html.typ": a, div
+  import "icons.typ": builtin-icon
 
   if not is-html-target() {
     return body
   }
+  let print-enable = false
+  let git-repository-icon = "github"
+  let git-repository-edit-icon = "edit"
 
   let trampoline = inline-assets(replace-raw(
     vars: (rel_data_path: x-current.replace(regex(".typ$"), "")),
@@ -58,6 +63,41 @@
   //     right-group-item(include "theme-select.typ")
   //   },
   // )
+
+  show: set-slot("sa:right-buttons", {
+    div.with(class: "right-buttons")({
+      if print-enable {
+        a.with(
+          href: "{{ path_to_root }}theme/print.html",
+          title: "Print this book",
+          aria-label: "Print this book",
+        )({
+          builtin-icon("print", class: "fa", id: "print-button")
+        })
+      }
+      if github-link != none {
+        a.with(href: github-link, title: "Git repository", aria-label: "Git repository")({
+          builtin-icon(git-repository-icon, class: "fa", id: "git-repository-button")
+        })
+      }
+
+      if github-link.ends-with("/") {
+        github-link = github-link.slice(0, -1)
+      }
+
+      let git-repository-edit-url = github-link + "/edit/main/github-pages/docs/{path}"
+      if git-repository-edit-url != none {
+        let current = if x-current != none { x-current } else { "" }
+        if current.starts-with("/") {
+          current = current.slice(1)
+        }
+        let git-repository-edit-url = git-repository-edit-url.replace("{path}", current)
+        a.with(href: git-repository-edit-url, title: "Suggest an edit", aria-label: "Suggest an edit")({
+          builtin-icon(git-repository-edit-icon, class: "fa", id: "git-edit-button")
+        })
+      }
+    })
+  })
 
   // div(class: "sl-flex social-icons", virt-slot("social-icons")),
   // // virt-slot("theme-select"),
