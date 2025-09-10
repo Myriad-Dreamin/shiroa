@@ -20,7 +20,7 @@
   right-group: none,
   extra-assets: (),
 ) = {
-  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, x-current, x-target
+  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, x-current, x-target, x-url-base
   import "mod.typ": inline-assets, replace-raw
   import "html.typ": a, div
   import "icons.typ": builtin-icon
@@ -33,7 +33,16 @@
   let git-repository-edit-icon = "edit"
 
   let trampoline = inline-assets(replace-raw(
-    vars: (rel_data_path: x-current.replace(regex(".typ$"), "")),
+    vars: (
+      rel_data_path: {
+        let current = x-current
+        if current != none and current.ends-with("/") {
+          current = current.slice(0, -1)
+        }
+
+        current + x-current.replace(regex(".typ$"), "")
+      },
+    ),
     ```js
     let appContainer = document.currentScript && document.currentScript.parentElement;
     window.typstRenderModuleReady.then((plugin) => {
