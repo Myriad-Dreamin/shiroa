@@ -26,8 +26,8 @@
 /// - authors (array | str): The author(s) of the book.
 /// - description (str): A description for the book, which is added as meta information in the html <head> of each page.
 /// - repository (str): The github repository for the book.
-/// - discord (str): The discord server for the book.
 /// - repository-edit (str): The github repository editing template for the book.
+/// - discord (str): The discord server for the book.
 ///   Example: `https://github.com/Me/Book/edit/main/path/to/book/{path}`
 /// - language (str): The main language of the book, which is used as a language attribute
 ///   `<html lang="en">` for example.
