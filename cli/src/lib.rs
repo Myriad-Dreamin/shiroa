@@ -9,8 +9,6 @@ pub mod tui;
 pub mod utils;
 pub mod version;
 
-mod debug_loc;
-mod diag;
 mod serve;
 
 use core::fmt;

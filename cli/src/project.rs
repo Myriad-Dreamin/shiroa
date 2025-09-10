@@ -493,13 +493,13 @@ impl Project {
         let mut chapters = vec![];
 
         for item in meta.iter() {
-            self.iter_chapters_dfs(item, &mut chapters);
+            self.collect_chatpers(item, &mut chapters);
         }
 
         chapters
     }
 
-    fn iter_chapters_dfs(&self, elem: &BookMetaElem, chapters: &mut Vec<ChapterItem>) {
+    fn collect_chatpers(&self, elem: &BookMetaElem, chapters: &mut Vec<ChapterItem>) {
         match elem {
             BookMetaElem::Separator {} | BookMetaElem::Part { .. } => {}
             BookMetaElem::Chapter {
@@ -513,7 +513,7 @@ impl Project {
                 });
 
                 for child in sub.iter() {
-                    self.iter_chapters_dfs(child, chapters);
+                    self.collect_chatpers(child, chapters);
                 }
             }
         }
