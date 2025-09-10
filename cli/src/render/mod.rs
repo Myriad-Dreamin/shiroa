@@ -1,7 +1,12 @@
 pub mod typst;
+use ::typst::ecow::EcoString;
+use reflexo_typst::ImmutStr;
+
 pub use self::typst::*;
 pub mod search;
 pub use self::search::*;
 
-use std::collections::BTreeMap;
-pub type DataDict = BTreeMap<String, serde_json::Value>;
+pub struct ChapterItem {
+    pub title: EcoString,
+    pub path: Option<ImmutStr>,
+}

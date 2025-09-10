@@ -13,7 +13,7 @@ use crate::{
     meta::BookMetaElem,
     outline::{OutlineItem, SpanInternerImpl},
     project::ChapterArtifact,
-    render::{DataDict, SearchCtx},
+    render::{ChapterItem, SearchCtx},
     utils::{create_dirs, make_absolute, make_absolute_from, write_file, UnwrapOrExit},
     CompileArgs, RenderMode,
 };
@@ -250,7 +250,7 @@ impl TypstRenderer {
     pub fn render_chapters(
         &self,
         ctx: HtmlRenderContext,
-        chapters: &[DataDict],
+        chapters: &[ChapterItem],
         filter: &BTreeMap<ImmutStr, usize>,
         compiler: impl Fn(&str) -> Result<ChapterArtifact> + Send + Sync,
     ) -> Result<()> {
@@ -258,32 +258,23 @@ impl TypstRenderer {
             .into_par_iter()
             .enumerate()
             .map(|(idx, ch)| {
-                if let Some(path) = ch.get("path") {
-                    let raw_path: String = serde_json::from_value(path.clone()).map_err(
-                        error_once_map_string!("retrieve path in book.toml", value: path),
-                    )?;
-
-                    if !filter.is_empty() && !filter.contains_key(raw_path.as_str()) {
+                if let Some(raw_path) = ch.path.as_deref() {
+                    if !filter.is_empty() && !filter.contains_key(raw_path) {
                         return Ok(());
                     }
 
-                    let path = ctx.dest_dir.join(&raw_path);
+                    let path = ctx.dest_dir.join(raw_path);
 
                     let instant = std::time::Instant::now();
                     log::info!("rendering chapter {raw_path}");
 
                     // Compiles the chapter
-                    let art: ChapterArtifact = compiler(&raw_path)?;
-
-                    let title = ch
-                        .get("name")
-                        .and_then(|t| t.as_str())
-                        .ok_or_else(|| error_once!("no name in chapter data"))?;
+                    let art: ChapterArtifact = compiler(raw_path)?;
 
                     let search_path = Path::new(&raw_path).with_extension("html");
                     ctx.search.index_search(
                         &search_path,
-                        title.into(),
+                        ch.title.clone(),
                         art.description.as_str().into(),
                     );
 
