@@ -169,6 +169,26 @@ The github repository for the book.
 )
 ```
 
+= repository-edit #type-hint("string")
+
+The github repository editing template for the book.
+
+```typ
+#book-meta(
+  repository-edit: "https://github.com/Myriad-Dreamin/shiroa/edit/main/github-pages/docs/{path}",
+)
+```
+
+= discord #type-hint("string")
+
+The discord server for the book.
+
+```typ
+#book-meta(
+  discord: "https://discord.gg/Myriad-Dreamin",
+)
+```
+
 = language #type-hint("string")
 
 The main language of the book, which is used as a html language attribute
