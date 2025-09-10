@@ -35,12 +35,12 @@
   let trampoline = inline-assets(replace-raw(
     vars: (
       rel_data_path: {
-        let current = x-current
-        if current != none and current.ends-with("/") {
-          current = current.slice(0, -1)
+        let url-base = x-url-base
+        if url-base != none and url-base.ends-with("/") {
+          url-base = url-base.slice(0, -1)
         }
 
-        current + x-current.replace(regex(".typ$"), "")
+        url-base + x-current.replace(regex(".typ$"), "")
       },
     ),
     ```js
