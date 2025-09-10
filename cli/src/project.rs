@@ -6,6 +6,7 @@ use std::{
     sync::Mutex,
 };
 
+use ::typst::ecow::{eco_format, EcoString};
 use include_dir::include_dir;
 use log::warn;
 use reflexo_typst::{
@@ -15,14 +16,13 @@ use reflexo_typst::{
     watch_deps, CompilerExt, ImmutStr, TypstDocument, TypstSystemWorld, WorldDeps,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use tokio::sync::{broadcast, mpsc};
 use typst::foundations::Content;
 
 use crate::{
     error::prelude::*,
     meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
-    render::{DataDict, HtmlRenderContext, SearchCtx, SearchRenderer, TypstRenderer},
+    render::{ChapterItem, HtmlRenderContext, SearchCtx, SearchRenderer, TypstRenderer},
     tui, tui_error, tui_hint, tui_info,
     utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
     CompileArgs, MetaSource, RenderMode,
@@ -62,7 +62,7 @@ pub struct Project {
 
     pub book_meta: BookMeta,
     pub build_meta: Option<BuildMeta>,
-    pub chapters: Vec<DataDict>,
+    pub chapters: Vec<ChapterItem>,
 
     pub dest_dir: PathBuf,
     pub args: CompileArgs,
@@ -351,8 +351,8 @@ impl Project {
                 }
                 WatchEvent::Serve(ServeEvent::HoldPath(path, inc)) => {
                     let path = if path.as_ref() == "/" || path.is_empty() {
-                        if let Some(f) = self.chapters.first() {
-                            f.get("path").unwrap().as_str().unwrap().into()
+                        if let Some(path) = self.chapters.first().and_then(|f| f.path.clone()) {
+                            path
                         } else {
                             continue;
                         }
@@ -489,7 +489,7 @@ impl Project {
         }
     }
 
-    fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<DataDict> {
+    fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<ChapterItem> {
         let mut chapters = vec![];
 
         for item in meta.iter() {
@@ -499,63 +499,36 @@ impl Project {
         chapters
     }
 
-    fn iter_chapters_dfs(&self, elem: &BookMetaElem, chapters: &mut Vec<DataDict>) {
-        // Create the data to inject in the template
-        let mut chapter = DataDict::default();
-
+    fn iter_chapters_dfs(&self, elem: &BookMetaElem, chapters: &mut Vec<ChapterItem>) {
         match elem {
-            BookMetaElem::Part { title, .. } => {
-                let title = self.evaluate_content(title);
-
-                chapter.insert("part".to_owned(), json!(title));
-            }
+            BookMetaElem::Separator {} | BookMetaElem::Part { .. } => {}
             BookMetaElem::Chapter {
-                title,
-                section,
-                link,
-                sub: subs,
+                title, link, sub, ..
             } => {
                 let title = self.evaluate_content(title);
 
-                if let Some(ref section) = section {
-                    chapter.insert("section".to_owned(), json!(section.to_owned() + "."));
+                chapters.push(ChapterItem {
+                    title,
+                    path: link.as_deref().map(|p| p.into()),
+                });
+
+                for child in sub.iter() {
+                    self.iter_chapters_dfs(child, chapters);
                 }
-
-                chapter.insert(
-                    "has_sub_items".to_owned(),
-                    json!((!subs.is_empty()).to_string()),
-                );
-
-                chapter.insert("name".to_owned(), json!(title));
-                if let Some(ref path) = link {
-                    chapter.insert("path".to_owned(), json!(path));
-                }
-            }
-            // todo: divider
-            BookMetaElem::Separator {} => {
-                chapter.insert("spacer".to_owned(), json!("_spacer_"));
-            }
-        }
-
-        chapters.push(chapter);
-
-        if let BookMetaElem::Chapter { sub: subs, .. } = elem {
-            for child in subs.iter() {
-                self.iter_chapters_dfs(child, chapters);
             }
         }
     }
 
-    fn evaluate_content(&self, title: &BookMetaContent) -> String {
+    fn evaluate_content(&self, title: &BookMetaContent) -> EcoString {
         match title {
-            BookMetaContent::PlainText { content } => content.clone(),
+            BookMetaContent::PlainText { content } => content.into(),
             BookMetaContent::Raw { content } => {
                 if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
-                    return format!("{c}");
+                    return eco_format!("{c}");
                 }
 
                 warn!("unevaluated {content:#?}");
-                "unevaluated title".to_owned()
+                "unevaluated title".into()
             }
         }
     }
