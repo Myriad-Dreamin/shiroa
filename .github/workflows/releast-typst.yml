@@ -7,7 +7,7 @@ on:
       packages:
         description: Packages to publish
         required: true
-        default: "all"
+        default: 'all'
         type: string
       source:
         # the repository to which to push the release version
@@ -15,19 +15,24 @@ on:
         # that you have push privileges to
         description: Source repository to publish the package
         required: true
-        default: "Myriad-Dreamin/packages"
+        default: 'Myriad-Dreamin/packages'
         type: string
       # the path within that repo where the "<name>/<version>" directory should be put
       # for the Typst package registry, keep this as is
       destination:
         description: Destination path to install the package
         required: true
-        default: "packages/preview"
+        default: 'packages/preview'
         type: string
       dry-run:
         description: Dry run the publish process
         required: false
         default: false
+        type: boolean
+      publishing:
+        description: Whether to publish the package
+        required: false
+        default: true
         type: boolean
 
 jobs:
@@ -35,6 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      val: ${{ steps.plan.outputs.manifest }}
+      publishing: ${{ (!github.event.pull_request) || inputs.publishing == true }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up typship
@@ -50,7 +58,7 @@ jobs:
           echo "typship ran successfully"
           cat plan-typship-manifest.json
           echo "manifest=$(jq -c "." plan-typship-manifest.json)" >> "$GITHUB_OUTPUT"
-      - name: "Upload dist-manifest.json"
+      - name: 'Upload dist-manifest.json'
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-plan-typship-manifest
@@ -96,7 +104,7 @@ jobs:
           # The token to use to pull the repository, needs write access to the repository.
           token: ${{ secrets.REGISTRY_TOKEN }}
           # Relative path under $GITHUB_WORKSPACE to place the repository
-          path: "typst-packages"
+          path: 'typst-packages'
       - name: Detect existing package
         id: detect-existing-package
         run: |
@@ -123,7 +131,7 @@ jobs:
         with:
           token: ${{ secrets.REGISTRY_TOKEN }}
           path: typst-packages
-          title: "@preview/{{ matrix.package.name }} {{ matrix.package.version }}"
+          title: '@preview/{{ matrix.package.name }} {{ matrix.package.version }}'
           body: |
             I am submitting
             * [ ]  a new package
@@ -141,7 +149,7 @@ jobs:
             * [x]  [`exclude`d](https://github.com/typst/packages/blob/main/docs/tips.md#what-to-commit-what-to-exclude) PDFs or README images, if any, but not the LICENSE
 
             * [x]  ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.
-          commit-message: "build: bump @preview/{{ matrix.package.name }} to {{ matrix.package.version }}"
+          commit-message: 'build: bump @preview/{{ matrix.package.name }} to {{ matrix.package.version }}'
           branch: preview/{{ matrix.package.name }}/v{{ matrix.package.version }}
-          base: "main"
+          base: 'main'
           draft: false
