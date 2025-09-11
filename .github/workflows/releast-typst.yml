@@ -55,8 +55,9 @@ jobs:
         with:
           name: artifacts-plan-typship-manifest
           path: plan-typship-manifest.json
-  make-pr:
-    name: make-pr (${{ join(matrix.targets, ', ') }})
+
+  publish:
+    name: publish (${{ join(matrix.targets, ', ') }})
     # Let the initial task tell us to not run (currently very blunt)
     needs:
       - plan
@@ -92,10 +93,22 @@ jobs:
           # Repository name with owner. For example, actions/checkout
           # Default: ${{ github.repository }}
           repository: ${{ inputs.source }}
+          # The token to use to pull the repository, needs write access to the repository.
           token: ${{ secrets.REGISTRY_TOKEN }}
           # Relative path under $GITHUB_WORKSPACE to place the repository
           path: "typst-packages"
+      - name: Detect existing package
+        id: detect-existing-package
+        run: |
+          if [ -d "typst-packages/${{ inputs.destination }}/${{ matrix.package.name }}/${{ matrix.package.version }}" ]; then
+            echo "package already exists"
+            echo "package-exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "package does not exist"
+            echo "package-exists=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Put package to @preview namespace
+        if: steps.detect-existing-package.outputs.package-exists == 'false'
         run: |
           mkdir -p typst-packages/${{ inputs.destination }}/${{ matrix.package.name }}
           mv ${{ matrix.package.source }} typst-packages/${{ inputs.destination }}/${{ matrix.package.name }}/${{ matrix.package.version }}
@@ -105,6 +118,7 @@ jobs:
           name: preview-${{ matrix.package.name }}-${{ matrix.package.version }}
           path: typst-packages/${{ inputs.destination }}/${{ matrix.package.name }}/${{ matrix.package.version }}
       - name: Make PR
+        if: steps.detect-existing-package.outputs.package-exists == 'false'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.REGISTRY_TOKEN }}
