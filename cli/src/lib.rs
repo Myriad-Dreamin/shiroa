@@ -116,7 +116,7 @@ pub struct CompileArgs {
 
     /// Output to directory, default in the same directory as the entry file.
     /// Relative paths are interpreted relative to the book's root directory.
-    /// If omitted, shiroa uses build.build-dir from book.toml or defaults
+    /// If omitted, shiroa uses #build-meta.build-dir from book.typ or defaults
     /// to `./dist`.
     #[clap(long, short, default_value = "")]
     pub dest_dir: String,
