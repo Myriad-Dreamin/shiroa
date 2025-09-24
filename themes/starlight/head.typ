@@ -6,13 +6,12 @@
 // ---
 
 #head({
+  meta(charset: "utf-8")
   meta(
-    charset: "utf-8",
     name: "viewport",
     content: "width=device-width, initial-scale=1.0",
   )
-  virt-slot("meta-title")
-  virt-slot("description")
+  virt-slot("sa:head-meta")
   meta(name: "generator", content: "Shiroa")
 
   inline-assets(context (

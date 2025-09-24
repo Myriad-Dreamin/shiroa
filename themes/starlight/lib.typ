@@ -68,18 +68,19 @@
     right-group-item(class: "md:sl-hidden", include "page-sidebar-mobile.typ")
   })
 
-  show: set-slot("meta-title", context {
-    html.elem("title", meta-title(title, site-title()))
+  show: set-slot("sa:head-meta", {
+    // <meta title>
+    context html.elem("title", meta-title(title, site-title()))
+    // <meta description>
+    if description != none { meta(name: "description", content: description) }
   })
+
   show: set-slot("main-title", html.elem("h1", title))
   // todo: determine a good name of html wrapper
   show: set-slot("main-content", if x-target.starts-with("html-wrapper") { trampoline } else { body })
-  show: set-slot("description", if description != none { meta(name: "description", content: description) })
 
   show: set-slot("header", include "page-header.typ")
-  show: set-slot("site-title", context {
-    span(class: "site-title", site-title())
-  })
+  show: set-slot("site-title", context span(class: "site-title", site-title()))
   show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))
   show: set-slot("sl:search", if enable-search { include "site-search.typ" })
   show: set-slot("sl:search-results", if enable-search { include "site-search-results.typ" })
