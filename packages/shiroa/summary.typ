@@ -7,7 +7,7 @@
 ///
 /// Example:
 /// ```typ
-/// #show book
+/// #show: book
 /// ```
 #let book(content) = {
   [#metadata(toml("typst.toml")) <shiroa-internal-package-meta>]
@@ -37,12 +37,14 @@
   title: "",
   description: "",
   repository: "",
-  discord: "",
   repository-edit: "",
+  discord: "",
   authors: (), // array of string
   language: "", // default "en"
   summary: none,
 ) = [
+  #assert(type(authors) == array, message: "authors must be an array of strings")
+
   #let raw-meta = (
     kind: "book",
     title: title,
