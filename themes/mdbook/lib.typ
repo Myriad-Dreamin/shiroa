@@ -22,7 +22,7 @@
 ) = {
   import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, x-current, x-target, x-url-base
   import "mod.typ": inline-assets, replace-raw
-  import "html.typ": a, div
+  import "html.typ": a, div, meta
   import "icons.typ": builtin-icon
 
   if not is-html-target() {
