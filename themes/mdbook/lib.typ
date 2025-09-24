@@ -13,16 +13,16 @@
   book,
   body,
   title: [Shiroa Site],
-  site-title: [Shiroa],
-  enable-search: true,
-  social-links: social-links,
   description: none,
-  right-group: none,
+  enable-search: true,
   extra-assets: (),
+  meta-title: (title, site-title) => if title != "" [#title -- #site-title] else { site-title },
+  social-links: social-links,
+  right-group: none,
 ) = {
   import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, x-current, x-target, x-url-base
   import "mod.typ": inline-assets, replace-raw
-  import "html.typ": a, div
+  import "html.typ": a, div, meta
   import "icons.typ": builtin-icon
 
   if not is-html-target() {
@@ -51,16 +51,32 @@
     ```,
   ))
 
+  let site-title() = get-book-meta(mapper: it => if it != none {
+    if "raw-title" in it {
+      it.raw-title
+    } else if "title" in it {
+      if type(it.title) == str {
+        it.title
+      } else {
+        it.title.content
+      }
+    }
+  })
+
   // import "html-bindings-h.typ": span
 
-  show: set-slot("meta-title", html.elem("title", [#title - #site-title]))
-  // html.elem("h1", attrs: (class: "menu-title"), title)
-  show: set-slot("main-title", html.elem("h1", attrs: (class: "menu-title"), site-title))
+  show: set-slot("sa:head-meta", {
+    // <meta title>
+    context html.elem("title", meta-title(title, site-title()))
+    // <meta description>
+    if description != none { meta(name: "description", content: description) }
+  })
+
+  show: set-slot("main-title", html.elem("h1", attrs: (class: "menu-title"), title))
   // todo: determine a good name of html wrapper
   show: set-slot("main-content", if x-target.starts-with("html-wrapper") { trampoline } else { body })
 
   // show: set-slot("header", include "page-header.typ")
-  // show: set-slot("site-title", span(class: "site-title", site-title))
   show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))
   // show: set-slot("sl:search", if enable-search { include "site-search.typ" })
 
