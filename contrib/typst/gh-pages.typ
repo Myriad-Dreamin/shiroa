@@ -71,10 +71,22 @@
 }
 ```
 
-/// The project function defines how your document looks.
-/// It takes your content and some metadata and formats it.
-/// Go ahead and customize it to your liking!
-#let project(title: "Typst Book", description: none, authors: (), kind: "page", plain-body) = {
+/// The project show rule that is used by all pages.
+///
+/// Example:
+/// ```typ
+/// #show: project
+/// ```
+///
+/// - title (str): The title of the page.
+/// - description (auto): The description of the page.
+///   - If description is `auto`, it will be generated from the plain body.
+///   - If description is `none`, an error is raised to force migration. In future, `none` will mean the description is not generated.
+///   - Hint: use `""` to generate an empty description.
+/// - authors (array | str): The author(s) of the page.
+/// - kind (str): The kind of the page.
+/// - plain-body (content): The plain body of the page.
+#let project(title: "Typst Book", description: auto, authors: (), kind: "page", plain-body) = {
   // set basic document metadata
   set document(
     author: authors,
