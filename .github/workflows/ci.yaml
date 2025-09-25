@@ -23,6 +23,8 @@ jobs:
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Myriad-Dreamin/tinymist/releases/download/${TINYMIST_VERRION}/tinymist-installer.sh | sh
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt,clippy
       - name: Install Typst
         uses: typst-community/setup-typst@v4
       - name: Install Artifact Cache

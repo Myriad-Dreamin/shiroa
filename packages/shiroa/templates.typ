@@ -286,7 +286,8 @@
   starlight: "@preview/shiroa-starlight:0.2.3",
   mdbook: "@preview/shiroa-mdbook:0.2.3",
 ) = {
-  let description = if description != none { description } else {
+  assert(type(description) == str or description == auto, message: "description must be a string or auto")
+  let description = if description != auto { description } else {
     let desc = plain-text(plain-body, limit: 512).trim()
     let desc_chars = desc.clusters()
     if desc_chars.len() >= 512 {

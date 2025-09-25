@@ -37,3 +37,10 @@
   set text(red)
   `测试`
 }).trim()
+
+#let test-issue-151() = plain-text[= Hello, typst
+  Sample page
+  Sample page
+].trim()
+
+#test-issue-151()
