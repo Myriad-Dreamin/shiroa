@@ -273,7 +273,7 @@ impl TypstRenderer {
                     ctx.search.index_search(
                         &search_path,
                         ch.title.clone(),
-                        art.description.as_str().into(),
+                        art.description.clone(),
                     );
 
                     let content = art.content;

@@ -80,7 +80,7 @@ impl SearchRenderer {
     pub fn build(&mut self, items: &[SearchItem]) -> Result<()> {
         for item in items {
             let title = item.title.as_str();
-            let desc = item.desc.as_str();
+            let desc = item.desc.as_deref().unwrap_or("");
             let dest = item.anchor_base.as_str();
 
             // , &breadcrumbs.join(" » ")
@@ -95,7 +95,7 @@ impl SearchRenderer {
 pub struct SearchItem {
     anchor_base: String,
     title: EcoString,
-    desc: EcoString,
+    desc: Option<EcoString>,
 }
 
 pub struct SearchCtx<'a> {
@@ -104,7 +104,7 @@ pub struct SearchCtx<'a> {
 }
 
 impl SearchCtx<'_> {
-    pub fn index_search(&self, dest: &Path, title: EcoString, desc: EcoString) {
+    pub fn index_search(&self, dest: &Path, title: EcoString, desc: Option<EcoString>) {
         let anchor_base = unix_slash(dest);
 
         self.items.lock().unwrap().push(SearchItem {

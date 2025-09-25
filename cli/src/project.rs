@@ -13,7 +13,7 @@ use reflexo_typst::{
     path::unix_slash,
     static_html,
     vfs::{notify::NotifyMessage, FilesystemEvent, FsProvider},
-    watch_deps, CompilerExt, ImmutStr, TypstDocument, TypstSystemWorld, WorldDeps,
+    watch_deps, CompilerExt, ImmutStr, TypstSystemWorld, WorldDeps,
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::{broadcast, mpsc};
@@ -563,19 +563,9 @@ impl Project {
 
         let content = task.report(res.html()).unwrap_or_default().to_owned();
 
-        let description: Option<Result<String>> = res.description().map(From::from).map(Ok);
-
-        let description = description.unwrap_or_else(|| {
-            let full_digest = TypstRenderer::generate_desc(&TypstDocument::Html(html_doc.clone()))?;
-            Result::Ok(match full_digest.char_indices().nth(512) {
-                Some((idx, _)) => full_digest[..idx].to_owned(),
-                None => full_digest,
-            })
-        })?;
-
         Ok(ChapterArtifact {
             content,
-            description,
+            description: res.description().cloned(),
         })
     }
 
@@ -611,7 +601,7 @@ impl Project {
 }
 
 pub struct ChapterArtifact {
-    pub description: String,
+    pub description: Option<EcoString>,
     pub content: String,
 }
 
