@@ -39,11 +39,16 @@ fn main() {
     intercept_version(opts.version, opts.vv);
 
     match opts.sub {
-        Some(Subcommands::Init(args)) => {
+        Some(Subcommands::Init(mut args)) => {
+            args.compile.compat();
             async_continue(async { init(args).await.unwrap_or_exit() })
         }
-        Some(Subcommands::Build(args)) => build(args).unwrap_or_exit(),
-        Some(Subcommands::Serve(args)) => {
+        Some(Subcommands::Build(mut args)) => {
+            args.compile.compat();
+            build(args).unwrap_or_exit()
+        }
+        Some(Subcommands::Serve(mut args)) => {
+            args.compile.compat();
             async_continue(async { serve(args).await.unwrap_or_exit() })
         }
         None => help_sub_command(),
