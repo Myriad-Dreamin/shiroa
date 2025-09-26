@@ -2,7 +2,7 @@
 
 #show: book-page.with(title: "CLI Init Command")
 
-The `init` command will try to initialize your book to build your book successfully by default. It is hence including all of the #cross-link("/cli/build.typ")[options] from `build` command.
+The `init` command will try to initialize your book to build your book successfully by default. This also means that all of the #cross-link("/cli/build.typ")[options] from `build` command are available for `init` command.
 
 For instance, Initialize a book to the directory `my-book`:
 
@@ -25,51 +25,29 @@ shiroa init --dest-dir ../dist my-book/
 shiroa build my-book/ # memoryized dest-dir
 ```
 
-= Things to note
+= Initializing a book project manually
 
-The harder way, by creating the book without `init` command, your `book.typ` should at least provides a `book-meta`, as #cross-link("/guide/get-started.typ")[Get Started] shown.
+This section describes what are required by shiroa to build a book successfully.
+- A `book.typ` file in the root that collects all metadata and chapter files of the book.
+- A `template.typ` file used by chapter files to render the page.
+- A sample `chapter1.typ` file shows how to use the `template.typ`.
 
-```typ
-#import "@preview/shiroa:0.2.3": *
-#show: book
+shiroa will read `book.typ` file first to find metadata and all chapter files, and render them accordingly.
 
-#book-meta(
-    title: "My Book"
-    summary: [
-      = My Book
-    ]
-)
-```
+The sample files are from #link("https://github.com/Myriad-Dreamin/shiroa/tree/main/tests/minimal")[`tests/minimal`] directory.
 
-Your `template.typ` must import and respect the `get-page-width` and `target` variable from `@preview/shiroa:0.2.3` to this time. The two variables will be used by the tool for rendering responsive layout and multiple targets.
+*Note: The sample is minimal and lacks of many show rules and theme settings to make good output. To learn more, please check #cross-link("/supports.typ")[`Typst Supports`.]*
 
-```typ
-#import "@preview/shiroa:0.2.3": get-page-width, target, is-web-target, is-pdf-target
+#let sample-file(path) = raw(lang: "typst", block: true, read(path))
 
-// Metadata
-#let page-width = get-page-width()
-#let is-html-target = is-html-target() // target.starts-with("html")
-#let is-pdf-target = is-pdf-target() // target.starts-with("pdf")
-#let is-web-target = is-web-target() // target.starts-with("web") or target.starts-with("html")
+your `book.typ` should at least provide a `book-meta`.
 
-#let project(body) = {
-  // set web/pdf page properties
-  set page(
-    width: page-width,
-    // for a website, we don't need pagination.
-    height: auto,
-  )
+#sample-file("/tests/minimal/book.typ")
 
-  // remove margins for web target
-  set page(margin: (
-    // reserved beautiful top margin
-    top: 20pt,
-    // Typst is setting the page's bottom to the baseline of the last line of text. So bad :(.
-    bottom: 0.5em,
-    // remove rest margins.
-    rest: 0pt,
-  )) if is-web-target;
+Your `template.typ` must import and respect the `get-page-width` and `target` variable from `@preview/shiroa:0.2.3` The two variables will be used by the tool for rendering responsive layout and multiple targets.
 
-  body
-}
-```
+#sample-file("/tests/minimal/template.typ")
+
+Your `chapter1.typ` should import and use the `template.typ`, as follow:
+
+#sample-file("/tests/minimal/chapter1.typ")

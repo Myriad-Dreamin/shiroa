@@ -11,3 +11,5 @@
 target/
 out/
 node_modules/
+dist/
+target
