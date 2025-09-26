@@ -14,7 +14,7 @@ mod serve;
 use core::fmt;
 use std::path::PathBuf;
 
-use clap::{ArgAction, Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 
 use crate::version::VersionFormat;
 
@@ -83,6 +83,8 @@ pub enum RenderMode {
     StaticHtml,
 }
 
+const ENV_PATH_SEP: char = if cfg!(windows) { ';' } else { ':' };
+
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
 pub struct CompileArgs {
@@ -120,12 +122,16 @@ pub struct CompileArgs {
     #[clap(long = "root", value_name = "DIR")]
     pub root: Option<String>,
 
-    /// Add additional directories to search for fonts
+    /// Add additional directories that are recursively searched for fonts.
+    ///
+    /// If multiple paths are specified, they are separated by the system's path
+    /// separator (`:` on Unix-like systems and `;` on Windows).
     #[clap(
         long = "font-path",
-        env = "TYPST_FONT_PATHS", 
         value_name = "DIR",
-        action = ArgAction::Append,
+        action = clap::ArgAction::Append,
+        env = "TYPST_FONT_PATHS",
+        value_delimiter = ENV_PATH_SEP
     )]
     pub font_paths: Vec<PathBuf>,
 

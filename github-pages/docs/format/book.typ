@@ -2,8 +2,6 @@
 
 #show: book-page.with(title: "book.typ")
 
-* Note: This main file must be named `book.typ`. *
-
 The `book.typ` consists of many meta sections describing your book project. If you are familiar with `mdbook`, the `book.typ` file is similar to the `book.toml` with `summary.md` file.
 
 The main file is used by `shiroa` to know what chapters to include, in what

@@ -2,6 +2,8 @@
 
 #show: book-page.with(title: "CLI Serve Command")
 
+#let cli-flag = "--"
+
 The serve command is used to preview a book by serving it via HTTP at
 `localhost:25520` by default:
 
@@ -15,7 +17,7 @@ shiroa serve
 // connection is used to trigger the client-side refresh.
 
 *Note:* *The `serve` command is for testing a book's HTML output, and is not
-intended to be a complete HTTP server for a website.*
+  intended to be a complete HTTP server for a website.*
 
 = Specify a directory
 
@@ -38,7 +40,7 @@ The `serve` address defaults to `localhost:25520`. Either option can be specifie
 shiroa serve path/to/book --addr 8000:127.0.0.1
 ```
 
-== --open
+== #cli-flag;open
 
 When you use the `--open` flag, shiroa will open the rendered book in
 your default web browser after building it.
