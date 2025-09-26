@@ -56,3 +56,9 @@ jobs:
         run: cargo run --release --bin shiroa -- build --mode static-html test-book
       - name: Test CLI (Build Pdf)
         run: typst compile test-book/ebook.typ
+      - name: Test CLI (Build Paged Minimal)
+        run: cargo run --release --bin shiroa -- build
+        working-directory: tests/minimal
+      - name: Test CLI (Build Html Minimal)
+        run: cargo run --release --bin shiroa -- build --mode static-html
+        working-directory: tests/minimal
