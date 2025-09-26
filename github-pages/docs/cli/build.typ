@@ -11,11 +11,8 @@ shiroa build
 ```
 
 It will try to parse your `book.typ` file to understand the structure and metadata
-of your book and fetch the corresponding files. Note that files mentioned in `book.typ`
-but not present will be created.
-
-The rendered output will maintain the same directory structure as the source for
-convenience. Large books will therefore remain structured when rendered.
+of your book and fetch the corresponding files. Note that chapter files used in `book.typ` will be created if
+they are not present in the source directory.
 
 = Specify a directory
 
@@ -26,11 +23,9 @@ root instead of the current working directory.
 shiroa build path/to/book
 ```
 
-== #cli-flag;workspace, -w
+== #cli-flag;root
 
-*Note:* The workspace is a _typst-specific_ command.
-
-The `--workspace` option specifies the root directory of typst source files, which is like the `--root` option of `typst-cli`. It is interpreted relative to *current work directory of `shiroa` process*.
+The `--root` option specifies the root directory for typst source files. It is interpreted relative to *current work directory of `shiroa` process*.
 
 For example. When a book is created with the main file `book-project1/book.typ`, and you want to access a template file with path `common/book-template.typ`, please build it with following command:
 
@@ -43,6 +38,10 @@ Then you can access the template with the absolute path in typst:
 ```typ
 #import "/common/book-template.typ": *
 ```
+
+== #cli-flag;font-path
+
+The `--font-path` option adds additional directories that are recursively searched for fonts for typst source files. If multiple paths are specified, they are separated by the system's path separator (`:` on Unix-like systems and `;` on Windows).
 
 == #cli-flag;dest-dir, -d
 
@@ -69,16 +68,6 @@ The `--mode` option allows you to specify the mode of rendering typst document. 
   possible, and leave frames rendered dynamically.
 
 The dynamically rendering means that some elements will be rendered by a wasm renderer in the browser.
-
-== #cli-flag;theme
-
-Specify a theme directory to copy recursively. This allows you to use custom themes.
-
-The files will be copied to the `theme/` in the output directory.
-
-The default theme is located at #link("https://github.com/Myriad-Dreamin/shiroa/tree/main/themes/mdbook")[`themes/mdbook`]. You can start by copying this theme and modifying it to your needs.
-
-Currently, no interface is designed for custom themes, i.e. everything is working occasionally. If you have any questions, design or feature requests about theming, please open an issue in the repository.
 
 // todo: copy all rest files
 // ***Note:*** *The build command copies all files (excluding files with `.typ` extension) from the source directory into the build directory.*
