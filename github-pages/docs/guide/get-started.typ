@@ -71,7 +71,7 @@ Try opening up `src/book.typ` in your editor and adding a few chapters.
 
 == Source files
 
-The content of your book is all contained in the `src` directory.
+The content of your book is all contained in the root directory.
 Each chapter is a separate Typst file.
 Typically, each chapter starts with a level 1 heading with the title of the chapter.
 
@@ -89,8 +89,8 @@ The organization of the files will correspond to the HTML files generated, so ke
 
 // Check out the #link("https://rust-lang.github.io/myriad-dreamin/shiroa/format/typst.html")[Typst chapter] for more information on formatting the content of your chapters.
 
-All other files in the `src` directory will be included in the output.
-So if you have images or other static files, just include them somewhere in the `src` directory.
+All other files in the root directory will be included in the output.
+So if you have images or other static files, just include them somewhere in the root directory.
 
 = Publishing a book
 
