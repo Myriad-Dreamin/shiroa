@@ -86,7 +86,7 @@ pub enum RenderMode {
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
 pub struct CompileArgs {
-    /// Root directory for the book
+    /// The directory storing the `book.typ` file.
     /// (Defaults to the current directory when omitted)
     #[clap(default_value = "")]
     pub dir: String,
@@ -108,11 +108,26 @@ pub struct CompileArgs {
     #[clap(long, default_value = "dyn-paged")]
     pub mode: RenderMode,
 
+    /// Deprecated: use `--root` instead.
+    ///
     /// Root directory for the typst workspace, which is same as the
-    /// `typst-cli`'s root. (Defaults to the root directory for the book
-    /// when omitted)
+    /// `typst-cli`'s `--root` flag. (Defaults to the root directory for the
+    /// book when omitted)
     #[clap(long, short, default_value = "")]
     pub workspace: String,
+
+    /// Configure the project root (for absolute paths in typst source files).
+    #[clap(long = "root", value_name = "DIR")]
+    pub root: Option<String>,
+
+    /// Add additional directories to search for fonts
+    #[clap(
+        long = "font-path",
+        env = "TYPST_FONT_PATHS", 
+        value_name = "DIR",
+        action = ArgAction::Append,
+    )]
+    pub font_paths: Vec<PathBuf>,
 
     /// Output to directory, default in the same directory as the entry file.
     /// Relative paths are interpreted relative to the book's root directory.
@@ -125,18 +140,20 @@ pub struct CompileArgs {
     #[clap(long, default_value = "/")]
     pub path_to_root: String,
 
-    /// Add additional directories to search for fonts
-    #[clap(
-        long = "font-path",
-        env = "TYPST_FONT_PATHS", 
-        value_name = "DIR",
-        action = ArgAction::Append,
-    )]
-    pub font_paths: Vec<PathBuf>,
-
     /// Specify a filter to only load files with a specific extension.
     #[clap(long, default_value = "^(player.bilibili.com)$")]
     pub allowed_url_source: Option<String>,
+}
+
+impl CompileArgs {
+    pub fn compat(&mut self) {
+        if !self.workspace.is_empty() {
+            eprintln!("warning: the --workspace flag is deprecated, use --root instead");
+        }
+        if let Some(root) = self.root.take() {
+            self.workspace = root;
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, Parser)]
