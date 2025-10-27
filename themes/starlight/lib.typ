@@ -26,7 +26,7 @@
   },
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, plain-text, x-current, x-target
+  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, paged-load-trampoline, plain-text, x-current, x-target
   import "html.typ": inline-assets, meta, span
   import "mod.typ": replace-raw
 
@@ -37,15 +37,7 @@
     return body
   }
 
-  let trampoline = inline-assets(replace-raw(
-    vars: (rel_data_path: x-current.replace(regex(".typ$"), "")),
-    ```js
-    let appContainer = document.currentScript && document.currentScript.parentElement;
-    window.typstRenderModuleReady.then((plugin) => {
-        window.typstBookRenderPage(plugin, "{{ rel_data_path }}", appContainer);
-    });
-    ```,
-  ))
+  let trampoline = paged-load-trampoline()
 
   let site-title() = get-book-meta(mapper: it => if it != none {
     if "raw-title" in it {

@@ -324,3 +324,44 @@
     panic("Unknown web theme: " + web-theme)
   }
 }
+
+#let paged-load-trampoline() = {
+  import "sys.typ": x-current, x-url-base
+  let replace-raw(it, vars: (:)) = {
+    raw(
+      lang: it.lang,
+      {
+        let body = it.text
+
+        for (key, value) in vars.pairs() {
+          body = body.replace("{{ " + key + " }}", value)
+        }
+
+        body
+      },
+    )
+  }
+
+  inline-assets(replace-raw(
+    vars: (
+      rel_data_path: {
+        let url-base = x-url-base
+        if url-base != none and url-base.ends-with("/") {
+          url-base = url-base.slice(0, -1)
+        }
+        let current = x-current
+        if current == none {
+          current = ""
+        }
+
+        url-base + current.replace(regex(".typ$"), "")
+      },
+    ),
+    ```js
+    let appContainer = document.currentScript && document.currentScript.parentElement;
+    window.typstRenderModuleReady.then((plugin) => {
+        window.typstBookRenderPage(plugin, "{{ rel_data_path }}", appContainer);
+    });
+    ```,
+  ))
+}
