@@ -24,15 +24,15 @@
 ///
 /// - title (str): The title of the book.
 /// - authors (array | str): The author(s) of the book.
-/// - description (str): A description for the book, which is added as meta information in the html <head> of each page.
+/// - summary (content): Content summary of the book. Please see #link("https://myriad-dreamin.github.io/shiroa/format/book-meta.html#label-summary%20%20(required)%20content")[Book Metadata's Summary Field] for details.
+/// - description (str): A description for the book, which is added as meta information to the `document` element.
 /// - repository (str): The github repository for the book.
 /// - repository-edit (str): The github repository editing template for the book.
-/// - discord (str): The discord server for the book.
+/// - discord (str): The discord server invite link for the book.
 ///   Example: `https://github.com/Me/Book/edit/main/path/to/book/{path}`
 /// - language (str): The main language of the book, which is used as a language attribute
 ///   `<html lang="en">` for example.
 ///   Example: `en`, `zh`, `fr`, etc.
-/// - summary (content): Content summary of the book. Please see #link("https://myriad-dreamin.github.io/shiroa/format/book-meta.html#label-summary%20%20(required)%20content")[Book Metadata's Summary Field] for details.
 #let book-meta(
   title: "",
   description: "",

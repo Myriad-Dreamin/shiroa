@@ -2,44 +2,43 @@
 
 #show: book-page.with(title: "Theme")
 
-// todo: rewrite me
+In #cross-link("/cli/init.typ")[`init` command], we have provided a minimal template for you to start your book project. We recall that the `template.typ` file is used by chapter files to render the page, and in this section, we will show you how to make a feature rich template.
 
-The default renderer uses a #link("https://handlebarsjs.com")[handlebars] template to
-render your typst source files and comes with a default theme included in the `shiroa`
-binary.
+== `x-target`
 
-Currently we have no much design on theme's html part. But you can still configure your book project like a regular typst project.
+The `sys.x-target` is specified by the shiroa, whose default value is `pdf`. The valid values are:
+- `pdf`: for PDF output (Paged Target).
+- `web`: for web output (Paged Target).
+- `html`: for HTML output (HTML Target).
+- `html-wrapper`: for HTML output with a wrapper (HTML Target).
 
-= Things to note
+A target can be suffixed with a theme name to support specialized rendering for web pages, for example:
+- `web-light`: for web output with a light theme.
+- `web-ayu`: for web output with a ayu (dark) theme.
 
-#let t = cross-link("/guide/get-started.typ")[Get Started]
+== How shiroa sets `x-target`
 
-Your `book.typ` should at least provides a `book-meta`, as #t shown.
+1. In typst preview and webapp, since `sys.x-target` is not set, we preview the book in `pdf` target by default.
+
+2. When running `shiroa` with `--mode=static-html`, the `sys.x-target` will be set to `html`. Each page will be rendered as a static HTML file.
+
+  For example, A page `guide/get-started.typ` will be compiled into `guide/get-started.html`.
+
+3. When running `shiroa` with `--mode=dyn-paged` (default), shiroa will render a page with `sys.x-target` set to `html-wrapper`, and then render the page with `sys.x-target` set to `web`.
+
+  For example, shiroa will render a page `guide/get-started.typ` to following artifacts:
+  - `guide/get-started.html`: using `typst compile guide/get-started.typ --input=x-target=html-wrapper`
+  - svg with light theme: `guide/get-started.web-light.svg`: using `typst compile guide/get-started.typ --input=x-target=web-light`
+  - svg with ayu theme (and other themes): `guide/get-started.web-ayu.svg`: using `typst compile guide/get-started.typ --input=x-target=web-ayu`
+
+== Respecting `x-target` in your template
+
+To apply set rules for different targets, your `template.typ` can import and respect the `x-target` variable from `@preview/shiroa:0.2.3`. For example, to remove margins for web target, you can do:
 
 ```typ
-#import "@preview/shiroa:0.2.3": *
-#show: book
-
-#book-meta(
-    title: "My Book"
-    summary: [
-      = My Book
-    ]
-)
-```
-
-To support specialized rendering for web pages and different page layouts, Your `template.typ` can import and respect the `page-width` and `target` variable from `@preview/shiroa:0.2.3` to this time.
-
-```typ
-#import "@preview/shiroa:0.2.3": page-width, target
+#import "@preview/shiroa:0.2.3": x-target
 
 #let project(body) = {
-  // set web/pdf page properties
-  set page(
-    width: page-width,
-    // for a website, we don't need pagination.
-    height: auto,
-  )
 
   // remove margins for web target
   set page(margin: (
@@ -49,55 +48,45 @@ To support specialized rendering for web pages and different page layouts, Your 
     bottom: 0.5em,
     // remove rest margins.
     rest: 0pt,
-  )) if target.starts-with("web");
+  )) if x-target.starts-with("web");
 
   body
 }
 ```
 
-// The theme is totally customizable, you can selectively replace every file from
-// the theme by your own by adding a `theme` directory next to `src` folder in your
-// project root. Create a new file with the name of the file you want to override
-// and now that file will be used instead of the default file.
+== Creating a template for `static-html` mode (Experimental)
 
-// Here are the files you can override:
+There are samples to create components that utilize metadata from `book.typ`:
+- #link("https://github.com/Myriad-Dreamin/shiroa/blob/main/themes/starlight/table-of-contents.typ")[Table of contents of the page].
+- #link("https://github.com/Myriad-Dreamin/shiroa/blob/main/themes/starlight/page-sidebar.typ")[Table of Contents of the entire website (book)].
+- #link("https://github.com/Myriad-Dreamin/shiroa/blob/main/themes/starlight/head.typ")[Customize the `<head>` of the page].
 
-// - **_index.hbs_** is the handlebars template.
-// - **_head.hbs_** is appended to the HTML `<head>` section.
-// - **_header.hbs_** content is appended on top of every book page.
-// - **_css/_** contains the CSS files for styling the book.
-//     - **_css/chrome.css_** is for UI elements.
-//     - **_css/general.css_** is the base styles.
-//     - **_css/print.css_** is the style for printer output.
-//     - **_css/variables.css_** contains variables used in other CSS files.
-// - **_book.js_** is mostly used to add client side functionality, like hiding /
-//   un-hiding the sidebar, changing the theme, ...
-// - **_highlight.js_** is the JavaScript that is used to highlight code snippets,
-//   you should not need to modify this.
-// - **_highlight.css_** is the theme used for the code highlighting.
-// - **_favicon.svg_** and **_favicon.png_** the favicon that will be used. The SVG
-//   version is used by [newer browsers].
-// - **fonts/fonts.css** contains the definition of which fonts to load.
-//   Custom fonts can be included in the `fonts` directory.
+== Creating a template for `dyn-paged` mode (Experimental)
 
-// Generally, when you want to tweak the theme, you don't need to override all the
-// files. If you only need changes in the stylesheet, there is no point in
-// overriding all the other files. Because custom files take precedence over
-// built-in ones, they will not get updated with new fixes / features.
+Shiroa will pre-render multiple layouts by setting `sys.page-width` and `sys.x-target` to different values. A template must use `page-width` to adjust the page width to avoid the content being cut off.
 
-// **Note:** When you override a file, it is possible that you break some
-// functionality. Therefore I recommend to use the file from the default theme as
-// template and only add / modify what you need. You can copy the default theme
-// into your source directory automatically by using `shiroa init --theme` and just
-// remove the files you don't want to override.
+```typ
+#import "@preview/shiroa:0.2.3": page-width, x-target
 
-// `shiroa init --theme` will not create every file listed above.
-// Some files, such as `head.hbs`, do not have built-in equivalents.
-// Just create the file if you need it.
+#let project(body) = {
+  // set web/pdf page properties
+  set page(width: page-width)
+  set page(height: auto) if not x-target.starts-with("pdf");
 
-// If you completely replace all built-in themes, be sure to also set
-// [`output.html.preferred-dark-theme`] in the config, which defaults to the
-// built-in `navy` theme.
+  body
+}
+```
 
-// [`output.html.preferred-dark-theme`]: ../configuration/renderers.md#html-renderer-options
-// [newer browsers]: https://caniuse.com/#feat=link-icon-svg
+We know shiroa will render a page with `sys.x-target` set to `html-wrapper` and `web` targets, so template must be aware of that. The html file (rendered with `html-wrapper` target) must contain a trampoline to load the svg file (rendered with `web` target). You can either create you owned trampoline or use the `paged-load-trampoline` function provided by shiroa:
+
+```typ
+#import "@preview/shiroa:0.2.3": paged-load-trampoline, x-target
+#let html-template(trampoline) = html.html(
+  html.head(html.title("Page Title")),
+  html.body(trampoline),
+)
+#let project(body) = {
+  let trampoline = paged-load-trampoline()
+  if x-target.starts-with("html-wrapper") { html-template(trampoline) } else { body }
+}
+```

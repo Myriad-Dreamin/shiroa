@@ -151,7 +151,7 @@ of contents as rendered to the left.
 
 = description #type-hint("string")
 
-A description for the book, which is added as meta information in the html `<head>` of each page.
+A description for the book, which is added as meta information to the `document` element.
 
 ```typ
 #book-meta(
@@ -181,7 +181,7 @@ The github repository editing template for the book.
 
 = discord #type-hint("string")
 
-The discord server for the book.
+The discord server invite link for the book.
 
 ```typ
 #book-meta(
