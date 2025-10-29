@@ -24,10 +24,10 @@ fn main() -> anyhow::Result<()> {
     let project = m.parent().unwrap().parent().unwrap();
 
     println!("Running yarn install...");
-    let mut cmd = Command::new(yarn_cmd());
-    cmd.args(["install"]);
-    cmd.current_dir(project.join("frontend"));
-    run(cmd)?;
+    // let mut cmd = Command::new(yarn_cmd());
+    // cmd.args(["install"]);
+    // cmd.current_dir(project.join("frontend"));
+    // run(cmd)?;
 
     println!("Running yarn build...");
     let mut cmd = Command::new(yarn_cmd());
