@@ -25,15 +25,15 @@ lto = "thin"
 
 [workspace.dependencies]
 
-typst = "0.13.0"
-typst-eval = "0.13.0"
-typst-assets = "0.13.0"
+typst = "0.14.0-rc1"
+typst-eval = "0.14.0-rc1"
+typst-assets = "0.14.0-rc1"
 # typst-assets = { git = "https://github.com/typst/typst-assets", rev = "8cccef9" }
-reflexo-typst = { version = "0.6.1-rc3", features = ["html"] }
-reflexo-vec2svg = { version = "0.6.1-rc3", features = [
+reflexo-typst = { version = "0.7.0-rc1", features = ["html"] }
+reflexo-vec2svg = { version = "0.7.0-rc1", features = [
     "experimental-ligature",
 ] }
-tinymist-task = { version = "0.13.24-rc1" }
+tinymist-task = { version = "0.14.0-rc1" }
 
 # general
 anyhow = "1"
@@ -73,13 +73,13 @@ include_dir = "0.7.3"
 pathdiff = "0.2.1"
 
 [patch.crates-io]
-typst = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
-typst-html = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
-typst-svg = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
-typst-render = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
-typst-pdf = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
-typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
-typst-eval = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.6.0" }
+typst = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
+typst-html = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
+typst-svg = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
+typst-render = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
+typst-pdf = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
+typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
+typst-eval = { git = "https://github.com/Myriad-Dreamin/typst.git", tag = "typst.ts/v0.7.0-rc1" }
 # typst-assets = { git = "https://github.com/typst/typst-assets", rev = "8cccef9" }
 
 # reflexo-vec2svg = { git = "https://github.com/Myriad-Dreamin/typst.ts", rev = "a8132e5151435b9d51e76cb34b482acfd0526844" }
