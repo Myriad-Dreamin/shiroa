@@ -58,8 +58,8 @@ pub enum Subcommands {
 #[value(rename_all = "kebab-case")]
 pub enum MetaSource {
     /// Strictly retrieve the project's meta by label queries.
-    /// + retrieve the book meta from `<shiroa-book-meta>`
-    /// + retrieve the build meta from `<shiroa-build-meta>`
+    /// - retrieve the book meta from `<shiroa-book-meta>`
+    /// - retrieve the build meta from `<shiroa-build-meta>`
     Strict,
     /// Infer the project's meta from the outline of main file.
     /// Note: if the main file also contains `<shiroa-book-meta>` or
@@ -77,9 +77,14 @@ impl fmt::Display for MetaSource {
 #[derive(ValueEnum, Debug, Clone, Eq, PartialEq, Default)]
 #[value(rename_all = "kebab-case")]
 pub enum RenderMode {
+    /// Dynamically render as paged document.
     #[default]
     DynPaged,
+    /// Statically render html parts as much as possible, and leave frames
+    /// rendered dynamically.
     StaticHtmlDynPaged,
+    /// Statically render the whole document, the embedded frames are not
+    /// resizable.
     StaticHtml,
 }
 
@@ -97,16 +102,8 @@ pub struct CompileArgs {
     #[clap(long, default_value = "strict")]
     pub meta_source: MetaSource,
 
-    /// The mode to render typst document.
-    ///
-    /// + `dynamic-paged`: dynamically render as paged document.
-    /// + `static-html-static-paged`: statically render html parts as much as
-    ///   possible, and leave frames rendered dynamically.
-    /// + `static-html`: statically render the whole document, the embedded
-    ///   frames are not resizable.
-    ///
-    /// The dynamically rendering means that some elements will be rendered by a
-    /// wasm module in the browser.
+    /// The mode to render typst document. The dynamically rendering means that
+    /// some elements will be rendered by a wasm module in the browser.
     #[clap(long, default_value = "dyn-paged")]
     pub mode: RenderMode,
 
