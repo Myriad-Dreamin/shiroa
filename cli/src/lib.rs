@@ -99,8 +99,8 @@ pub struct CompileArgs {
 
     /// The mode to render typst document.
     ///
-    /// + `dynamic-paged`: dynamically render as paged document.
-    /// + `static-html-static-paged`: statically render html parts as much as
+    /// + `dyn-paged`: dynamically render as paged document.
+    /// + `static-html-dyn-paged`: statically render html parts as much as
     ///   possible, and leave frames rendered dynamically.
     /// + `static-html`: statically render the whole document, the embedded
     ///   frames are not resizable.
