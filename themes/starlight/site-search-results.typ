@@ -1,6 +1,6 @@
 
 #import "mod.typ": *
-#import "@preview/shiroa:0.2.3": x-url-base
+#import "@preview/shiroa:0.3.0": x-url-base
 
 // ---
 

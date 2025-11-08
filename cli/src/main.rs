@@ -118,7 +118,7 @@ async fn init(args: InitArgs) -> Result<()> {
         dir.join("book.typ"),
         format!(
             r##"
-#import "@preview/shiroa:0.2.3": *
+#import "@preview/shiroa:0.3.0": *
 
 #show: book
 
@@ -153,7 +153,7 @@ Sample page
     write_file(
         dir.join("ebook.typ"),
         format!(
-            r##"#import "@preview/shiroa:0.2.3": *
+            r##"#import "@preview/shiroa:0.3.0": *
 
 #import "{ebook_template}"
 

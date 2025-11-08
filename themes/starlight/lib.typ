@@ -26,7 +26,7 @@
   },
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, paged-load-trampoline, plain-text, x-current, x-target
+  import "@preview/shiroa:0.3.0": get-book-meta, is-html-target, paged-load-trampoline, plain-text, x-current, x-target
   import "html.typ": inline-assets, meta, span
   import "mod.typ": replace-raw
 

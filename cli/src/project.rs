@@ -194,11 +194,11 @@ impl Project {
             }
 
             let InternalPackageMeta::Package { version } = self.query_meta("<shiroa-internal-package-meta>", query)?
-                .context("No package meta. are you using old book package?, please import @preview/shiroa:0.2.3; or do you forget the show rule `#show: book`?")?;
+                .context("No package meta. are you using old book package?, please import @preview/shiroa:0.3.0; or do you forget the show rule `#show: book`?")?;
 
-            if version != "0.2.3" {
+            if version != "0.3.0" {
                 return Err(error_once!(
-                    "outdated book package, please import @preview/shiroa:0.2.3", importing_version: version,
+                    "outdated book package, please import @preview/shiroa:0.3.0", importing_version: version,
                 ));
             }
         }

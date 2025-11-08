@@ -33,10 +33,10 @@ A target can be suffixed with a theme name to support specialized rendering for 
 
 == Respecting `x-target` in your template
 
-To apply set rules for different targets, your `template.typ` can import and respect the `x-target` variable from `@preview/shiroa:0.2.3`. For example, to remove margins for web target, you can do:
+To apply set rules for different targets, your `template.typ` can import and respect the `x-target` variable from `@preview/shiroa:0.3.0`. For example, to remove margins for web target, you can do:
 
 ```typ
-#import "@preview/shiroa:0.2.3": x-target
+#import "@preview/shiroa:0.3.0": x-target
 
 #let project(body) = {
 
@@ -66,7 +66,7 @@ There are samples to create components that utilize metadata from `book.typ`:
 Shiroa will pre-render multiple layouts by setting `sys.page-width` and `sys.x-target` to different values. A template must use `page-width` to adjust the page width to avoid the content being cut off.
 
 ```typ
-#import "@preview/shiroa:0.2.3": page-width, x-target
+#import "@preview/shiroa:0.3.0": page-width, x-target
 
 #let project(body) = {
   // set web/pdf page properties
@@ -80,7 +80,7 @@ Shiroa will pre-render multiple layouts by setting `sys.page-width` and `sys.x-t
 We know shiroa will render a page with `sys.x-target` set to `html-wrapper` and `web` targets, so template must be aware of that. The html file (rendered with `html-wrapper` target) must contain a trampoline to load the svg file (rendered with `web` target). You can either create you owned trampoline or use the `paged-load-trampoline` function provided by shiroa:
 
 ```typ
-#import "@preview/shiroa:0.2.3": paged-load-trampoline, x-target
+#import "@preview/shiroa:0.3.0": paged-load-trampoline, x-target
 #let html-template(trampoline) = html.html(
   html.head(html.title("Page Title")),
   html.body(trampoline),

@@ -25,7 +25,7 @@
   main-size: main-size,
   heading-sizes: heading-sizes,
   list-indent: list-indent,
-  starlight: "@preview/shiroa-starlight:0.2.3",
+  starlight: "@preview/shiroa-starlight:0.3.0",
 ) = {
   assert(themes != none, message: "themes must be set")
   let (
@@ -165,7 +165,7 @@
   web-theme: "starlight",
   code-font: none,
   themes: none,
-  zebraw: "@preview/zebraw:0.5.5",
+  zebraw: "@preview/zebraw:0.6.0",
 ) = {
   import zebraw: zebraw, zebraw-init
 
@@ -283,8 +283,8 @@
   book-meta: none,
   web-theme: auto,
   extra-assets: (),
-  starlight: "@preview/shiroa-starlight:0.2.3",
-  mdbook: "@preview/shiroa-mdbook:0.2.3",
+  starlight: "@preview/shiroa-starlight:0.3.0",
+  mdbook: "@preview/shiroa-mdbook:0.3.0",
 ) = {
   // Prepares description
   assert(type(description) == str or description == auto, message: "description must be a string or auto")
