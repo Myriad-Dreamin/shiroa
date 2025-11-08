@@ -20,7 +20,7 @@
   social-links: social-links,
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.2.3": get-book-meta, is-html-target, paged-load-trampoline, x-current, x-target, x-url-base
+  import "@preview/shiroa:0.3.0": get-book-meta, is-html-target, paged-load-trampoline, x-current, x-target, x-url-base
   import "mod.typ": inline-assets, replace-raw
   import "html.typ": a, div, meta
   import "icons.typ": builtin-icon

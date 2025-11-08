@@ -1,7 +1,7 @@
 
 #import "mod.typ": *
 #import "icons.typ": builtin-icon
-#import "@preview/shiroa:0.2.3": cross-link-path-label, get-book-meta, x-url-base
+#import "@preview/shiroa:0.3.0": cross-link-path-label, get-book-meta, x-url-base
 
 #let render-sidebar(summary-items, visit) = {
   let part = none

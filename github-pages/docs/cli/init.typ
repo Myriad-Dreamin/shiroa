@@ -44,7 +44,7 @@ your `book.typ` should at least provide a `book-meta`.
 
 #sample-file("/tests/minimal/book.typ")
 
-Your `template.typ` must import and respect the `get-page-width` and `target` variable from `@preview/shiroa:0.2.3` The two variables will be used by the tool for rendering responsive layout and multiple targets.
+Your `template.typ` must import and respect the `get-page-width` and `target` variable from `@preview/shiroa:0.3.0` The two variables will be used by the tool for rendering responsive layout and multiple targets.
 
 #sample-file("/tests/minimal/template.typ")
 
