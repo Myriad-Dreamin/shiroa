@@ -25,7 +25,7 @@
   main-size: main-size,
   heading-sizes: heading-sizes,
   list-indent: list-indent,
-  starlight: "@preview/shiroa-starlight:0.3.0",
+  starlight: "@preview/shiroa-starlight:0.3.1",
 ) = {
   assert(themes != none, message: "themes must be set")
   let (
@@ -165,7 +165,7 @@
   web-theme: "starlight",
   code-font: none,
   themes: none,
-  zebraw: "@preview/zebraw:0.6.0",
+  zebraw: "@preview/zebraw:0.6.1",
 ) = {
   import zebraw: zebraw, zebraw-init
 
@@ -208,6 +208,12 @@
   ) = themes
   let theme-box = theme-box.with(themes: themes)
 
+  let zebraw-commons = (
+    inset: (left: 1em, top: 0.375em),
+    lang: false,
+    numbering: false,
+  )
+
   let init-with-theme((code-extra-colors, is-dark)) = if is-dark {
     zebraw-init.with(
       // should vary by theme
@@ -217,8 +223,7 @@
       highlight-color: rgb("#3d59a1"),
       comment-color: rgb("#394b70"),
       lang-color: rgb("#3d59a1"),
-      lang: false,
-      numbering: false,
+      ..zebraw-commons,
     )
   } else {
     zebraw-init.with(
@@ -226,8 +231,7 @@
       background-color: if code-extra-colors.bg != none {
         (code-extra-colors.bg, code-extra-colors.bg)
       },
-      lang: false,
-      numbering: false,
+      ..zebraw-commons,
     )
   }
 
@@ -283,8 +287,8 @@
   book-meta: none,
   web-theme: auto,
   extra-assets: (),
-  starlight: "@preview/shiroa-starlight:0.3.0",
-  mdbook: "@preview/shiroa-mdbook:0.3.0",
+  starlight: "@preview/shiroa-starlight:0.3.1",
+  mdbook: "@preview/shiroa-mdbook:0.3.1",
 ) = {
   // Prepares description
   assert(type(description) == str or description == auto, message: "description must be a string or auto")

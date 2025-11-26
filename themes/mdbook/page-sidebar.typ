@@ -1,7 +1,7 @@
 
 #import "mod.typ": *
 #import "icons.typ": builtin-icon
-#import "@preview/shiroa:0.3.0": cross-link-path-label, get-book-meta, x-current, x-url-base
+#import "@preview/shiroa:0.3.1": cross-link-path-label, get-book-meta, x-current, x-url-base
 
 // todo: fold_level
 // let is_expanded =

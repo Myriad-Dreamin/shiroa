@@ -1,4 +1,4 @@
-#import "@preview/shiroa:0.3.0": *
+#import "@preview/shiroa:0.3.1": *
 
 
 #let test-none() = plain-text(none).trim()
