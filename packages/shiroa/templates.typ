@@ -239,6 +239,11 @@
   show: init-with-theme(default-theme)
   set raw(tab-size: 114)
 
+  context if shiroa-sys-target() != "html" {
+    counter("zebraw-html-styles").step()
+    counter("zebraw-html-clipboard").step()
+  }
+
   let in-mk-raw = state("shiroa:in-mk-raw", false)
   let mk-raw(
     it,
