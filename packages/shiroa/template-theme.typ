@@ -1,5 +1,5 @@
 
-#import "sys.typ": target
+#import "sys.typ": x-target
 
 /// Reads a theme from a preset dictionary and returns a structured theme object.
 ///
@@ -8,7 +8,7 @@
 /// - read (function): A function to read theme files.
 /// - target (string): The target platform or style, such as "web-light", "web-dark", or "pdf".
 /// -> dictionary
-#let book-theme-from(preset, xml: xml, read: none, target: target) = {
+#let book-theme-from(preset, xml: xml, read: none, target: x-target) = {
   // todo: move theme style parser to another lib file
   let theme-target = if target.contains("-") {
     target.split("-").at(1)
@@ -74,7 +74,7 @@
 #let theme-box-styles-from(
   preset,
   read: read,
-  target: target,
+  target: x-target,
   light-theme: none,
   dark-theme: none,
 ) = {

@@ -21,7 +21,7 @@ use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
     path::{unix_slash, PathClean},
-    static_html,
+    print_diagnostics, static_html,
     system::SystemWorldComputeGraph,
     vector::{
         ir::{LayoutRegionNode, Module, Page, PageMetadata},
@@ -30,9 +30,9 @@ use reflexo_typst::{
     },
     world::{diag::print_diagnostics_to, EntryOpts},
     CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
-    EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash, SystemCompilerFeat, TakeAs,
-    TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument, TypstPagedDocument,
-    TypstSystemWorld,
+    EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash, SourceWorld,
+    SystemCompilerFeat, TakeAs, TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument,
+    TypstPagedDocument, TypstSystemWorld,
 };
 use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
@@ -229,13 +229,14 @@ impl TypstRenderer {
 
         // todo: review me.
         if !task.ctx.static_html {
-            THEME_LIST
+            let res = THEME_LIST
                 .into_par_iter()
                 .map(|theme| {
                     let mut task = self.spawn_with_theme(path, theme)?;
                     task.compile_paged_page_with(settings.clone())
                 })
-                .collect::<Result<()>>()?;
+                .collect::<Result<()>>();
+            print_diag_or_error(task.world(), res)?;
         }
 
         Ok((task, doc))
@@ -1002,6 +1003,21 @@ fn no_foreign_obj_diag(diag: &&typst::diag::SourceDiagnostic) -> bool {
     }
 
     !diag.message.contains("image contains foreign object")
+}
+
+fn print_diag_or_error<T>(world: &impl SourceWorld, result: Result<T>) -> Result<T> {
+    match result {
+        Ok(v) => Ok(v),
+        Err(err) => {
+            if let Some(diagnostics) = err.diagnostics() {
+                print_diagnostics(world, diagnostics.iter(), DiagnosticFormat::Human)
+                    .context_ut("print diagnostics")?;
+                bail!("compile failed");
+            }
+
+            Err(err)
+        }
+    }
 }
 
 pub struct HtmlRenderContext<'a> {

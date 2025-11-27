@@ -1,5 +1,5 @@
 
-#import "sys.typ": page-width, target, x-current, x-target, x-url-base
+#import "sys.typ": page-width, x-target, x-current, x-target, x-url-base
 
 /// The default page width is A4 paper's width (21cm).
 ///
@@ -14,16 +14,16 @@
 
 /// Whether the current compilation is for _html_
 #let is-html-target(exclude-wrapper: false) = (
-  target.starts-with("html") and (not exclude-wrapper or not x-target.starts-with("html-wrapper"))
+  x-target.starts-with("html") and (not exclude-wrapper or not x-target.starts-with("html-wrapper"))
 )
 /// Whether the current compilation is for _web_
-#let is-web-target() = target.starts-with("web")
+#let is-web-target() = x-target.starts-with("web")
 /// Whether the current compilation is for _pdf_
-#let is-pdf-target() = target.starts-with("pdf")
+#let is-pdf-target() = x-target.starts-with("pdf")
 
 /// Derived book variables from `sys.args`
 #let book-sys = (
-  target: target,
+  target: x-target,
   page-width: page-width,
   sys-is-html-target: ("target" in dictionary(std)),
   is-html-target: is-html-target(),

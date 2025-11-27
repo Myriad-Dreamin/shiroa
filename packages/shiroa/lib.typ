@@ -1,7 +1,7 @@
 //! The `shiroa` package has three parts.
 //!
 //! 1. Metadata variables and functions.
-//!   - `target`
+//!   - `x-target`
 //!   - `page-width`
 //!   - `is-web-target`
 //!   - `is-html-target`

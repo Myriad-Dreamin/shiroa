@@ -1,4 +1,4 @@
-#import "@preview/shiroa:0.3.0": get-page-width, is-html-target, is-pdf-target, is-web-target, templates
+#import "@preview/shiroa:0.3.1": get-page-width, is-html-target, is-pdf-target, is-web-target, templates
 #import templates: *
 
 // Metadata

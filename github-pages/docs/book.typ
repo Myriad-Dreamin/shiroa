@@ -1,5 +1,5 @@
 
-#import "@preview/shiroa:0.3.0": *
+#import "@preview/shiroa:0.3.1": *
 
 #show: book
 

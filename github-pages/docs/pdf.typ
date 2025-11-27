@@ -1,4 +1,4 @@
-#import "@preview/shiroa:0.3.0": *
+#import "@preview/shiroa:0.3.1": *
 
 #import "/contrib/typst/gh-ebook.typ"
 #let ebook = gh-ebook
