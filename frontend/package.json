@@ -1,6 +1,6 @@
 {
   "name": "shiroa",
-  "version": "0.3.1-rc3",
+  "version": "0.3.1-rc4",
   "description": "Typst Book.",
   "main": "dist/main.js",
   "repository": "https://github.com/Myriad-Dreamin/shiroa",

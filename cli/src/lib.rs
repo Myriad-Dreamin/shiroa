@@ -19,7 +19,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use crate::version::VersionFormat;
 
 #[derive(Debug, Parser)]
-#[clap(name = "shiroa", version = "0.3.1-rc3")]
+#[clap(name = "shiroa", version = "0.3.1-rc4")]
 pub struct Opts {
     /// Print Version
     #[arg(short = 'V', long, group = "version-dump")]
