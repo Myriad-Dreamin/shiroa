@@ -163,7 +163,7 @@ rollup@^4.34.9, rollup@^4.44.1:
     fsevents "~2.3.2"
 
 "shiroa@file:/home/kamiyoru/work/rust/shiroa/frontend":
-  version "0.3.1-rc3"
+  version "0.3.1-rc4"
   resolved "file:frontend"
   dependencies:
     "@myriaddreamin/typst-ts-renderer" "^0.7.0-rc1"
