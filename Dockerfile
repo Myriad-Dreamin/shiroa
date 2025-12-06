@@ -1,6 +1,6 @@
 
 ARG NODE_VERSION=22
-ARG RUST_VERSION=1.85.0
+ARG RUST_VERSION=1.89.0
 
 FROM node:${NODE_VERSION}-alpine AS build-yarn
 RUN apk add --no-cache cpio findutils git
