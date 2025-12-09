@@ -61,10 +61,10 @@ shiroa build --path-to-root /shiroa/ book-project1
 == #cli-flag;mode
 
 The `--mode` option allows you to specify the mode of rendering typst document. The default mode is `normal`.
-- (Default) `dynamic-paged`: dynamically render as paged document.
+- (Default) `dyn-paged`: dynamically render as paged document.
 - (Experimental) `static-html`: statically render the whole document, the embedded
   frames are not resizable.
-- (Todo) `static-html-static-paged`: statically render html parts as much as
+- (Todo) `static-html-dyn-paged`: statically render html parts as much as
   possible, and leave frames rendered dynamically.
 
 The dynamically rendering means that some elements will be rendered by a wasm renderer in the browser.
