@@ -1,10 +1,13 @@
-use std::borrow::Cow;
-use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
-use std::{fs, io};
+pub mod interner;
+
+use std::{
+    borrow::Cow,
+    fs, io,
+    path::{Path, PathBuf},
+    sync::LazyLock,
+};
 
 use reflexo_typst::error::prelude::*;
-use reflexo_typst::TypstSystemWorld;
 use regex::Regex;
 use tokio::runtime::Builder;
 
@@ -117,43 +120,4 @@ pub fn copy_dir_embedded(src: &include_dir::Dir, dst: &Path) -> Result<()> {
         write_file(t, entry.contents())?;
     }
     Ok(())
-}
-
-fn release_packages_inner(world: &mut TypstSystemWorld, pkg: include_dir::Dir, no_override: bool) {
-    fn get_string(v: &toml::Value) -> &str {
-        match v {
-            toml::Value::String(table) => table,
-            _ => unreachable!(),
-        }
-    }
-
-    let manifest = pkg.get_file("typst.toml").unwrap().contents_utf8().unwrap();
-    let manifest: toml::Table = toml::from_str(manifest).unwrap();
-
-    let pkg_info = match manifest.get("package").unwrap() {
-        toml::Value::Table(table) => table,
-        _ => unreachable!(),
-    };
-
-    let name = get_string(pkg_info.get("name").unwrap());
-    let version = get_string(pkg_info.get("version").unwrap());
-
-    let pkg_dirname = format!("{name}/{version}");
-
-    let local_path = world.registry.local_path().unwrap();
-    let pkg_link_target = make_absolute(&local_path.join("preview").join(&pkg_dirname));
-
-    if pkg_link_target.exists() {
-        eprintln!("package {pkg_dirname} already exists");
-        if no_override {
-            return;
-        }
-    }
-
-    std::fs::create_dir_all(pkg_link_target.parent().unwrap()).unwrap();
-    copy_dir_embedded(&pkg, &pkg_link_target).unwrap();
-}
-
-pub fn release_packages(world: &mut TypstSystemWorld, pkg: include_dir::Dir) {
-    release_packages_inner(world, pkg, false);
 }

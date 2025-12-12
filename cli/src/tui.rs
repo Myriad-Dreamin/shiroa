@@ -3,8 +3,10 @@
 #![allow(unused)]
 
 use core::fmt;
-use std::io::{self, IsTerminal, Write};
-use std::sync::OnceLock;
+use std::{
+    io::{self, IsTerminal, Write},
+    sync::OnceLock,
+};
 
 use termcolor::{Color, ColorChoice, ColorSpec, WriteColor};
 

@@ -7,15 +7,6 @@ use std::{
     sync::{Arc, OnceLock},
 };
 
-use crate::{
-    error::prelude::*,
-    meta::BookMetaElem,
-    outline::{OutlineItem, SpanInternerImpl},
-    project::ChapterArtifact,
-    render::{ChapterItem, SearchCtx},
-    utils::{create_dirs, make_absolute, make_absolute_from, write_file, UnwrapOrExit},
-    CompileArgs, RenderMode,
-};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use reflexo_typst::{
     config::CompileOpts,
@@ -29,12 +20,11 @@ use reflexo_typst::{
         IntoTypst,
     },
     world::{diag::print_diagnostics_to, EntryOpts},
-    CompilationTask, CompileSnapshot, DiagnosticFormat, DiagnosticHandler, DynSvgModuleExport,
-    EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash, SourceWorld,
-    SystemCompilerFeat, TakeAs, TaskInputs, TypstAbs, TypstDict, TypstDocument, TypstHtmlDocument,
-    TypstPagedDocument, TypstSystemWorld,
+    CompilationTask, CompileReport, CompileSnapshot, DiagnosticFormat, DiagnosticHandler,
+    DynSvgModuleExport, EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash,
+    SourceWorld, SystemCompilerFeat, TakeAs, TaskInputs, TypstAbs, TypstDict, TypstDocument,
+    TypstHtmlDocument, TypstPagedDocument, TypstSystemUniverse, TypstSystemWorld,
 };
-use reflexo_typst::{CompileReport, TypstSystemUniverse};
 use reflexo_vec2svg::{
     ir::{SizedRawHtmlItem, ToItemMap, VecItem},
     MultiVecDocument,
@@ -45,6 +35,22 @@ use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
     foundations::{IntoValue, Regex},
+};
+
+use crate::{
+    args::{CompileArgs, RenderMode},
+    book::{
+        meta::{BookMetaContent, BookMetaElem},
+        outline::{outline, Outline, OutlineItem},
+        ChapterItem,
+    },
+    error::prelude::*,
+    project::ChapterArtifact,
+    render::SearchCtx,
+    utils::{
+        create_dirs, interner::SpanInternerImpl, make_absolute, make_absolute_from, write_file,
+        UnwrapOrExit,
+    },
 };
 
 const THEME_LIST: [&str; 5] = ["light", "rust", "coal", "navy", "ayu"];
@@ -631,7 +637,7 @@ impl TypstRenderTask {
 
                 OutlineItemRef {
                     item: BookMetaElem::Chapter {
-                        title: crate::meta::BookMetaContent::PlainText {
+                        title: BookMetaContent::PlainText {
                             content: item.title.clone(),
                         },
                         link: None,
@@ -658,8 +664,7 @@ impl TypstRenderTask {
                 let outline = LayoutRegionNode::customs(&t.0)
                     .find(|(k, _)| k.as_ref() == "outline")
                     .unwrap();
-                let outline =
-                    serde_json::from_slice::<crate::outline::Outline>(outline.1.as_ref()).unwrap();
+                let outline = serde_json::from_slice::<Outline>(outline.1.as_ref()).unwrap();
                 let items = builder.collect_items(&outline.items);
                 builder
                     .first
@@ -706,7 +711,7 @@ impl TypstRenderTask {
                         prefix.finalize(&origin),
                     );
                     inferred.push(BookMetaElem::Chapter {
-                        title: crate::meta::BookMetaContent::PlainText {
+                        title: BookMetaContent::PlainText {
                             content: "Preface".into(),
                         },
                         link: Some("pre.typ".to_owned()),
@@ -849,7 +854,7 @@ impl TypstRenderTask {
                 if settings.with_outline {
                     let mut spans = SpanInternerImpl::default();
 
-                    let outline = crate::outline::outline(&mut spans, &doc);
+                    let outline = outline(&mut spans, &doc);
                     let outline = serde_json::to_vec(&outline).unwrap_or_exit();
                     let outline_meta = ("outline".into(), outline.into());
                     custom.push(outline_meta);

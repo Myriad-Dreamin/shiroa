@@ -1,15 +1,15 @@
-use std::convert::Infallible;
-use std::net::SocketAddr;
+use std::{convert::Infallible, net::SocketAddr};
 
-use crate::project::{ServeEvent, WatchSignal};
-use crate::tui_hint;
-use crate::{project::Project, ServeArgs};
-use reflexo_typst::error::prelude::*;
-use reflexo_typst::ImmutStr;
+use reflexo_typst::{error::prelude::*, ImmutStr};
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
-use warp::Filter;
-use warp::Reply;
+use warp::{Filter, Reply};
+
+use crate::{
+    args::ServeArgs,
+    project::{Project, ServeEvent, WatchSignal},
+    tui_hint,
+};
 
 const LIVE_RELOAD_SERVER_EVENT: &str = r#"
 <script>
