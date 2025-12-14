@@ -1,31 +1,24 @@
+mod compile;
+mod meta;
+mod release;
+mod watch;
+
 use core::fmt;
-use std::{
-    collections::BTreeMap,
-    net::SocketAddr,
-    path::{Path, PathBuf},
-    sync::Mutex,
-};
+use std::path::PathBuf;
 
-use ::typst::ecow::{eco_format, EcoString};
-use include_dir::include_dir;
-use log::warn;
-use reflexo_typst::{
-    path::unix_slash,
-    static_html,
-    vfs::{notify::NotifyMessage, FilesystemEvent, FsProvider},
-    watch_deps, CompilerExt, ImmutStr, TypstSystemWorld, WorldDeps,
-};
+use ::typst::ecow::EcoString;
 use serde::{Deserialize, Serialize};
-use tokio::sync::{broadcast, mpsc};
-use typst::foundations::Content;
 
+pub(crate) use self::watch::{ServeEvent, WatchSignal};
 use crate::{
+    args::{CompileArgs, MetaSource, RenderMode},
+    book::{
+        meta::{BookMeta, BuildMeta},
+        ChapterItem,
+    },
     error::prelude::*,
-    meta::{BookMeta, BookMetaContent, BookMetaElem, BuildMeta},
-    render::{ChapterItem, HtmlRenderContext, SearchCtx, SearchRenderer, TypstRenderer},
-    tui, tui_error, tui_hint, tui_info,
-    utils::{create_dirs, make_absolute, release_packages, write_file, UnwrapOrExit},
-    CompileArgs, MetaSource, RenderMode,
+    render::{SearchRenderer, TypstRenderer},
+    utils::{create_dirs, write_file},
 };
 
 /// Typst content kind embedded in metadata nodes
@@ -66,347 +59,34 @@ pub struct Project {
 
     pub dest_dir: PathBuf,
     pub args: CompileArgs,
-    pub path_to_root: String,
     pub meta_source: MetaSource,
 }
 
 impl Project {
     pub fn new(mut args: CompileArgs) -> Result<Self> {
-        let path_to_root = args.path_to_root.clone();
+        args.canonicalize()?;
 
-        if !path_to_root.starts_with('/') {
-            args.path_to_root = "/".to_owned() + &args.path_to_root;
-        }
-
-        if !path_to_root.ends_with('/') {
-            args.path_to_root.push('/');
-        }
-
-        let meta_source = args.meta_source.clone();
-        let render_mode = args.mode.clone();
-
-        make_absolute(Path::new(&args.dir))
-            .to_str()
-            .unwrap()
-            .clone_into(&mut args.dir);
-
-        let dir = Path::new(&args.dir);
-        if dir.is_file() {
-            if meta_source == MetaSource::Strict {
-                return Err(error_once!("project dir is a file", dir: dir.display()));
-            }
-            let w = dir.parent().unwrap().to_str().unwrap().to_owned();
-            args.dir = w;
-        }
-
-        if args.workspace.is_empty() {
-            args.workspace.clone_from(&args.dir);
-        }
-
-        let raw_args = args.clone();
-        let tr = TypstRenderer::new(args);
+        let meta_source = args.meta_source;
+        let render_mode = args.mode;
+        let tr = TypstRenderer::new(args.clone());
 
         let mut proj = Self {
             dest_dir: tr.ctx.dest_dir.clone(),
-            args: raw_args,
 
-            tr,
             render_mode,
+            meta_source,
+            tr,
+            args,
 
             book_meta: Default::default(),
             build_meta: None,
             chapters: vec![],
-            path_to_root,
-            meta_source,
         };
 
-        release_packages(
-            &mut proj.tr.universe_mut().snapshot(),
-            include_dir!("$CARGO_MANIFEST_DIR/../packages/shiroa"),
-        );
-        release_packages(
-            &mut proj.tr.universe_mut().snapshot(),
-            include_dir!("$CARGO_MANIFEST_DIR/../themes/starlight"),
-        );
-        release_packages(
-            &mut proj.tr.universe_mut().snapshot(),
-            include_dir!("$CARGO_MANIFEST_DIR/../themes/mdbook"),
-        );
+        release::release_builtin_packages(&mut proj.tr.universe_mut().snapshot());
 
         proj.build_meta()?;
         Ok(proj)
-    }
-
-    fn build_meta(&mut self) -> Result<()> {
-        let args = &self.args;
-        let meta_source = args.meta_source.clone();
-        let mut final_dest_dir = args.dest_dir.clone();
-
-        let dir = Path::new(&args.dir);
-        let mut entry_file = None;
-        if dir.is_file() {
-            if meta_source == MetaSource::Strict {
-                return Err(error_once!("project dir is a file", dir: dir.display()));
-            }
-            entry_file = Some(dir.to_owned());
-        }
-
-        if matches!(self.meta_source, MetaSource::Strict) {
-            assert!(entry_file.is_none());
-            self.compile_meta()?;
-        }
-
-        if final_dest_dir.is_empty() {
-            if let Some(build_meta) = self.build_meta.as_ref() {
-                final_dest_dir = build_meta.dest_dir.clone();
-            }
-        }
-        if final_dest_dir.is_empty() {
-            "dist".clone_into(&mut final_dest_dir);
-        }
-
-        self.tr.ctx.fix_dest_dir(Path::new(&final_dest_dir));
-        self.dest_dir.clone_from(&self.tr.ctx.dest_dir);
-
-        if matches!(self.meta_source, MetaSource::Outline) {
-            assert!(entry_file.is_some());
-            self.infer_meta_by_outline(entry_file.unwrap())?;
-        }
-
-        Ok(())
-    }
-
-    fn compile_meta(&mut self) -> Result<()> {
-        let (task, doc) = self.tr.compile_book(Path::new("book.typ"))?;
-
-        let g = &task.graph;
-        let query = |item: &str| {
-            let res = g.query(item.to_string(), &doc);
-            task.report(res).context("cannot retrieve metadata item(s)")
-        };
-
-        {
-            #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-            pub enum InternalPackageMeta {
-                /// The version of the package used by users
-                #[serde(rename = "package")]
-                Package { version: String },
-            }
-
-            let InternalPackageMeta::Package { version } = self.query_meta("<shiroa-internal-package-meta>", query)?
-                .context("No package meta. are you using old book package?, please import @preview/shiroa:0.3.1; or do you forget the show rule `#show: book`?")?;
-
-            if version != "0.3.1" {
-                return Err(error_once!(
-                    "outdated book package, please import @preview/shiroa:0.3.1", importing_version: version,
-                ));
-            }
-        }
-
-        self.book_meta = self
-            .query_meta::<BookMeta>("<shiroa-book-meta>", query)?
-            .context("no book meta in book.typ")?;
-        if let Some(build_meta) = self.query_meta::<BuildMeta>("<shiroa-build-meta>", query)? {
-            self.build_meta = Some(build_meta);
-        }
-
-        self.tr.ctx = task.ctx;
-        Ok(())
-    }
-
-    fn query_meta<T: for<'a> serde::Deserialize<'a>>(
-        &mut self,
-        item: &str,
-        f: impl FnOnce(&str) -> Result<Vec<Content>>,
-    ) -> Result<Option<T>> {
-        self.query_meta_::<T>(item, f)
-            .with_context("while querying metadata", || {
-                Some(Box::new([("label", item.to_string())]))
-            })
-    }
-
-    fn query_meta_<T: for<'a> serde::Deserialize<'a>>(
-        &mut self,
-        item: &str,
-        f: impl FnOnce(&str) -> Result<Vec<Content>>,
-    ) -> Result<Option<T>> {
-        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-        struct QueryItem<T> {
-            pub value: T,
-        }
-
-        let res = serde_json::to_value(&f(item)?).context("cannot convert metadata item(s)")?;
-        let res: Vec<QueryItem<T>> =
-            serde_json::from_value(res).context("cannot convert metadata item(s)")?;
-
-        if res.len() > 1 {
-            bail!("multiple metadata items in book.typ");
-        }
-
-        Ok(res.into_iter().next().map(|v| v.value))
-    }
-
-    fn infer_meta_by_outline(&mut self, entry: PathBuf) -> Result<()> {
-        // println!("entry = {:?}, root = {:?}", entry, self.tr.root_dir);
-        let entry = entry.strip_prefix(&self.tr.ctx.root_dir).unwrap_or_exit();
-        let (task, doc) = self.tr.compile_book(entry)?;
-
-        // let outline = crate::outline::outline(&doc);
-        // println!("outline: {:#?}", outline);
-
-        let chapters = self.tr.compile_pages_by_outline(entry)?;
-        self.chapters = self.generate_chapters(&chapters);
-
-        let info = &doc.info();
-        let title = info.title.as_ref().map(|t| t.as_str());
-        let authors = info.author.iter().map(|a| a.as_str().to_owned()).collect();
-
-        self.book_meta = BookMeta {
-            title: title.unwrap_or("Typst Document").to_owned(),
-            authors,
-            language: "en".to_owned(),
-            summary: chapters,
-            ..Default::default()
-        };
-
-        self.tr.ctx = task.ctx;
-        Ok(())
-    }
-
-    pub(crate) async fn watch(
-        &mut self,
-        // active_set: Arc<Mutex<HashMap<ImmutStr, usize>>>,
-        mut hb_rx: mpsc::UnboundedReceiver<ServeEvent>,
-        tx: broadcast::Sender<WatchSignal>,
-        addr: Option<SocketAddr>,
-    ) {
-        let _ = self.build();
-        let (dep_tx, dep_rx) = mpsc::unbounded_channel();
-        let (fs_tx, mut fs_rx) = mpsc::unbounded_channel();
-        tokio::spawn(watch_deps(dep_rx, move |event| {
-            fs_tx.send(event).unwrap();
-        }));
-
-        let need_compile = self.need_compile();
-        let finish = |world: &mut TypstSystemWorld| {
-            // Notify the new file dependencies.
-            let mut deps = vec![];
-            world.iter_dependencies(&mut |dep| {
-                if let Ok(x) = world.file_path(dep).and_then(|e| e.to_err()) {
-                    deps.push(x.into())
-                }
-            });
-
-            tui_info!("Watching {} files for changes...", deps.len());
-            let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
-
-            if need_compile {
-                comemo::evict(10);
-                world.evict_source_cache(30);
-                world.evict_vfs(60);
-            }
-
-            if let Some(addr) = &addr {
-                tui_hint!("Server started at http://{addr}");
-            }
-        };
-
-        let mut snap = self.tr.snapshot();
-        let mut world = snap.world.clone();
-        // first report.
-        finish(&mut world);
-
-        let mut active_files: BTreeMap<ImmutStr, usize> = BTreeMap::new();
-        loop {
-            enum WatchEvent {
-                Fs(FilesystemEvent),
-                Serve(ServeEvent),
-            }
-
-            let event = tokio::select! {
-                event = fs_rx.recv() => {
-                    match event {
-                        Some(e) => WatchEvent::Fs(e),
-                        None => break,
-                    }
-                }
-               Some(c) = hb_rx.recv() => WatchEvent::Serve(c),
-            };
-
-            // todo: reset_snapshot looks not good
-
-            let is_heartbeat = matches!(event, WatchEvent::Serve(ServeEvent::HoldPath(..)));
-            match event {
-                WatchEvent::Fs(event) => {
-                    self.tr.reset_snapshot();
-                    self.tr.universe_mut().increment_revision(|verse| {
-                        verse.vfs().notify_fs_event(event);
-                    });
-
-                    let _ = tui::clear();
-                    let _ = self.build_meta();
-
-                    snap = self.tr.snapshot();
-                    world = snap.world.clone();
-                }
-                WatchEvent::Serve(ServeEvent::HoldPath(path, inc)) => {
-                    let path = if path.as_ref() == "/" || path.is_empty() {
-                        if let Some(path) = self.chapters.first().and_then(|f| f.path.clone()) {
-                            path
-                        } else {
-                            continue;
-                        }
-                    } else if path.ends_with(".html") {
-                        let path = path.trim_start_matches('/');
-                        let typ_path = PathBuf::from(path);
-                        unix_slash(&typ_path.with_extension("typ")).into()
-                    } else {
-                        path
-                    };
-
-                    let active_files = &mut active_files;
-                    let mut changed = false;
-                    if inc {
-                        *active_files.entry(path).or_insert_with(|| {
-                            changed = true;
-                            0
-                        }) += 1;
-                    } else {
-                        let count = active_files.entry(path);
-                        // erase if the count is 1, otherwise decrement
-                        match count {
-                            std::collections::btree_map::Entry::Occupied(mut e) => {
-                                if *e.get() > 1 {
-                                    *e.get_mut() -= 1;
-                                } else {
-                                    changed = true;
-                                    e.remove();
-                                }
-                            }
-                            std::collections::btree_map::Entry::Vacant(_) => {}
-                        }
-                    }
-
-                    if !changed {
-                        // No changes, skip recompilation
-                        continue;
-                    }
-
-                    let _ = tui::clear();
-                    tui_info!("Recompiling changed chapters: {active_files:?}");
-
-                    let _ = self.build_meta();
-                }
-            }
-
-            // todo: blocking?
-            let _ = self.compile_once(&active_files, SearchRenderer::new());
-
-            if !is_heartbeat {
-                let _ = tx.send(WatchSignal::Reload);
-            }
-            finish(&mut world);
-        }
     }
 
     pub fn build(&mut self) -> Result<()> {
@@ -451,128 +131,6 @@ impl Project {
         Ok(())
     }
 
-    fn compile_once(
-        &mut self,
-        ac: &BTreeMap<ImmutStr, usize>,
-        mut sr: SearchRenderer,
-    ) -> Result<()> {
-        self.prepare_chapters();
-
-        let serach_ctx = SearchCtx {
-            config: &sr.config,
-            items: Mutex::new(vec![]),
-        };
-
-        self.tr.render_chapters(
-            HtmlRenderContext {
-                search: &serach_ctx,
-                dest_dir: &self.dest_dir,
-            },
-            &self.chapters, // todo: only render changed
-            ac,
-            |path| self.compile_chapter(path),
-        )?;
-
-        sr.build(&serach_ctx.items.into_inner().unwrap())?;
-
-        if sr.config.copy_js {
-            sr.render_search_index(&self.dest_dir)?;
-        }
-
-        Ok(())
-    }
-
-    fn prepare_chapters(&mut self) {
-        match self.meta_source {
-            MetaSource::Strict => self.chapters = self.generate_chapters(&self.book_meta.summary),
-            MetaSource::Outline => {}
-        }
-    }
-
-    fn generate_chapters(&self, meta: &[BookMetaElem]) -> Vec<ChapterItem> {
-        let mut chapters = vec![];
-
-        for item in meta.iter() {
-            self.collect_chatpers(item, &mut chapters);
-        }
-
-        chapters
-    }
-
-    fn collect_chatpers(&self, elem: &BookMetaElem, chapters: &mut Vec<ChapterItem>) {
-        match elem {
-            BookMetaElem::Separator {} | BookMetaElem::Part { .. } => {}
-            BookMetaElem::Chapter {
-                title, link, sub, ..
-            } => {
-                let title = self.evaluate_content(title);
-
-                chapters.push(ChapterItem {
-                    title,
-                    path: link.as_deref().map(|p| p.into()),
-                });
-
-                for child in sub.iter() {
-                    self.collect_chatpers(child, chapters);
-                }
-            }
-        }
-    }
-
-    fn evaluate_content(&self, title: &BookMetaContent) -> EcoString {
-        match title {
-            BookMetaContent::PlainText { content } => content.into(),
-            BookMetaContent::Raw { content } => {
-                if let Ok(c) = serde_json::from_value::<JsonContent>(content.clone()) {
-                    return eco_format!("{c}");
-                }
-
-                warn!("unevaluated {content:#?}");
-                "unevaluated title".into()
-            }
-        }
-    }
-
-    fn compile_chapter(&self, path: &str) -> Result<ChapterArtifact> {
-        tui_info!(h "Compiling", "{path}");
-        let instant = std::time::Instant::now();
-        let res = self.compile_chapter_(path);
-        let elapsed = instant.elapsed();
-        if let Err(e) = &res {
-            tui_error!("{path}: compile error: {e}");
-        } else {
-            tui_info!(h "Finished", "{path} in {elapsed:.3?}");
-        }
-
-        res
-    }
-
-    fn compile_chapter_(&self, path: &str) -> Result<ChapterArtifact> {
-        // todo: description for single document
-        let task_doc = if self.need_compile() {
-            Some(self.tr.compile_page(Path::new(path))?)
-        } else {
-            None
-        };
-
-        let (task, html_doc) = task_doc.context("no task document")?;
-
-        let res = task
-            .report(static_html(&html_doc))
-            .expect("failed to render static html");
-
-        let content = task.report(res.html()).unwrap_or_default().to_owned();
-
-        Ok(ChapterArtifact {
-            content,
-            description: res.description().cloned(),
-        })
-    }
-
-    fn need_compile(&self) -> bool {
-        matches!(self.meta_source, MetaSource::Strict)
-    }
-
     // pub fn auto_order_section(&mut self) {
     //     fn dfs_elem(elem: &mut BookMetaElem, order: &mut Vec<u64>) {
     //         match elem {
@@ -603,14 +161,4 @@ impl Project {
 pub struct ChapterArtifact {
     pub description: Option<EcoString>,
     pub content: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum ServeEvent {
-    HoldPath(ImmutStr, bool),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum WatchSignal {
-    Reload,
 }

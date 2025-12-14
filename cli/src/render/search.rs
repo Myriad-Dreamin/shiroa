@@ -5,8 +5,10 @@ use reflexo_typst::{error::prelude::*, path::unix_slash};
 use serde::Serialize;
 use typst::ecow::EcoString;
 
-use crate::meta::Search;
-use crate::utils::{collapse_whitespace, write_file};
+use crate::{
+    book::meta::Search,
+    utils::{collapse_whitespace, write_file},
+};
 
 const MAX_WORD_LENGTH_TO_INDEX: usize = 80;
 
@@ -116,8 +118,9 @@ impl SearchCtx<'_> {
 }
 
 fn write_to_json(index: &Index, search_config: &Search, doc_urls: &Vec<String>) -> Result<String> {
-    use elasticlunr::config::{SearchBool, SearchOptions, SearchOptionsField};
     use std::collections::BTreeMap;
+
+    use elasticlunr::config::{SearchBool, SearchOptions, SearchOptionsField};
 
     #[derive(Serialize)]
     struct ResultsOptions {

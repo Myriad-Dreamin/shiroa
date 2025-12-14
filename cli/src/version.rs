@@ -1,7 +1,11 @@
 use std::{fmt::Display, process::exit};
 
-use crate::build_info::VERSION;
 use clap::ValueEnum;
+
+pub mod build_info {
+    /// The version of the shiroa crate.
+    pub static VERSION: &str = env!("CARGO_PKG_VERSION");
+}
 
 /// Available version formats for `$program -VV`
 #[derive(ValueEnum, Debug, Clone)]
@@ -46,7 +50,7 @@ impl VersionInfo {
         Self {
             // todo: global app name
             name: "shiroa",
-            version: VERSION,
+            version: build_info::VERSION,
             features: env!("VERGEN_CARGO_FEATURES").split(',').collect::<Vec<_>>(),
 
             program_semver: env!("VERGEN_GIT_DESCRIBE"),
