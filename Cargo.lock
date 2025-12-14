@@ -3,15 +3,6 @@
 version = 4
 
 [[package]]
-name = "addr2line"
-version = "0.24.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfbe277e56a376000877090da837660b4427aad530e3028d44e0bffe4f89a1c1"
-dependencies = [
- "gimli",
-]
-
-[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -202,21 +193,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b7e4c2464d97fe331d41de9d5db0def0a96f4d823b8b32a2efd503578988973"
 
 [[package]]
-name = "backtrace"
-version = "0.3.75"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6806a6321ec58106fea15becdad98371e28d92ccbc7c8f1b3b6dd724fe8f1002"
-dependencies = [
- "addr2line",
- "cfg-if",
- "libc",
- "miniz_oxide",
- "object",
- "rustc-demangle",
- "windows-targets 0.52.6",
-]
-
-[[package]]
 name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -236,7 +212,7 @@ checksum = "53d0c374feba1b9a59042a7c1cf00ce7c34b977b9134fe7c42b08e5183729f66"
 dependencies = [
  "paste",
  "roman-numerals-rs",
- "strum 0.27.2",
+ "strum",
  "unic-langid",
  "unicode-normalization",
  "unscanny",
@@ -476,7 +452,7 @@ dependencies = [
  "iana-time-zone",
  "num-traits",
  "serde",
- "windows-link",
+ "windows-link 0.1.3",
 ]
 
 [[package]]
@@ -936,9 +912,9 @@ checksum = "1c7a8fb8a9fbf66c1f703fe16184d10ca0ee9d23be5b4436400408ba54a95005"
 
 [[package]]
 name = "ecow"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b92b481eb5d59fd8e80e92ff11d057d1ca8d144b2cd8c66cc8d5bd177a3c0dc5"
+checksum = "78e4f79b296fbaab6ce2e22d52cb4c7f010fe0ebe7a32e34fa25885fd797bd02"
 dependencies = [
  "serde",
 ]
@@ -1328,12 +1304,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gimli"
-version = "0.31.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
-
-[[package]]
 name = "glidesort"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1351,7 +1321,7 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "http 0.2.12",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "slab",
  "tokio",
  "tokio-util",
@@ -1385,9 +1355,9 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "hashbrown"
-version = "0.15.4"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5971ac85611da7067dbfcabef3c70ebb5606018acd9e2a3903a0da507521e0d5"
+checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
 
 [[package]]
 name = "hayagriva"
@@ -1398,7 +1368,7 @@ dependencies = [
  "biblatex",
  "ciborium",
  "citationberg",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "paste",
  "roman-numerals-rs",
  "serde",
@@ -1613,7 +1583,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -1674,7 +1644,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -1945,13 +1915,14 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.10.0"
+version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe4cd85333e22411419a0bcae1297d25e58c9443848b11dc6a86fefe8c78a661"
+checksum = "0ad4bb2b565bca0645f4d68c5c9af97fba094e9791da685bf83cb5f3ce74acf2"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.4",
+ "hashbrown 0.16.1",
  "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -2403,15 +2374,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "object"
-version = "0.36.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62948e14d923ea95ea2c7c86c71013138b66525b86bdc08d2dcc262bdb497b87"
-dependencies = [
- "memchr",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2609,7 +2571,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d77244ce2d584cd84f6a15f86195b8c9b2a0dfbfd817c09e0464244091a58ed"
 dependencies = [
  "base64 0.22.1",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "quick-xml 0.37.5",
  "serde",
  "time",
@@ -2767,7 +2729,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2",
+ "socket2 0.5.10",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -2804,7 +2766,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2",
+ "socket2 0.5.10",
  "tracing",
  "windows-sys 0.59.0",
 ]
@@ -2891,9 +2853,9 @@ dependencies = [
 
 [[package]]
 name = "rayon"
-version = "1.10.0"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
+checksum = "368f01d005bf8fd9b1206fb6fa653e6c4a81ceb1466406b81792d87c5677a58f"
 dependencies = [
  "either",
  "rayon-core",
@@ -2901,9 +2863,9 @@ dependencies = [
 
 [[package]]
 name = "rayon-core"
-version = "1.12.1"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
+checksum = "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
@@ -2962,8 +2924,7 @@ dependencies = [
 [[package]]
 name = "reflexo"
 version = "0.7.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "162ca3cdf58cd3ed6aa2cdbd9042df22d93848594eb729503da34bab55401637"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=4ac1529f9452c16ee7ee4bb56ead40bfba1066b9#4ac1529f9452c16ee7ee4bb56ead40bfba1066b9"
 dependencies = [
  "base64 0.22.1",
  "bitvec",
@@ -2989,15 +2950,14 @@ dependencies = [
 [[package]]
 name = "reflexo-typst"
 version = "0.7.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cd5adb0376231ebe8f759bcec940a82eaa5790d63e4bf21bd34c3d017a72833"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=4ac1529f9452c16ee7ee4bb56ead40bfba1066b9#4ac1529f9452c16ee7ee4bb56ead40bfba1066b9"
 dependencies = [
  "codespan-reporting",
  "comemo 0.5.0",
  "ecow",
  "futures",
  "fxhash",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "log",
  "nohash-hasher",
  "parking_lot",
@@ -3022,8 +2982,7 @@ dependencies = [
 [[package]]
 name = "reflexo-typst2vec"
 version = "0.7.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f54fa9f06eb87731714bb853406889e776dcf4bea2b986a97a2520c140d49449"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=4ac1529f9452c16ee7ee4bb56ead40bfba1066b9#4ac1529f9452c16ee7ee4bb56ead40bfba1066b9"
 dependencies = [
  "bitvec",
  "comemo 0.5.0",
@@ -3051,8 +3010,7 @@ dependencies = [
 [[package]]
 name = "reflexo-vec2svg"
 version = "0.7.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68eaf03d725daab95fef696642984735491cb4e2631047a0d480fd791896a49e"
+source = "git+https://github.com/Myriad-Dreamin/typst.ts?rev=4ac1529f9452c16ee7ee4bb56ead40bfba1066b9#4ac1529f9452c16ee7ee4bb56ead40bfba1066b9"
 dependencies = [
  "base64 0.22.1",
  "comemo 0.5.0",
@@ -3242,12 +3200,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustc-demangle"
-version = "0.1.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "989e6739f80c4ad5b13e0fd7fe89531180375b18520cc8c82080e4dc4035b84f"
-
-[[package]]
 name = "rustc-hash"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3390,18 +3342,28 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.219"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
+checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
+dependencies = [
+ "serde_core",
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_core"
+version = "1.0.228"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.219"
+version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
+checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3462,7 +3424,7 @@ dependencies = [
  "chrono",
  "hex",
  "indexmap 1.9.3",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "schemars",
  "serde",
  "serde_derive",
@@ -3489,7 +3451,7 @@ version = "0.9.34+deprecated"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
 dependencies = [
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "itoa",
  "ryu",
  "serde",
@@ -3532,7 +3494,7 @@ dependencies = [
  "elasticlunr-rs",
  "env_logger",
  "include_dir",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "log",
  "pathdiff",
  "rayon",
@@ -3645,6 +3607,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "socket2"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17129e116933cf371d018bb80ae557e889637989d8638274fb25622827b03881"
+dependencies = [
+ "libc",
+ "windows-sys 0.60.2",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3686,33 +3658,11 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "strum"
-version = "0.26.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
-dependencies = [
- "strum_macros 0.26.4",
-]
-
-[[package]]
-name = "strum"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
 dependencies = [
- "strum_macros 0.27.2",
-]
-
-[[package]]
-name = "strum_macros"
-version = "0.26.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "rustversion",
- "syn 2.0.104",
+ "strum_macros",
 ]
 
 [[package]]
@@ -3974,9 +3924,8 @@ dependencies = [
 
 [[package]]
 name = "tinymist-derive"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e0a0408e8cb4fa987cf8faecfc7312a1145693f2929d8a06b63c517cb0a27e0"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "quote",
  "syn 2.0.104",
@@ -3984,9 +3933,8 @@ dependencies = [
 
 [[package]]
 name = "tinymist-l10n"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03fe1fb6cbd4e3dc36223030cbdd7de37b8a95478551cb09f767f93a7ef244ca"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "anyhow",
  "clap",
@@ -3999,9 +3947,8 @@ dependencies = [
 
 [[package]]
 name = "tinymist-package"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "beeff43a41d8368f2dde5e5f729f25ddcdc259043d7426f58fb41fc57c29f806"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "base64 0.22.1",
  "comemo 0.5.0",
@@ -4023,9 +3970,8 @@ dependencies = [
 
 [[package]]
 name = "tinymist-project"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bd1651c5b43ef96880ebd38efbe29d8299c3f8ed3c770e755b20e9736ad16d2"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "anyhow",
  "clap",
@@ -4053,9 +3999,8 @@ dependencies = [
 
 [[package]]
 name = "tinymist-std"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae726b8f1e2e1ed1c0b98fb7805e0b2383d2add23f2f8ea7c5411f366e8c991c"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -4084,14 +4029,13 @@ dependencies = [
  "typst",
  "typst-html",
  "typst-shim",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
 name = "tinymist-task"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c26b14e351d4915c1108b6e972b1b5c9588130e77cb473623c124e50565845d"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "anyhow",
  "clap",
@@ -4124,13 +4068,12 @@ dependencies = [
 
 [[package]]
 name = "tinymist-vfs"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "310b26ce48073259327f9e18bc7776b2db2ed73d1368c8d88062b7b7f5fd5163"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "comemo 0.5.0",
  "ecow",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "log",
  "nohash-hasher",
  "parking_lot",
@@ -4141,9 +4084,8 @@ dependencies = [
 
 [[package]]
 name = "tinymist-world"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4905a6d21164c9c9e424e1c38deec6c88d4003ab9707f87bfaef5091157f8b92"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4165,7 +4107,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha2",
- "strum 0.26.3",
+ "strum",
  "tar",
  "tinymist-package",
  "tinymist-std",
@@ -4213,27 +4155,26 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.45.1"
+version = "1.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75ef51a33ef1da925cea3e4eb122833cb377c61439ca401b770f54902b806779"
+checksum = "ff360e02eab121e0bc37a2d3b4d4dc622e6eda3a8e5253d5435ecf5bd4c68408"
 dependencies = [
- "backtrace",
  "bytes",
  "libc",
  "mio 1.0.4",
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
- "socket2",
+ "socket2 0.6.1",
  "tokio-macros",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
 name = "tokio-macros"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e06d43f1345a3bcd39f6a56dbb7dcab2ba47e68e8ac134855e7e2bdbaf8cab8"
+checksum = "af407857209536a95c8e56f8231ef2c2e2aff839b22e07a1ffcbc617e9db9fa5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4302,7 +4243,7 @@ version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "serde",
  "serde_spanned",
  "toml_datetime",
@@ -4476,7 +4417,7 @@ source = "git+https://github.com/Myriad-Dreamin/typst.git?tag=typst.ts%2Fv0.7.0-
 dependencies = [
  "comemo 0.5.0",
  "ecow",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "rustc-hash",
  "stacker",
  "toml",
@@ -4566,7 +4507,7 @@ dependencies = [
  "icu_provider",
  "icu_provider_blob",
  "image",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "kamadak-exif",
  "kurbo 0.12.0",
  "lipsum",
@@ -4629,7 +4570,7 @@ dependencies = [
  "comemo 0.5.0",
  "ecow",
  "image",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "infer",
  "krilla",
  "krilla-svg",
@@ -4682,9 +4623,8 @@ dependencies = [
 
 [[package]]
 name = "typst-shim"
-version = "0.14.0-rc1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a80c8abe518f06aa97ed077cf8876f48edd7c6270054687f0482c2a4b0ef080"
+version = "0.14.0"
+source = "git+https://github.com/Myriad-Dreamin/tinymist.git?rev=052149a509b686fa9111dd99eb278ce1213abdf2#052149a509b686fa9111dd99eb278ce1213abdf2"
 dependencies = [
  "cfg-if",
  "comemo 0.5.0",
@@ -5248,7 +5188,7 @@ checksum = "c0fdd3ddb90610c7638aa2b3a3ab2904fb9e5cdbecc643ddb3647212781c4ae3"
 dependencies = [
  "windows-implement",
  "windows-interface",
- "windows-link",
+ "windows-link 0.1.3",
  "windows-result",
  "windows-strings",
 ]
@@ -5282,12 +5222,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e6ad25900d524eaabdbbb96d20b4311e1e7ae1699af4fb28c17ae66c80d798a"
 
 [[package]]
+name = "windows-link"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
+
+[[package]]
 name = "windows-result"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56f42bd332cc6c8eac5af113fc0c1fd6a8fd2aa08a0119358686e5160d0586c6"
 dependencies = [
- "windows-link",
+ "windows-link 0.1.3",
 ]
 
 [[package]]
@@ -5296,7 +5242,7 @@ version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56e6c93f3a0c3b36176cb1327a4958a0353d5d166c2a35cb268ace15e91d3b57"
 dependencies = [
- "windows-link",
+ "windows-link 0.1.3",
 ]
 
 [[package]]
@@ -5333,6 +5279,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
 dependencies = [
  "windows-targets 0.53.2",
+]
+
+[[package]]
+name = "windows-sys"
+version = "0.61.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
+dependencies = [
+ "windows-link 0.2.1",
 ]
 
 [[package]]
@@ -5545,7 +5500,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "886614b5ce857341226aa091f3c285e450683894acaaa7887f366c361efef79d"
 dependencies = [
  "font-types",
- "indexmap 2.10.0",
+ "indexmap 2.12.1",
  "kurbo 0.12.0",
  "log",
  "read-fonts",
