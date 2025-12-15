@@ -20,7 +20,10 @@
   social-links: social-links,
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.3.1": get-book-meta, is-html-target, paged-load-trampoline, x-current, x-target, x-url-base
+  import "@preview/shiroa:0.3.1": (
+    external-link, external-script, get-book-meta, is-html-target, paged-load-trampoline,
+    query-static-assets, x-current, x-target, x-url-base,
+  )
   import "mod.typ": inline-assets, replace-raw
   import "html.typ": a, div, meta
   import "icons.typ": builtin-icon
@@ -53,11 +56,22 @@
     context html.elem("title", meta-title(title, site-title()))
     // <meta description>
     if description != none { meta(name: "description", content: description) }
+    // Static asset references
+    context for asset-meta in query-static-assets() {
+      let asset = asset-meta.value
+      if asset.type == "css" {
+        external-link(asset.dest)
+      } else if asset.type == "js" {
+        external-script(asset.dest)
+      }
+    }
   })
 
   show: set-slot("main-title", html.elem("h1", attrs: (class: "menu-title"), title))
   // todo: determine a good name of html wrapper
-  show: set-slot("main-content", if x-target.starts-with("html-wrapper") { trampoline } else { body })
+  show: set-slot("main-content", if x-target.starts-with("html-wrapper") { trampoline } else {
+    body
+  })
 
   // show: set-slot("header", include "page-header.typ")
   show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))

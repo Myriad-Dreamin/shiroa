@@ -17,7 +17,8 @@ bench = false
 doc = false
 
 [dependencies]
-
+base64 = "0.22"
+blake3 = "1.8"
 clap.workspace = true
 clap_complete.workspace = true
 clap_complete_fig.workspace = true

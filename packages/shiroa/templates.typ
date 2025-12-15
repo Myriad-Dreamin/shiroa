@@ -108,7 +108,6 @@
   web-theme: "starlight",
   theme-box: none,
 ) = {
-  import "supports-html.typ": add-styles
   let is-starlight-theme = web-theme == "starlight"
   let in-heading = state("shiroa:in-heading", false)
 
@@ -144,19 +143,17 @@
     it
   }
 
-  add-styles(
-    ```css
-    .inline-equation {
-      display: inline-block;
-      width: fit-content;
-    }
-    .block-equation {
-      display: grid;
-      place-items: center;
-      overflow-x: auto;
-    }
-    ```,
-  )
+  stylesheet(```css
+  .inline-equation {
+    display: inline-block;
+    width: fit-content;
+  }
+  .block-equation {
+    display: grid;
+    place-items: center;
+    overflow-x: auto;
+  }
+  ```)
   body
 }
 
@@ -214,7 +211,7 @@
     numbering: false,
   )
 
-  let init-with-theme((code-extra-colors, is-dark)) = if is-dark {
+  let init-zebraw-with-theme((code-extra-colors, is-dark)) = if is-dark {
     zebraw-init.with(
       // should vary by theme
       background-color: if code-extra-colors.bg != none {
@@ -233,6 +230,13 @@
       },
       ..zebraw-commons,
     )
+  }
+
+  let init-with-theme(args) = it => {
+    show: extract-html-style.with(dest: "assets/zebraw.css")
+    show: extract-html-script.with(dest: "assets/zebraw-clipboard.js")
+    show: init-zebraw-with-theme(args)
+    it
   }
 
   context if shiroa-sys-target() != "html" {
@@ -296,7 +300,10 @@
   mdbook: "@preview/shiroa-mdbook:0.3.1",
 ) = {
   // Prepares description
-  assert(type(description) == str or description == auto, message: "description must be a string or auto")
+  assert(
+    type(description) == str or description == auto,
+    message: "description must be a string or auto",
+  )
   let description = if description != auto { description } else {
     let desc = plain-text(plain-body, limit: 512).trim()
     let desc_chars = desc.clusters()

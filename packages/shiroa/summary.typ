@@ -82,6 +82,62 @@
   #metadata(meta) <shiroa-build-meta>
 ]
 
+/// Static assets metadata for copying static files to output
+///
+/// Declares static assets (CSS, JS, fonts, images) that should be copied
+/// to the output directory during build. This enables sharing assets across
+/// pages without inline data URLs.
+///
+/// - path (str): Source path relative to workspace root (optional)
+/// - text (str): Direct content text (optional)
+/// - bytes (bytes): Direct content bytes (optional)
+/// - dest (str): Destination path relative to output directory
+/// - type (str): Asset type hint (css, js, font, image, etc.)
+///
+/// Example:
+/// ```typst
+/// // From file
+/// #static-asset(path: "styles/custom.css", dest: "assets/custom.css", type: "css")
+///
+/// // From bytes
+/// #static-asset(bytes: bytes("my content"), dest: "assets/inline.css", type: "css")
+/// ```
+#let static-asset(path: none, text: none, bytes: none, dest: none, type: auto) = {
+  assert(dest != none, message: "dest is required")
+  if type == auto {
+    if std.type(text) == content and text.func() == raw {
+      type = text.lang
+    } else {
+      panic("Cannot infer type for static asset: " + repr(type))
+    }
+  }
+  let meta = if path != none {
+    // It is a path
+    (src: (path: path), dest: dest, type: type)
+  } else if text != none {
+    let text = if std.type(text) == content {
+      text.text
+    } else {
+      assert(std.type(text) == str, message: "invalid text type for static asset")
+      text
+    }
+    (src: (text: text), dest: dest, type: type)
+  } else if bytes != none {
+    assert(std.type(bytes) == std.bytes, message: "invalid bytes type for static asset")
+    // Encode as base64
+    import "@preview/based:0.2.0": base64
+    (src: (bytes: base64.encode(bytes)), dest: dest, type: type)
+  } else {
+    panic("should provide path, text or bytes for the asset")
+  }
+
+  [#metadata(meta) <shiroa-static-asset>]
+}
+
+#let query-static-assets() = {
+  query(<shiroa-static-asset>)
+}
+
 /// Represents a chapter in the book
 /// link: path relative (from summary.typ) to the chapter
 /// title: title of the chapter

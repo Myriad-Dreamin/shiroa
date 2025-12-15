@@ -16,9 +16,8 @@
   })
 }
 
-#inline-assets({
-  ```js
-
+#static-asset(
+  text: ```js
   // type Theme = 'auto' | 'dark' | 'light';
 
   /** Key in `localStorage` to store color theme preference at. */
@@ -77,19 +76,12 @@
   });
 
   onThemeChange(loadTheme());
-  // this.querySelector('select')?.addEventListener('change', (e) => {
-  //   if (e.currentTarget instanceof HTMLSelectElement) {
-  //     onThemeChange(parseTheme(e.currentTarget.value));
-  //   }
-  // });
+  ```,
+  dest: "assets/theme-change.js",
+)
 
-
-
-  ```
-})
-
-#add-styles.with(cond: links.len() > 0)(
-  ```css
+#if links.len() > 0 {
+  stylesheet(key: "starlight", ```css
   @layer starlight.core {
     .theme-button {
       background: none;
@@ -104,5 +96,5 @@
       opacity: 0.66;
     }
   }
-  ```,
-)
+  ```)
+}

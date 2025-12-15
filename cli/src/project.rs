@@ -1,3 +1,4 @@
+pub mod assets;
 mod compile;
 mod meta;
 mod release;
@@ -7,16 +8,15 @@ use core::fmt;
 use std::path::PathBuf;
 
 use ::typst::ecow::EcoString;
+use reflexo_typst::ImmutStr;
 use serde::{Deserialize, Serialize};
 
 pub(crate) use self::watch::{ServeEvent, WatchSignal};
 use crate::{
     args::{CompileArgs, MetaSource, RenderMode},
-    book::{
-        meta::{BookMeta, BuildMeta},
-        ChapterItem,
-    },
+    book::meta::{BookMeta, BuildMeta},
     error::prelude::*,
+    project::assets::AssetManager,
     render::{SearchRenderer, TypstRenderer},
     utils::{create_dirs, write_file},
 };
@@ -56,10 +56,16 @@ pub struct Project {
     pub book_meta: BookMeta,
     pub build_meta: Option<BuildMeta>,
     pub chapters: Vec<ChapterItem>,
+    pub assets: AssetManager,
 
     pub dest_dir: PathBuf,
     pub args: CompileArgs,
     pub meta_source: MetaSource,
+}
+
+pub struct ChapterItem {
+    pub title: EcoString,
+    pub path: Option<ImmutStr>,
 }
 
 impl Project {
@@ -81,6 +87,7 @@ impl Project {
             book_meta: Default::default(),
             build_meta: None,
             chapters: vec![],
+            assets: AssetManager::new(),
         };
 
         release::release_builtin_packages(&mut proj.tr.universe_mut().snapshot());

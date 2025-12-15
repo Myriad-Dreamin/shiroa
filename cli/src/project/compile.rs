@@ -1,18 +1,23 @@
-use std::{collections::BTreeMap, path::Path, sync::Mutex};
+use std::{
+    collections::BTreeMap,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use ::typst::ecow::{eco_format, EcoString};
+use base64::Engine;
 use log::warn;
-use reflexo_typst::{static_html, ImmutStr};
+use reflexo_typst::{static_html, CompilerExt, ImmutStr, TypstDocument, TypstHtmlDocument};
 
 use crate::{
     args::MetaSource,
-    book::{
-        meta::{BookMetaContent, BookMetaElem},
-        ChapterItem,
-    },
+    book::meta::{BookMetaContent, BookMetaElem, RawAssetSource, StaticAsset},
     error::prelude::*,
-    project::{ChapterArtifact, JsonContent, Project},
-    render::{HtmlRenderContext, SearchCtx, SearchRenderer},
+    project::{
+        assets::{AssetInput, AssetSource},
+        ChapterArtifact, ChapterItem, JsonContent, Project,
+    },
+    render::{HtmlRenderContext, SearchCtx, SearchRenderer, TypstRenderTask},
     tui_error, tui_info,
 };
 
@@ -27,6 +32,8 @@ impl Project {
         mut sr: SearchRenderer,
     ) -> Result<()> {
         self.prepare_chapters();
+
+        // collect static assets
 
         let serach_ctx = SearchCtx {
             config: &sr.config,
@@ -133,9 +140,44 @@ impl Project {
 
         let content = task.report(res.html()).unwrap_or_default().to_owned();
 
+        self.update_static_assets(path, task, html_doc)?;
+
         Ok(ChapterArtifact {
             content,
             description: res.description().cloned(),
         })
+    }
+
+    fn update_static_assets(
+        &self,
+        chap_path: &str,
+        task: TypstRenderTask,
+        html_doc: Arc<TypstHtmlDocument>,
+    ) -> Result<()> {
+        let query = |item: &str| {
+            let res = task
+                .graph
+                .query(item.to_string(), &TypstDocument::Html(html_doc));
+            task.report(res).context("cannot retrieve metadata item(s)")
+        };
+        let static_assets: Vec<StaticAsset> =
+            self.query_meta_many("<shiroa-static-asset>", query)?;
+        let root = Path::new(&self.tr.ctx.root_dir);
+        let static_assets: Vec<AssetInput> = static_assets
+            .into_iter()
+            .map(|sa| AssetInput {
+                src: match sa.src {
+                    RawAssetSource::Path(p) => AssetSource::Path(root.join(p)),
+                    RawAssetSource::Text(t) => AssetSource::Bytes(t.into_bytes()),
+                    RawAssetSource::Bytes(b) => {
+                        AssetSource::Bytes(base64::prelude::BASE64_STANDARD.decode(b).unwrap())
+                    }
+                },
+                dest: sa.dest,
+                asset_type: sa.asset_type,
+            })
+            .collect();
+        self.assets
+            .submit_assets(chap_path, &static_assets, &self.tr.ctx.dest_dir)
     }
 }

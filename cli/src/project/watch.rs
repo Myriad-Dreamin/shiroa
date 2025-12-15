@@ -34,6 +34,8 @@ impl Project {
                 }
             });
 
+            // TODO: Add static asset files to watched dependencies
+
             tui_info!("Watching {} files for changes...", deps.len());
             let _ = dep_tx.send(NotifyMessage::SyncDependency(Box::new(deps)));
 
