@@ -26,7 +26,10 @@
   },
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.3.1": get-book-meta, is-html-target, paged-load-trampoline, plain-text, x-current, x-target
+  import "@preview/shiroa:0.3.1": (
+    external-link, external-script, get-book-meta, is-html-target, paged-load-trampoline,
+    plain-text, query-static-assets, static-asset, x-current, x-target,
+  )
   import "html.typ": inline-assets, meta, span
   import "mod.typ": replace-raw
 
@@ -35,6 +38,37 @@
       "Starlight theme is only available with `--mode=static-html`. Either change theme to mdbook or turn mode into `static-html`.",
     )
     return body
+  }
+
+  let static-assets-ref = {
+    context for asset-meta in query-static-assets() {
+      let asset = asset-meta.value
+      if asset.type == "css" {
+        external-link(asset.dest)
+      } else if asset.type == "js" {
+        external-script(asset.dest)
+      }
+    }
+    context {
+      let stylesheets = query(<shiroa-stylesheet>)
+      if stylesheets.len() > 0 {
+        // group by key. combine stylesheets with the same key into one .css file.
+        let grouped = (:)
+        for m in stylesheets {
+          let s = m.value
+          if s.key not in grouped {
+            grouped.insert(s.key, (s.text,))
+          } else {
+            grouped.at(s.key).push(s.text)
+          }
+        }
+        for (k, v) in grouped {
+          let path = "assets/" + k + ".css"
+          external-link(path)
+          static-asset(text: v.join("\n"), dest: path, type: "css")
+        }
+      }
+    }
   }
 
   let trampoline = paged-load-trampoline()
@@ -55,7 +89,10 @@
     let github-link = it.at("repository", default: none)
     let discord-link = it.at("discord", default: none)
 
-    right-group-item(class: "social-icons", social-icons(social-links(github: github-link, discord: discord-link)))
+    right-group-item(class: "social-icons", social-icons(social-links(
+      github: github-link,
+      discord: discord-link,
+    )))
     right-group-item(include "theme-select.typ")
     right-group-item(class: "md:sl-hidden", include "page-sidebar-mobile.typ")
   })
@@ -65,18 +102,28 @@
     context html.elem("title", meta-title(title, site-title()))
     // <meta description>
     if description != none { meta(name: "description", content: description) }
+    // Static asset references
+    static-assets-ref
   })
 
   show: set-slot("main-title", html.elem("h1", title))
   // todo: determine a good name of html wrapper
-  show: set-slot("main-content", if x-target.starts-with("html-wrapper") { trampoline } else { body })
+  show: set-slot("main-content", if x-target.starts-with("html-wrapper") {
+    trampoline
+  } else {
+    body
+  })
 
   show: set-slot("header", include "page-header.typ")
   show: set-slot("site-title", context span(class: "site-title", site-title()))
   show: set-slot("sl:book-meta", book + inline-assets(extra-assets.join()))
   show: set-slot("sl:search", if enable-search { include "site-search.typ" })
   show: set-slot("sl:search-results", if enable-search { include "site-search-results.typ" })
-  show: set-slot("sl:right-group", if right-group != none { right-group } else { default-right-group() })
+  show: set-slot("sl:right-group", if right-group != none {
+    right-group
+  } else {
+    default-right-group()
+  })
 
   // div(class: "sl-flex social-icons", virt-slot("social-icons")),
   // // virt-slot("theme-select"),

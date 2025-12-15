@@ -1,8 +1,10 @@
 
 
 #import "html.typ": *
-#import "@preview/shiroa:0.3.1": plain-text, templates
-#import templates: get-label-disambiguator, label-disambiguator, make-unique-label, static-heading-link
+#import "@preview/shiroa:0.3.1": plain-text, static-asset, templates
+#import templates: (
+  get-label-disambiguator, label-disambiguator, make-unique-label, static-heading-link,
+)
 
 #let has-toc = true;
 

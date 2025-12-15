@@ -42,10 +42,9 @@ use crate::{
     book::{
         meta::{BookMetaContent, BookMetaElem},
         outline::{outline, Outline, OutlineItem},
-        ChapterItem,
     },
     error::prelude::*,
-    project::ChapterArtifact,
+    project::{ChapterArtifact, ChapterItem},
     render::SearchCtx,
     utils::{
         create_dirs, interner::SpanInternerImpl, make_absolute, make_absolute_from, write_file,

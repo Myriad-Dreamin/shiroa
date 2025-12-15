@@ -108,7 +108,6 @@
   web-theme: "starlight",
   theme-box: none,
 ) = {
-  import "supports-html.typ": add-styles
   let is-starlight-theme = web-theme == "starlight"
   let in-heading = state("shiroa:in-heading", false)
 
@@ -144,19 +143,17 @@
     it
   }
 
-  add-styles(
-    ```css
-    .inline-equation {
-      display: inline-block;
-      width: fit-content;
-    }
-    .block-equation {
-      display: grid;
-      place-items: center;
-      overflow-x: auto;
-    }
-    ```,
-  )
+  stylesheet(```css
+  .inline-equation {
+    display: inline-block;
+    width: fit-content;
+  }
+  .block-equation {
+    display: grid;
+    place-items: center;
+    overflow-x: auto;
+  }
+  ```)
   body
 }
 
@@ -296,7 +293,10 @@
   mdbook: "@preview/shiroa-mdbook:0.3.1",
 ) = {
   // Prepares description
-  assert(type(description) == str or description == auto, message: "description must be a string or auto")
+  assert(
+    type(description) == str or description == auto,
+    message: "description must be a string or auto",
+  )
   let description = if description != auto { description } else {
     let desc = plain-text(plain-body, limit: 512).trim()
     let desc_chars = desc.clusters()

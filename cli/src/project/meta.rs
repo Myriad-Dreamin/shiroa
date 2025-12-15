@@ -90,8 +90,8 @@ impl Project {
         Ok(())
     }
 
-    fn query_meta<T: for<'a> serde::Deserialize<'a>>(
-        &mut self,
+    pub(super) fn query_meta<T: for<'a> serde::Deserialize<'a>>(
+        &self,
         item: &str,
         f: impl FnOnce(&str) -> Result<Vec<Content>>,
     ) -> Result<Option<T>> {
@@ -102,7 +102,7 @@ impl Project {
     }
 
     fn query_meta_<T: for<'a> serde::Deserialize<'a>>(
-        &mut self,
+        &self,
         item: &str,
         f: impl FnOnce(&str) -> Result<Vec<Content>>,
     ) -> Result<Option<T>> {
@@ -120,6 +120,34 @@ impl Project {
         }
 
         Ok(res.into_iter().next().map(|v| v.value))
+    }
+
+    pub(super) fn query_meta_many<T: for<'a> serde::Deserialize<'a>>(
+        &self,
+        item: &str,
+        f: impl FnOnce(&str) -> Result<Vec<Content>>,
+    ) -> Result<Vec<T>> {
+        self.query_meta_many_::<T>(item, f)
+            .with_context("while querying metadata", || {
+                Some(Box::new([("label", item.to_string())]))
+            })
+    }
+
+    fn query_meta_many_<T: for<'a> serde::Deserialize<'a>>(
+        &self,
+        item: &str,
+        f: impl FnOnce(&str) -> Result<Vec<Content>>,
+    ) -> Result<Vec<T>> {
+        #[derive(Deserialize)]
+        struct QueryItem<T> {
+            pub value: T,
+        }
+
+        let res = serde_json::to_value(&f(item)?).context("cannot convert metadata item(s)")?;
+        let res: Vec<QueryItem<T>> =
+            serde_json::from_value(res).context("cannot convert metadata item(s)")?;
+
+        Ok(res.into_iter().map(|v| v.value).collect())
     }
 
     fn infer_meta_by_outline(&mut self, entry: PathBuf) -> Result<()> {

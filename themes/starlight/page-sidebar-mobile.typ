@@ -30,23 +30,21 @@
   }
 ]
 
-#add-styles(
-  ```css
-  #sidebar-mobile-toggle[aria-expanded="true"] #sidebar-open {
-    display: none;
-  }
-  #sidebar-mobile-toggle[aria-expanded="false"] #sidebar-close {
-    display: none;
-  }
+#stylesheet(key: "starlight", ```css
+#sidebar-mobile-toggle[aria-expanded="true"] #sidebar-open {
+  display: none;
+}
+#sidebar-mobile-toggle[aria-expanded="false"] #sidebar-close {
+  display: none;
+}
 
-  .sidebar-toggle-button {
-    background: none;
-    border: none;
-    padding: 0.5em;
-    margin: -0.2em;
-  }
-  .sidebar-toggle-button:hover {
-    opacity: 0.66;
-  }
-  ```,
-)
+.sidebar-toggle-button {
+  background: none;
+  border: none;
+  padding: 0.5em;
+  margin: -0.2em;
+}
+.sidebar-toggle-button:hover {
+  opacity: 0.66;
+}
+```)

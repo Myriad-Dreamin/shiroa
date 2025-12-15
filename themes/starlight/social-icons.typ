@@ -12,8 +12,8 @@
     })
   }
 
-  add-styles.with(cond: links.len() > 0)(
-    ```css
+  if links.len() > 0 {
+    stylesheet(key: "starlight", ```css
     @layer starlight.core {
       a.social-icon {
         color: var(--sl-color-text-accent);
@@ -24,6 +24,6 @@
         opacity: 0.66;
       }
     }
-    ```,
-  )
+    ```)
+  }
 }

@@ -4,7 +4,7 @@
 
 // ---
 
-#add-styles(raw(lang: "css", read("styles/search.css")))
+#stylesheet(key: "starlight", read("styles/search.css"))
 #inline-assets(raw(lang: "js", {
   "window.path_to_root = "
   json.encode(x-url-base)

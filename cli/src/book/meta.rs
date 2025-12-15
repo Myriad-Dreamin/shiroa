@@ -134,3 +134,25 @@ impl Default for Search {
         }
     }
 }
+
+/// Static asset to be copied to output directory
+#[derive(Debug, Deserialize)]
+pub struct StaticAsset {
+    pub src: RawAssetSource,
+    /// Destination path relative to dest-dir
+    pub dest: String,
+    /// Asset type hint (css, js, font, image, etc.)
+    #[serde(rename = "type")]
+    pub asset_type: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum RawAssetSource {
+    /// Source path relative to workspace root
+    Path(String),
+    /// Direct content text (UTF-8)
+    Text(String),
+    /// Direct content bytes (in base64)
+    Bytes(String),
+}
