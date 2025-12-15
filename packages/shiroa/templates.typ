@@ -211,7 +211,7 @@
     numbering: false,
   )
 
-  let init-with-theme((code-extra-colors, is-dark)) = if is-dark {
+  let init-zebraw-with-theme((code-extra-colors, is-dark)) = if is-dark {
     zebraw-init.with(
       // should vary by theme
       background-color: if code-extra-colors.bg != none {
@@ -230,6 +230,13 @@
       },
       ..zebraw-commons,
     )
+  }
+
+  let init-with-theme(args) = it => {
+    show: extract-html-style.with(dest: "assets/zebraw.css")
+    show: extract-html-script.with(dest: "assets/zebraw-clipboard.js")
+    show: init-zebraw-with-theme(args)
+    it
   }
 
   context if shiroa-sys-target() != "html" {

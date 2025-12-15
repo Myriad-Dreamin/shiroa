@@ -1,5 +1,6 @@
 
 #import "meta-and-state.typ": is-html-target
+#import "summary.typ": static-asset
 #import "supports-html-internal.typ"
 #let data-url(mime, src) = {
   import "@preview/based:0.2.0": base64
@@ -83,4 +84,26 @@
     body.text
   }
   [#metadata((text: text, key: key, priority: priority)) <shiroa-stylesheet>]
+}
+
+#let extract-html-script(body, dest: none) = {
+  show html.elem.where(tag: "script"): it => {
+    if it.body.has("text") {
+      static-asset(text: it.body.text, dest: dest, type: "js")
+    } else {
+      it
+    }
+  }
+  body
+}
+
+#let extract-html-style(body, dest: none) = {
+  show html.elem.where(tag: "style"): it => {
+    if it.body.has("text") {
+      static-asset(text: it.body.text, dest: dest, type: "css")
+    } else {
+      it
+    }
+  }
+  body
 }
