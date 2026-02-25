@@ -149,6 +149,10 @@
     .inline-equation {
       display: inline-block;
       width: fit-content;
+      vertical-align: middle;
+      transform: translateY(-0.1em);
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
     }
     .block-equation {
       display: grid;
