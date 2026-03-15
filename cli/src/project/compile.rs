@@ -71,7 +71,8 @@ impl Project {
 
     fn collect_chatpers(&self, elem: &BookMetaElem, chapters: &mut Vec<ChapterItem>) {
         match elem {
-            BookMetaElem::Separator {} | BookMetaElem::Part { .. } => {}
+            BookMetaElem::Separator {} | BookMetaElem::Part { .. } | BookMetaElem::Partbreak {} => {
+            }
             BookMetaElem::Chapter {
                 title, link, sub, ..
             } => {

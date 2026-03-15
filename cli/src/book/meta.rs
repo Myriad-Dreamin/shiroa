@@ -26,6 +26,8 @@ pub enum BookMetaElem {
     },
     #[serde(rename = "separator")]
     Separator {},
+    #[serde(rename = "partbreak")]
+    Partbreak {},
 }
 
 /// General information about your book.

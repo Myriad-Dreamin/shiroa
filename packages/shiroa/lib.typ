@@ -16,6 +16,7 @@
 //!   - `prefix-chapter`
 //!   - `suffix-chapter`
 //!   - `divider`
+//!   - `partbreak`
 //!   - `external-book`
 //!
 //! 3. Typst Supports

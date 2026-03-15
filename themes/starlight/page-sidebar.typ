@@ -35,6 +35,13 @@
 
       part = summary-item.at("title").at("content")
       items = ()
+    } else if summary-item.kind == "partbreak" {
+      if part != none or items.len() > 0 {
+        visit.at("part")(part, items)
+      }
+
+      part = none
+      items = ()
     } else {
       // repr(x)
     }

@@ -126,6 +126,20 @@
   kind: "divider",
 ))
 
+/// Ends the current part/group in the summary sidebar
+///
+/// Example:
+/// ```typ
+/// == My Part
+/// - #chapter("ch1.typ", section: "1")[Chapter 1]
+/// - #chapter("ch2.typ", section: "2")[Chapter 2]
+/// #partbreak()
+/// - #chapter("standalone.typ", section: "3")[Standalone Chapter]
+/// ```
+#let partbreak() = metadata((
+  kind: "partbreak",
+))
+
 #let external-book(spec: none) = {
   place(
     hide[
