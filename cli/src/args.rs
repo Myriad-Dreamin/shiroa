@@ -78,6 +78,12 @@ pub enum RenderMode {
 
 const ENV_PATH_SEP: char = if cfg!(windows) { ';' } else { ':' };
 
+fn parse_input_pair(raw: &str) -> Result<(String, String), String> {
+    raw.split_once('=')
+        .map(|(k, v)| (k.to_owned(), v.to_owned()))
+        .ok_or_else(|| "must be key=value".into())
+}
+
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
 pub struct CompileArgs {
@@ -119,6 +125,16 @@ pub struct CompileArgs {
         value_delimiter = ENV_PATH_SEP
     )]
     pub font_paths: Vec<PathBuf>,
+
+    /// Add a string key-value pair visible through `sys.inputs`. Mirrors
+    /// `typst compile --input`.
+    #[clap(
+        long = "input",
+        value_name = "key=value",
+        action = clap::ArgAction::Append,
+        value_parser = parse_input_pair,
+    )]
+    pub inputs: Vec<(String, String)>,
 
     /// Output to directory, default in the same directory as the entry file.
     /// Relative paths are interpreted relative to the book's root directory.
