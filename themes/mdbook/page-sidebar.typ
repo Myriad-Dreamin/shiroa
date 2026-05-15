@@ -128,9 +128,9 @@ this.parentElement.classList.toggle("open");
           part,
         )
 
-        items.sum()
+        items.sum(default: [])
       } else {
-        items.sum()
+        items.sum(default: [])
       },
     )
 
