@@ -137,7 +137,18 @@ impl Project {
             }
 
             // todo: blocking?
-            let _ = self.compile_once(&active_files, SearchRenderer::new());
+            // The cold-start `self.build()` above already wrote a full
+            // searchindex (empty filter → every chapter). Here we only
+            // compile the held/changed chapters, so the index built from
+            // this pass would be partial. Suppress the index write so we
+            // don't clobber the full one. Tradeoff: search doesn't reflect
+            // edits during a serve session — restart (or `shiroa build`)
+            // to refresh.
+            let _ = self.compile_once(&active_files, {
+                let mut sr = SearchRenderer::new();
+                sr.config.copy_js = false;
+                sr
+            });
 
             if !is_heartbeat {
                 let _ = tx.send(WatchSignal::Reload);
