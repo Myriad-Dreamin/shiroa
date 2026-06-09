@@ -87,7 +87,11 @@ impl TypstRenderer {
         let mut searcher = SystemFontSearcher::new();
         searcher.resolve_opts(opts.into()).unwrap_or_exit();
 
-        let package_registry = HttpRegistry::new(None, Some(args.package_path.into()), None);
+        let package_registry = HttpRegistry::new(
+            None,
+            args.package_path.map(Into::into),
+            args.package_cache_path.map(Into::into),
+        );
         let registry: Arc<HttpRegistry> = Arc::new(package_registry);
         let resolver = Arc::new(RegistryPathMapper::new(registry.clone()));
 

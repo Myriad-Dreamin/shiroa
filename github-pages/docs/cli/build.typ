@@ -45,7 +45,11 @@ The `--font-path` option adds additional directories that are recursively search
 
 == #cli-flag;package-path
 
-The `--package-path` adds an additional directory that is searched for local typst packages.
+The `--package-path` option specifies a custom path to local Typst packages. It can also be set with the `TYPST_PACKAGE_PATH` environment variable.
+
+== #cli-flag;package-cache-path
+
+The `--package-cache-path` option specifies a custom path to the Typst package cache. It can also be set with the `TYPST_PACKAGE_CACHE_PATH` environment variable.
 
 == #cli-flag;dest-dir, -d
 

@@ -120,13 +120,17 @@ pub struct CompileArgs {
     )]
     pub font_paths: Vec<PathBuf>,
 
-    /// Add additional directory that is searched for local typst packages.
+    /// Specify a custom path to local Typst packages.
+    #[clap(long = "package-path", value_name = "DIR", env = "TYPST_PACKAGE_PATH")]
+    pub package_path: Option<PathBuf>,
+
+    /// Specify a custom path to the Typst package cache.
     #[clap(
-        long = "package-path",
+        long = "package-cache-path",
         value_name = "DIR",
-        env = "TYPST_PACKAGE_PATH",
+        env = "TYPST_PACKAGE_CACHE_PATH"
     )]
-    pub package_path: PathBuf,
+    pub package_cache_path: Option<PathBuf>,
 
     /// Output to directory, default in the same directory as the entry file.
     /// Relative paths are interpreted relative to the book's root directory.
