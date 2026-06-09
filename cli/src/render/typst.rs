@@ -11,6 +11,8 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use reflexo_typst::{
     config::CompileOpts,
     escape::{escape_str, AttributeEscapes},
+    font::system::SystemFontSearcher,
+    package::{registry::HttpRegistry, RegistryPathMapper},
     path::{unix_slash, PathClean},
     print_diagnostics, static_html,
     system::SystemWorldComputeGraph,
@@ -19,6 +21,7 @@ use reflexo_typst::{
         pass::Typst2VecPass,
         IntoTypst,
     },
+    vfs::{system::SystemAccessModel, Vfs},
     world::{diag::print_diagnostics_to, EntryOpts},
     CompilationTask, CompileReport, CompileSnapshot, DiagnosticFormat, DiagnosticHandler,
     DynSvgModuleExport, EntryReader, ExportDynSvgModuleTask, FlagTask, ImmutStr, LazyHash,
@@ -35,6 +38,7 @@ use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
     foundations::{IntoValue, Regex},
+    Features,
 };
 
 use crate::{
@@ -72,13 +76,34 @@ impl TypstRenderer {
         let root_dir = make_absolute(Path::new(&args.dir)).clean();
         let dest_dir = make_absolute_from(Path::new(&args.dest_dir), || root_dir.clone()).clean();
 
-        let verse = TypstSystemUniverse::new(CompileOpts {
-            entry: EntryOpts::new_workspace(workspace_dir.clone()),
+        let entry = EntryOpts::new_workspace(workspace_dir.clone());
+        let opts = CompileOpts {
+            entry: entry.clone(),
             font_paths: args.font_paths.clone(),
             with_embedded_fonts: typst_assets::fonts().map(Cow::Borrowed).collect(),
             ..CompileOpts::default()
-        })
-        .unwrap_or_exit();
+        };
+
+        let mut searcher = SystemFontSearcher::new();
+        searcher.resolve_opts(opts.into()).unwrap_or_exit();
+
+        let package_registry = HttpRegistry::new(
+            None,
+            args.package_path.map(Into::into),
+            args.package_cache_path.map(Into::into),
+        );
+        let registry: Arc<HttpRegistry> = Arc::new(package_registry);
+        let resolver = Arc::new(RegistryPathMapper::new(registry.clone()));
+
+        let verse = TypstSystemUniverse::new_raw(
+            entry.try_into().unwrap_or_exit(),
+            Features::default(),
+            None,
+            Vfs::new(resolver, SystemAccessModel {}),
+            registry,
+            Arc::new(searcher.build()),
+            None,
+        );
 
         let mut compiler = ExportDynSvgModuleTask::new();
         compiler.html_format = matches!(
