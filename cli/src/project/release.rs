@@ -50,6 +50,7 @@ fn release_packages_inner(world: &mut TypstSystemWorld, pkg: include_dir::Dir, n
         }
     }
 
-    std::fs::create_dir_all(pkg_link_target.parent().unwrap()).unwrap();
-    copy_dir_embedded(&pkg, &pkg_link_target).unwrap();
+    if let Ok(()) = std::fs::create_dir_all(pkg_link_target.parent().unwrap()) {
+        copy_dir_embedded(&pkg, &pkg_link_target).unwrap();
+    };
 }
