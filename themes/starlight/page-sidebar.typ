@@ -90,10 +90,10 @@ this.parentElement.classList.toggle("open");
             div(class: "sidebar-part-title", span(part))
             builtin-icon("right-caret", class: "sidebar-part-caret")
           })
-          ol(class: "sidebar-part-chapters", items.sum())
+          ol(class: "sidebar-part-chapters", items.sum(default: []))
         })
       } else {
-        items.sum()
+        items.sum(default: [])
       },
     )
 
