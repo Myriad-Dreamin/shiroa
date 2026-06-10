@@ -43,6 +43,14 @@ Then you can access the template with the absolute path in typst:
 
 The `--font-path` option adds additional directories that are recursively searched for fonts for typst source files. If multiple paths are specified, they are separated by the system's path separator (`:` on Unix-like systems and `;` on Windows).
 
+== #cli-flag;package-path
+
+The `--package-path` option specifies a custom path to local Typst packages. It can also be set with the `TYPST_PACKAGE_PATH` environment variable.
+
+== #cli-flag;package-cache-path
+
+The `--package-cache-path` option specifies a custom path to the Typst package cache. It can also be set with the `TYPST_PACKAGE_CACHE_PATH` environment variable.
+
 == #cli-flag;dest-dir, -d
 
 The `--dest-dir` (`-d`) option allows you to change the output directory for the
