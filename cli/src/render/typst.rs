@@ -128,6 +128,7 @@ impl TypstRenderer {
             ctx: RenderContext {
                 output: dest_dir.clone(),
                 url_base: args.path_to_root.into(),
+                extra_inputs: args.inputs,
                 compiler,
                 root_dir,
                 dest_dir,
@@ -188,6 +189,9 @@ impl TypstRenderer {
                 dict.insert("x-target".into(), ctx.compiler.target.clone().into_value());
                 let current = unix_slash(&Path::new("/").join(path)).into_value();
                 dict.insert("x-current".into(), current);
+                for (k, v) in &self.ctx.extra_inputs {
+                    dict.insert(k.as_str().into(), v.clone().into_value());
+                }
                 Arc::new(LazyHash::new(dict))
             }),
         };
@@ -329,6 +333,7 @@ impl TypstRenderer {
 pub struct RenderContext {
     pub extension: EcoString,
     pub url_base: EcoString,
+    pub extra_inputs: Vec<(String, String)>,
     pub output: PathBuf,
     pub compiler: ExportDynSvgModuleTask,
     pub root_dir: PathBuf,
