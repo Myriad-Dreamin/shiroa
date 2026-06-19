@@ -25,7 +25,7 @@
 #let book-sys = (
   target: x-target,
   page-width: page-width,
-  sys-is-html-target: ("target" in dictionary(std)),
+  sys-is-html-target: ("html" in dictionary(std)),
   is-html-target: is-html-target(),
   is-web-target: is-web-target(),
   is-pdf-target: is-pdf-target(),
