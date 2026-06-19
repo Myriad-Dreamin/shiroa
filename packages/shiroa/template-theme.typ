@@ -78,7 +78,7 @@
   light-theme: none,
   dark-theme: none,
 ) = {
-  let sys-is-html-target = ("target" in dictionary(std))
+  let sys-is-html-target = ("html" in dictionary(std))
 
   if light-theme == none {
     for (name, it) in preset.pairs() {
@@ -124,7 +124,7 @@
     default-theme: default-theme,
   ) = themes
   let is-md-target = target == "md"
-  let sys-is-html-target = ("target" in dictionary(std))
+  let sys-is-html-target = ("html" in dictionary(std))
 
   if is-md-target {
     show: html.elem.with(tag)
