@@ -37,7 +37,8 @@ use tinymist_task::TextExport;
 use typst::{
     diag::{SourceResult, Warned},
     ecow::{EcoString, EcoVec},
-    foundations::{IntoValue, Regex},
+    foundations::{IntoValue, Output, Regex},
+    model::Document,
     Features,
 };
 
@@ -821,7 +822,7 @@ impl TypstRenderTask {
         Ok(inferred)
     }
 
-    fn pure_compile<D: typst::Document + Send + Sync + 'static>(&self) -> Result<Arc<D>> {
+    fn pure_compile<D: Document + Output + Send + Sync + 'static>(&self) -> Result<Arc<D>> {
         let g = &self.graph;
         let _ = g.provide::<FlagTask<CompilationTask<D>>>(Ok(FlagTask::flag(true)));
 
@@ -856,22 +857,22 @@ impl TypstRenderTask {
 
                 let (mut meta, pages) = pages.take();
 
-                let introspector = &doc.introspector();
-                let labels = doc
-                    .introspector()
-                    .all()
+                let introspector = doc.introspector();
+                let labelled = introspector.query_labelled();
+                let labels = labelled
+                    .iter()
                     .flat_map(|elem| elem.label().zip(elem.location()))
-                    .map(|(label, elem)| (label.resolve().to_owned(), introspector.position(elem)))
-                    .map(|(label, pos)| {
-                        (
-                            label,
+                    .filter_map(|(label, elem)| {
+                        let pos = introspector.position(elem)?.as_paged()?;
+                        Some((
+                            label.resolve().to_string(),
                             format!(
                                 "p{}x{:.2}y{:.2}",
                                 pos.page,
                                 pos.point.x.to_pt(),
                                 pos.point.y.to_pt()
                             ),
-                        )
+                        ))
                     })
                     .collect::<Vec<_>>();
                 // println!("{:#?}", labels);

@@ -23,7 +23,7 @@ pub(crate) struct HeadingNode {
 }
 
 /// Construct the outline for the document.
-pub(crate) fn get_outline(introspector: &Introspector) -> Option<Vec<HeadingNode>> {
+pub(crate) fn get_outline(introspector: &(impl Introspector + ?Sized)) -> Option<Vec<HeadingNode>> {
     let mut tree: Vec<HeadingNode> = vec![];
     // Stores the level of the topmost skipped ancestor of the next bookmarked
     // heading. A skipped heading is a heading with 'bookmarked: false', that
@@ -34,7 +34,9 @@ pub(crate) fn get_outline(introspector: &Introspector) -> Option<Vec<HeadingNode
     let elements = introspector.query(&HeadingElem::ELEM.select());
     for elem in elements.iter() {
         let heading = elem.to_packed::<HeadingElem>().unwrap();
-        let leaf = HeadingNode::leaf(introspector, heading);
+        let Some(leaf) = HeadingNode::leaf(introspector, heading) else {
+            continue;
+        };
 
         if leaf.bookmarked {
             let mut children = &mut tree;
@@ -98,10 +100,13 @@ pub(crate) fn get_outline(introspector: &Introspector) -> Option<Vec<HeadingNode
 }
 
 impl HeadingNode {
-    fn leaf(introspector: &Introspector, element: &Packed<HeadingElem>) -> Self {
+    fn leaf(
+        introspector: &(impl Introspector + ?Sized),
+        element: &Packed<HeadingElem>,
+    ) -> Option<Self> {
         let position = {
-            let loc = element.location().unwrap();
-            let pos = introspector.position(loc);
+            let loc = element.location()?;
+            let pos = introspector.position(loc)?.as_paged()?;
             DocumentPosition {
                 page_no: pos.page.into(),
                 x: pos.point.x.to_pt() as f32,
@@ -109,7 +114,7 @@ impl HeadingNode {
             }
         };
 
-        HeadingNode {
+        Some(HeadingNode {
             level: element.resolve_level(StyleChain::default()),
             position,
             // 'bookmarked' set to 'auto' falls back to the value of 'outlined'.
@@ -120,7 +125,7 @@ impl HeadingNode {
             body: element.body.clone(),
             span: element.span(),
             children: Vec::new(),
-        }
+        })
     }
 }
 
