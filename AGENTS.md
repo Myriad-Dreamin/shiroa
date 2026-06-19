@@ -1,0 +1,3 @@
+- Use Conventional Commits for commit messages.
+- PR content should be an untitled list of items that only includes modified features and issue operations, such as `Close #123`.
+- Do not include validations, test results, command output, or other execution details in PR content.
