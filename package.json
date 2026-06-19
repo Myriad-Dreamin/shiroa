@@ -4,13 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "license": "Apache-2.0",
+  "packageManager": "pnpm@10.16.1",
   "workspaces": [
     "frontend"
   ],
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "scripts": {
     "docs": "cargo run --release --bin shiroa -- serve --font-path ./assets/fonts/ -w . github-pages/docs",
-    "docs:html": "yarn docs --mode static-html",
-    "test": "yarn test:typ",
+    "docs:html": "pnpm run docs -- --mode static-html",
+    "test": "pnpm run test:typ",
     "test:typ": "tinymist test packages/shiroa-tests/main.typ --root . --ignore-system-fonts --font-path ./assets/fonts/ --coverage --print-coverage=full",
     "generate-ci": "dist generate",
     "draft-release": "node scripts/draft-release.mjs"

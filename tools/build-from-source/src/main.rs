@@ -11,11 +11,11 @@ fn run(mut cmd: Command) -> anyhow::Result<()> {
         .map(|_| ())?)
 }
 
-const fn yarn_cmd() -> &'static str {
+const fn pnpm_cmd() -> &'static str {
     if cfg!(windows) {
-        "yarn.cmd"
+        "pnpm.cmd"
     } else {
-        "yarn"
+        "pnpm"
     }
 }
 
@@ -23,15 +23,9 @@ fn main() -> anyhow::Result<()> {
     let m = Path::new(env!("CARGO_MANIFEST_DIR"));
     let project = m.parent().unwrap().parent().unwrap();
 
-    println!("Running yarn install...");
-    // let mut cmd = Command::new(yarn_cmd());
-    // cmd.args(["install"]);
-    // cmd.current_dir(project.join("frontend"));
-    // run(cmd)?;
-
-    println!("Running yarn build...");
-    let mut cmd = Command::new(yarn_cmd());
-    cmd.args(["build"]);
+    println!("Running pnpm build...");
+    let mut cmd = Command::new(pnpm_cmd());
+    cmd.args(["run", "build"]);
     cmd.current_dir(project.join("frontend"));
     run(cmd)?;
 
@@ -41,8 +35,9 @@ fn main() -> anyhow::Result<()> {
     std::fs::copy(src, dst)?;
 
     // copy typst ts renderer wasm module
-    let src =
-        project.join("node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm");
+    let src = project.join(
+        "frontend/node_modules/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
+    );
     let dst = project.join("assets/artifacts/typst_ts_renderer_bg.wasm");
     std::fs::copy(src, dst)?;
 

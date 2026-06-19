@@ -2,16 +2,16 @@
 ARG NODE_VERSION=22
 ARG RUST_VERSION=1.89.0
 
-FROM node:${NODE_VERSION}-alpine AS build-yarn
+FROM node:${NODE_VERSION}-alpine AS build-pnpm
 RUN apk add --no-cache cpio findutils git
 ADD . /app
 WORKDIR /app
-RUN cd frontend && yarn install && yarn run build
+RUN corepack enable && pnpm install --frozen-lockfile && pnpm --dir frontend run build
 
 FROM rust:${RUST_VERSION}-bullseye AS build
 ADD . /app
 WORKDIR /app
-COPY --from=build-yarn /app/frontend /app/frontend
+COPY --from=build-pnpm /app/frontend /app/frontend
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 RUN apt-get install -y git \
     && cargo build -p shiroa --release
