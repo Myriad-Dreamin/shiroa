@@ -19,10 +19,10 @@ jobs:
           curl -L https://github.com/Myriad-Dreamin/shiroa/releases/download/v0.1.5/source-han-serif-font-assets.tar.gz | tar -xvz -C assets/fonts/
       - name: Install Tinymist
         env:
-          TINYMIST_VERRION: v0.14.0-rc1
-        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Myriad-Dreamin/tinymist/releases/download/${TINYMIST_VERRION}/tinymist-installer.sh | sh
+          TINYMIST_VERSION: v0.15.0
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Myriad-Dreamin/tinymist/releases/download/${TINYMIST_VERSION}/tinymist-installer.sh | sh
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: rustfmt,clippy
       - name: Install Typst
