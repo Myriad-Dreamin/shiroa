@@ -17,8 +17,8 @@ To make it easier to run, put the path to the binary into your `PATH`.
 
 ### Build from source using Rust
 
-To build the `shiroa` executable from source, you will first need to install Yarn, Rust, and Cargo.
-Follow the instructions on the [Yarn installation page](https://classic.yarnpkg.com/en/docs/install) and [Rust installation page](https://www.rust-lang.org/tools/install).
+To build the `shiroa` executable from source, you will first need to install pnpm, Rust, and Cargo.
+Follow the instructions on the [pnpm installation page](https://pnpm.io/installation) and [Rust installation page](https://www.rust-lang.org/tools/install).
 shiroa currently requires at least Rust version 1.75.
 
 To build with precompiled artifacts, run the following commands:

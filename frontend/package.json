@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite build --watch",
-    "link:local": "yarn link @myriaddreamin/typst.ts @myriaddreamin/typst-ts-renderer"
+    "link:local": "pnpm link @myriaddreamin/typst.ts @myriaddreamin/typst-ts-renderer"
   },
   "license": "Apache-2.0",
   "private": false,

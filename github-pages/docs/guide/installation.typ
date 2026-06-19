@@ -27,8 +27,8 @@ cargo install --git https://github.com/Myriad-Dreamin/shiroa --locked shiroa
 
 = Building all from source
 
-To build the `shiroa`'s all components from source, you need to additionally install Yarn.
-First, follow the instructions on the #link("https://classic.yarnpkg.com/en/docs/install")[Yarn installation page].
+To build the `shiroa`'s all components from source, you need to additionally install pnpm.
+First, follow the instructions on the #link("https://pnpm.io/installation")[pnpm installation page].
 
 Then, run the following commands:
 
