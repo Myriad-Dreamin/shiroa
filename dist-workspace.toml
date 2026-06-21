@@ -4,9 +4,9 @@ members = ["cargo:."]
 # Config for 'dist'
 [dist]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.32.0-tinymist.2"
+cargo-dist-version = "0.32.0-tinymist.5"
 # A URL to use to install `cargo-dist` (with the installer script)
-cargo-dist-url-override = "https://github.com/Myriad-Dreamin/cargo-dist/releases/download/v0.32.0-tinymist.2"
+cargo-dist-url-override = "https://github.com/Myriad-Dreamin/cargo-dist/releases/download/v0.32.0-tinymist.5"
 # CI backends to support
 ci = "github"
 # The installers to generate for each app
@@ -50,6 +50,8 @@ dispatch-releases = true
 install-updater = false
 # Path that installers should place binaries in
 install-path = ["$XDG_BIN_HOME/", "$XDG_DATA_HOME/../bin", "~/.local/bin"]
+# Whether to cache builds
+cache-builds = true
 
 [dist.github-custom-runners]
 global = "ubuntu-22.04"
