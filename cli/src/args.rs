@@ -7,7 +7,7 @@ use reflexo_typst::error_once;
 use crate::{utils::make_absolute, version::VersionFormat};
 
 #[derive(Debug, Parser)]
-#[clap(name = "shiroa", version = "0.3.1-rc4")]
+#[clap(name = "shiroa", version = "0.4.0-rc1")]
 pub struct Opts {
     /// Print Version
     #[arg(short = 'V', long, group = "version-dump")]

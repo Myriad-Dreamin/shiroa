@@ -1,9 +1,17 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 
-const versionToUpload = process.argv[2];
+const removePrefix = (str, prefix) => {
+    if (str.startsWith(prefix)) {
+        return str.slice(prefix.length);
+    }
+    return str;
+};
 
-const changelogPath = './CHANGELOG/CHANGELOG-0.3.md';
+const versionToUpload = removePrefix(process.argv[2] ?? '', 'v');
+const releaseVersion = versionToUpload.replace(/-rc[1-9]\d*$/, '');
+const [releaseMajor, releaseMinor] = releaseVersion.split('.');
+const changelogPath = `./CHANGELOG/CHANGELOG-${releaseMajor}.${releaseMinor}.md`;
 
 const DIST_CMD = "dist";
 // const DIST_CMD = "cargo run --manifest-path ../cargo-dist/cargo-dist/Cargo.toml --bin dist --";
@@ -33,6 +41,15 @@ const main = async () => {
     if (!versionToUpload) {
         console.error("Please provide the version to upload");
         process.exit(1);
+    }
+
+    if (!releaseMajor || !releaseMinor || !fs.existsSync(changelogPath)) {
+        console.error(`Changelog file not found for ${versionToUpload}: ${changelogPath}`);
+        process.exit(1);
+    }
+
+    if (process.env.GITHUB_OUTPUT) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=v${versionToUpload}\n`);
     }
 
     // read version from packages.json
