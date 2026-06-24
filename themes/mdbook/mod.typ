@@ -6,8 +6,11 @@
 
 #let has-toc = true;
 #let search-enabled = true;
-// todo
-#let search-js = false;
+// page.typ gates the elasticlunr/mark/searcher.js asset loads on
+// `search-js`. The files (and the searchindex.json) ship in the build
+// either way, so when `search-enabled` renders the button there's no
+// reason to leave the JS off — keep them in lockstep.
+#let search-js = search-enabled;
 #let is-debug = false
 
 #let dyn-svg-support = dyn-svg-support.with(is-debug: is-debug)
