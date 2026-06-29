@@ -54,6 +54,7 @@ const versionFiles = [
 
 const changelog = inspectChangelog(changelogPath, releaseVersion, previousStableTag);
 const draftRelease = inspectDraftReleaseScript();
+const releaseNotes = inspectReleaseNotes(changelogPath, targetVersion);
 const cargoDependencyCheck = inspectCargoDependencyPins();
 
 const blockers = [
@@ -65,6 +66,7 @@ const blockers = [
         : [`current branch is ${currentBranch}, expected ${expectedBranch}`]),
     ...changelog.blockers,
     ...draftRelease.blockers,
+    ...releaseNotes.blockers,
     ...cargoDependencyCheck.blockers,
 ];
 
@@ -82,6 +84,7 @@ const result = {
     typstPackageVersions,
     changelog,
     draftRelease,
+    releaseNotes,
     cargoDependencyCheck,
     commands: buildCommands(targetVersion, targetTag, expectedBranch, changelogPath),
     readiness: {
@@ -94,6 +97,10 @@ if (outputJson) {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } else {
     printHuman(result);
+}
+
+if (!result.readiness.ready) {
+    process.exitCode = 1;
 }
 
 function usage(message) {
@@ -256,6 +263,82 @@ function inspectDraftReleaseScript() {
     };
 }
 
+function inspectReleaseNotes(changelogPath, targetVersion) {
+    const blockers = [];
+    const expectedCompareSuffix = `...v${targetVersion}`;
+    let body = '';
+    let fullChangelogLine = null;
+
+    if (!fs.existsSync(changelogPath)) {
+        return {
+            ready: false,
+            source: changelogPath,
+            expectedCompareSuffix,
+            fullChangelogLine,
+            blockers: [`cannot generate release notes because ${changelogPath} is missing`],
+        };
+    }
+
+    try {
+        const changelogPlainRaw = execFileSync('parse-changelog', [changelogPath], {
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        body = patchFullChangelogLine(changelogPlainRaw, targetVersion);
+    } catch (error) {
+        blockers.push(`failed to generate release notes from ${changelogPath}: ${error.message}`);
+    }
+
+    if (!body.trim()) {
+        blockers.push(`generated release notes from ${changelogPath} are empty`);
+    }
+
+    if (/^\s*Release candidate for v\d+\.\d+\.\d+\.\s*$/m.test(body)) {
+        blockers.push('generated release notes still use the placeholder release-candidate body');
+    }
+
+    fullChangelogLine = body
+        .split('\n')
+        .find((line) => line.startsWith('**Full Changelog**:')) ?? null;
+
+    if (!fullChangelogLine) {
+        blockers.push('generated release notes are missing a **Full Changelog** line');
+    } else if (!fullChangelogLine.includes(expectedCompareSuffix)) {
+        blockers.push(`generated release notes full changelog line must end at v${targetVersion}`);
+    }
+
+    return {
+        ready: blockers.length === 0,
+        source: changelogPath,
+        expectedCompareSuffix,
+        fullChangelogLine,
+        blockers,
+    };
+}
+
+function patchFullChangelogLine(changelogPlainRaw, targetVersion) {
+    const fullChangelogLine =
+        /\*\*Full Changelog\*\*: https:\/\/github.com\/Myriad-Dreamin\/shiroa\/compare\/v(\d+\.\d+\.\d+)...v(\d+\.\d+\.\d+)/;
+    let anyMatched = false;
+
+    const patched = changelogPlainRaw.replace(fullChangelogLine, (_match, previousVersion, releaseVersion) => {
+        anyMatched = true;
+        if (!targetVersion.startsWith(releaseVersion)) {
+            throw new Error(
+                `expected target version ${targetVersion} to start with changelog release version ${releaseVersion}`,
+            );
+        }
+
+        return `**Full Changelog**: https://github.com/Myriad-Dreamin/shiroa/compare/v${previousVersion}...v${targetVersion}`;
+    });
+
+    if (!anyMatched) {
+        throw new Error('failed to patch the full changelog link');
+    }
+
+    return patched;
+}
+
 function inspectCargoDependencyPins() {
     const files = ['Cargo.toml', 'cli/Cargo.toml', 'tools/build-from-source/Cargo.toml'];
     const blockers = [];
@@ -348,6 +431,11 @@ function printHuman(data) {
     for (const item of data.typstPackageVersions) {
         console.log(`- ${item.path}: ${item.version ?? '(unknown)'}`);
     }
+
+    console.log('');
+    console.log('Release notes:');
+    console.log(`- source: ${data.releaseNotes.source}`);
+    console.log(`- Full Changelog: ${data.releaseNotes.fullChangelogLine ?? '(missing)'}`);
 
     console.log('');
     if (data.readiness.ready) {
