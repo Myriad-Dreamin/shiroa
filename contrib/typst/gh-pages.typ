@@ -124,6 +124,7 @@
     include "/github-pages/docs/book.typ",
     title: title,
     description: description,
+    plain-body: plain-body,
     extra-assets: (extra-css,),
   )
 

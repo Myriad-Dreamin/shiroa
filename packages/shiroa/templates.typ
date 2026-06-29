@@ -302,6 +302,8 @@
     none
   } else if description != auto {
     description
+  } else if plain-body == none {
+    none
   } else {
     let desc = plain-text(plain-body, limit: limit).trim()
     let desc_chars = desc.clusters()

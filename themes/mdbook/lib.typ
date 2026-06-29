@@ -14,6 +14,7 @@
   body,
   title: [Shiroa Site],
   description: none,
+  plain-body: auto,
   enable-search: true,
   extra-assets: (),
   meta-title: (title, site-title) => if title != "" [#title -- #site-title] else { site-title },
@@ -33,7 +34,8 @@
   let git-repository-edit-icon = "edit"
 
   let trampoline = paged-load-trampoline()
-  let description = prepare-description(description, plain-body: body)
+  let plain-body = if plain-body == auto { body } else { plain-body }
+  let description = prepare-description(description, plain-body: plain-body)
 
   let site-title() = get-book-meta(mapper: it => if it != none {
     if "raw-title" in it {

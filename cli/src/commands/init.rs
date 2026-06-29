@@ -6,6 +6,7 @@ use crate::{
     args::InitArgs,
     error::prelude::*,
     utils::{create_dirs, make_absolute, write_file},
+    version::SHIROA_PACKAGE_VERSION,
 };
 
 pub fn init(args: &InitArgs) -> Result<()> {
@@ -39,6 +40,7 @@ pub fn init(args: &InitArgs) -> Result<()> {
     let page_template = unix_slash(&workspace_to_root.join("templates/page.typ"));
     let ebook_template = unix_slash(&workspace_to_root.join("templates/ebook.typ"));
     let book_typ = unix_slash(&workspace_to_root.join("book.typ"));
+    let package_version = SHIROA_PACKAGE_VERSION;
 
     let build_meta = if args.compile.dest_dir.is_empty() {
         String::default()
@@ -66,7 +68,7 @@ pub fn init(args: &InitArgs) -> Result<()> {
         dir.join("book.typ"),
         format!(
             r##"
-#import "@preview/shiroa:0.3.1": *
+#import "@preview/shiroa:{package_version}": *
 
 #show: book
 
@@ -101,7 +103,7 @@ Sample page
     write_file(
         dir.join("ebook.typ"),
         format!(
-            r##"#import "@preview/shiroa:0.3.1": *
+            r##"#import "@preview/shiroa:{package_version}": *
 
 #import "{ebook_template}"
 
