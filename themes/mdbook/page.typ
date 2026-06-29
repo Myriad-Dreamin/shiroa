@@ -1,7 +1,7 @@
 
 #import "mod.typ": *
 #import "icons.typ": builtin-icon
-#import "@preview/shiroa:0.3.1": x-current
+#import "@preview/shiroa:0.4.0": x-current
 
 // ---
 

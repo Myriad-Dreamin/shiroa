@@ -26,7 +26,7 @@
   },
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.3.1": get-book-meta, is-html-target, paged-load-trampoline, plain-text, x-current, x-target
+  import "@preview/shiroa:0.4.0": get-book-meta, is-html-target, paged-load-trampoline, prepare-description, x-current, x-target
   import "html.typ": inline-assets, meta, span
   import "mod.typ": replace-raw
 
@@ -38,6 +38,7 @@
   }
 
   let trampoline = paged-load-trampoline()
+  let description = prepare-description(description, plain-body: body)
 
   let site-title() = get-book-meta(mapper: it => if it != none {
     if "raw-title" in it {

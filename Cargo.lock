@@ -3733,7 +3733,7 @@ dependencies = [
 
 [[package]]
 name = "shiroa"
-version = "0.4.0-rc1"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -3769,7 +3769,7 @@ dependencies = [
 
 [[package]]
 name = "shiroa-build"
-version = "0.4.0-rc1"
+version = "0.4.0"
 dependencies = [
  "anyhow",
 ]

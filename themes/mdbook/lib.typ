@@ -20,7 +20,7 @@
   social-links: social-links,
   right-group: none,
 ) = {
-  import "@preview/shiroa:0.3.1": get-book-meta, is-html-target, paged-load-trampoline, x-current, x-target, x-url-base
+  import "@preview/shiroa:0.4.0": get-book-meta, is-html-target, paged-load-trampoline, prepare-description, x-current, x-target, x-url-base
   import "mod.typ": inline-assets, replace-raw
   import "html.typ": a, div, meta
   import "icons.typ": builtin-icon
@@ -33,6 +33,7 @@
   let git-repository-edit-icon = "edit"
 
   let trampoline = paged-load-trampoline()
+  let description = prepare-description(description, plain-body: body)
 
   let site-title() = get-book-meta(mapper: it => if it != none {
     if "raw-title" in it {
