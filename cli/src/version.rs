@@ -7,6 +7,9 @@ pub mod build_info {
     pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 }
 
+/// The supported version of the shiroa Typst package.
+pub const SHIROA_PACKAGE_VERSION: &str = "0.4.0";
+
 /// Available version formats for `$program -VV`
 #[derive(ValueEnum, Debug, Clone)]
 #[value(rename_all = "kebab-case")]

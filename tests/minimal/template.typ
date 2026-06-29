@@ -1,4 +1,4 @@
-#import "@preview/shiroa:0.3.1": get-page-width, is-html-target, is-pdf-target, is-web-target, templates
+#import "@preview/shiroa:0.4.0": get-page-width, is-html-target, is-pdf-target, is-web-target, templates, x-target
 #import templates: *
 
 // Metadata
@@ -25,10 +25,20 @@
     rest: 0pt,
   )) if is-web-target
 
-  show: template-rules.with(
-    book-meta: include "book.typ",
-    plain-body: body,
-  )
+  let web-theme = if x-target.starts-with("html") and not x-target.starts-with("html-wrapper") {
+    "starlight"
+  } else {
+    "mdbook"
+  }
+  show: if web-theme == "starlight" {
+    import "@preview/shiroa-starlight:0.4.0": starlight
+    starlight.with(include "book.typ")
+  } else if web-theme == "mdbook" {
+    import "@preview/shiroa-mdbook:0.4.0": mdbook
+    mdbook.with(include "book.typ")
+  } else {
+    panic("Unknown web theme: " + web-theme)
+  }
 
   body
 }

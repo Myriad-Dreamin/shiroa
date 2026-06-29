@@ -25,7 +25,7 @@
   main-size: main-size,
   heading-sizes: heading-sizes,
   list-indent: list-indent,
-  starlight: "@preview/shiroa-starlight:0.3.1",
+  starlight: "@preview/shiroa-starlight:0.4.0",
 ) = {
   assert(themes != none, message: "themes must be set")
   let (
@@ -288,53 +288,29 @@
   body
 }
 
-#let template-rules(
-  body,
-  title: none,
-  description: auto,
+#let prepare-description(
+  description,
   plain-body: none,
-  book-meta: none,
-  web-theme: auto,
-  extra-assets: (),
-  starlight: "@preview/shiroa-starlight:0.3.1",
-  mdbook: "@preview/shiroa-mdbook:0.3.1",
+  limit: 512,
 ) = {
-  // Prepares description
-  assert(type(description) == str or description == auto, message: "description must be a string or auto")
-  let description = if description != auto { description } else {
-    let desc = plain-text(plain-body, limit: 512).trim()
-    let desc_chars = desc.clusters()
-    if desc_chars.len() >= 512 {
-      desc = desc_chars.slice(0, 512).join("") + "..."
-    }
-    desc
-  }
-
-  if web-theme == auto {
-    web-theme = if is-html-target(exclude-wrapper: true) { "starlight" } else { "mdbook" }
-  }
-
-  let template-args = arguments(
-    book-meta,
-    title: title,
-    description: description,
-    extra-assets: extra-assets,
-    body,
+  assert(
+    type(description) == str or description == auto or description == none,
+    message: "description must be a string, auto, or none",
   )
 
-  if web-theme == "starlight" {
-    if not is-html-target() {
-      panic(
-        "Starlight theme is only available with `--mode=static-html`. Either change theme to mdbook or turn mode into `static-html`.",
-      )
-    }
-    import starlight: starlight
-    starlight(..template-args)
-  } else if web-theme == "mdbook" {
-    import mdbook: mdbook
-    mdbook(..template-args)
+  if description == none {
+    none
+  } else if description != auto {
+    description
+  } else if plain-body == none {
+    none
   } else {
-    panic("Unknown web theme: " + web-theme)
+    let desc = plain-text(plain-body, limit: limit).trim()
+    let desc_chars = desc.clusters()
+    if desc_chars.len() >= limit {
+      desc = desc_chars.slice(0, limit).join("") + "..."
+    }
+    desc
   }
 }
 
