@@ -62,6 +62,11 @@ jobs:
       - name: Test CLI (Build Html Minimal)
         run: cargo run --release --bin shiroa -- build --mode static-html
         working-directory: tests/minimal
+      - name: Test CLI (Build Html Missing Site Title)
+        run: |
+          cargo run --release --bin shiroa -- build --mode static-html
+          grep -F '<title>Page Only</title>' dist/chapter.html
+        working-directory: tests/missing-site-title
 
   build:
     permissions:
