@@ -109,6 +109,11 @@ jobs:
           token: ${{ secrets.REGISTRY_TOKEN }}
           # Relative path under $GITHUB_WORKSPACE to place the repository
           path: 'typst-packages'
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            ${{ inputs.destination }}/${{ matrix.package.name }}/${{ matrix.package.version }}
+          sparse-checkout-cone-mode: false
       - name: Detect existing package
         id: detect-existing-package
         run: |
