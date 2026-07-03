@@ -56,6 +56,7 @@ const changelog = inspectChangelog(changelogPath, releaseVersion, previousStable
 const draftRelease = inspectDraftReleaseScript();
 const releaseNotes = inspectReleaseNotes(changelogPath, targetVersion);
 const cargoDependencyCheck = inspectCargoDependencyPins();
+const releaseReadmeLinks = inspectReleaseReadmeLinks();
 
 const blockers = [
     ...versionFiles
@@ -68,6 +69,7 @@ const blockers = [
     ...draftRelease.blockers,
     ...releaseNotes.blockers,
     ...cargoDependencyCheck.blockers,
+    ...releaseReadmeLinks.blockers,
 ];
 
 const result = {
@@ -86,6 +88,7 @@ const result = {
     draftRelease,
     releaseNotes,
     cargoDependencyCheck,
+    releaseReadmeLinks,
     commands: buildCommands(targetVersion, targetTag, expectedBranch, changelogPath),
     readiness: {
         ready: blockers.length === 0,
@@ -358,6 +361,44 @@ function inspectCargoDependencyPins() {
     };
 }
 
+function inspectReleaseReadmeLinks() {
+    const rootReadmePath = 'README.md';
+    const packageReadmePath = 'packages/shiroa/README.md';
+    const rootReadme = readText(rootReadmePath);
+    const packageReadme = readText(packageReadmePath);
+    const blockers = [];
+    const rootMdbookLink = '[mdbook theme](./themes/mdbook/)';
+    const packageMdbookPermalink =
+        /\[mdbook theme\]\(https:\/\/github\.com\/Myriad-Dreamin\/shiroa\/tree\/[^/)]+\/themes\/mdbook\/?\)/;
+
+    if (!rootReadme.includes(rootMdbookLink)) {
+        blockers.push(`${rootReadmePath} should keep the repo-local mdbook link ${rootMdbookLink}`);
+    }
+
+    if (packageReadme.includes(rootMdbookLink)) {
+        blockers.push(`${packageReadmePath} must not link to ./themes/mdbook/ because it is not in the package`);
+    }
+
+    if (!packageMdbookPermalink.test(packageReadme)) {
+        blockers.push(
+            `${packageReadmePath} must link the mdbook acknowledgement to a stable shiroa revision under /themes/mdbook`,
+        );
+    }
+
+    for (const defaultBranch of ['main', 'master']) {
+        if (packageReadme.includes(`/tree/${defaultBranch}/`)) {
+            blockers.push(`${packageReadmePath} must not use default-branch links such as /tree/${defaultBranch}/`);
+        }
+    }
+
+    return {
+        ready: blockers.length === 0,
+        rootReadmePath,
+        packageReadmePath,
+        blockers,
+    };
+}
+
 function findPreviousStableTag(releaseVersion) {
     let tags = [];
     try {
@@ -394,14 +435,14 @@ function compareVersions(left, right) {
 function buildCommands(version, tag, branch, changelogPath) {
     return {
         inspect: `node scripts/release-preflight.mjs ${tag} --json`,
-        review: `git diff -- Cargo.toml frontend/package.json cli/src/args.rs Cargo.lock scripts/draft-release.mjs scripts/release-preflight.mjs CHANGELOG/README.md ${changelogPath}`,
+        review: `git diff -- Cargo.toml frontend/package.json cli/src/args.rs Cargo.lock README.md packages/shiroa/README.md scripts/draft-release.mjs scripts/release-preflight.mjs CHANGELOG/README.md ${changelogPath}`,
         validate: [
             'cargo fmt --check --all',
             'cargo check --workspace',
             `node scripts/release-preflight.mjs ${tag}`,
         ],
         commit: [
-            `git add Cargo.toml frontend/package.json cli/src/args.rs Cargo.lock scripts/draft-release.mjs scripts/release-preflight.mjs CHANGELOG/README.md ${changelogPath}`,
+            `git add Cargo.toml frontend/package.json cli/src/args.rs Cargo.lock README.md packages/shiroa/README.md scripts/draft-release.mjs scripts/release-preflight.mjs CHANGELOG/README.md ${changelogPath}`,
             `git commit -m 'build: bump version to ${version}'`,
         ],
         external: [
@@ -436,6 +477,9 @@ function printHuman(data) {
     console.log('Release notes:');
     console.log(`- source: ${data.releaseNotes.source}`);
     console.log(`- Full Changelog: ${data.releaseNotes.fullChangelogLine ?? '(missing)'}`);
+
+    console.log('');
+    console.log(`Release README links: ${data.releaseReadmeLinks.ready ? 'OK' : 'MISMATCH'}`);
 
     console.log('');
     if (data.readiness.ready) {
