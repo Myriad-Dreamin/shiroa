@@ -59,6 +59,6 @@ We don't provide a watch command, but `shiroa` is designated to embracing all of
 
 ### Acknowledgement
 
-- The [mdbook theme](./themes/mdbook/) is borrowed from [mdBook](https://github.com/rust-lang/mdBook/tree/master/src/theme) project.
+- The [mdbook theme](https://github.com/Myriad-Dreamin/shiroa/tree/b183e02cb0507ef1aedded6d8c9c6bc2444dacf3/themes/mdbook) is borrowed from [mdBook](https://github.com/rust-lang/mdBook/tree/8b53f1b1bbfef0f3eb0e3dba69187765e5c38cd2/src/theme) project.
 
 - Compile the document with awesome [Typst](https://github.com/typst/typst).
