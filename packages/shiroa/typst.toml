@@ -8,4 +8,4 @@ homepage = "https://myriad-dreamin.github.io/shiroa"
 repository = "https://github.com/Myriad-Dreamin/shiroa"
 keywords = ["book", "web"]
 categories = ["book"]
-description = "A simple tool for creating modern online books in pure typst."
+description = "A simple tool for creating modern online books."
