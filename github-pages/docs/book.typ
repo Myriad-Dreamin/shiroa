@@ -23,8 +23,6 @@
       - #chapter("cli/init.typ")[init]
       - #chapter("cli/build.typ")[build]
       - #chapter("cli/serve.typ")[serve]
-      - #chapter("cli/clean.typ")[clean]
-      - #chapter("cli/completions.typ")[completions]
     - #chapter("format/main.typ")[Format]
       - #chapter("format/book.typ")[book.typ]
         - #chapter("format/book-meta.typ")[Book Metadata]

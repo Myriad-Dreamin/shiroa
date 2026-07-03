@@ -10,9 +10,7 @@ The build command is used to render your book:
 shiroa build
 ```
 
-It will try to parse your `book.typ` file to understand the structure and metadata
-of your book and fetch the corresponding files. Note that chapter files used in `book.typ` will be created if
-they are not present in the source directory.
+It will parse the book metadata, render each chapter, and write the generated site to the output directory.
 
 = Specify a directory
 
@@ -30,7 +28,7 @@ The `--root` option specifies the root directory for typst source files. It is i
 For example. When a book is created with the main file `book-project1/book.typ`, and you want to access a template file with path `common/book-template.typ`, please build it with following command:
 
 ```bash
-shiroa build -w . book-project1
+shiroa build --root . book-project1
 ```
 
 Then you can access the template with the absolute path in typst:
@@ -39,9 +37,36 @@ Then you can access the template with the absolute path in typst:
 #import "/common/book-template.typ": *
 ```
 
+The older `-w`/`--workspace` option is deprecated. Use `--root` instead.
+
+== #cli-flag;meta-source
+
+The `--meta-source` option controls how shiroa discovers book metadata.
+
+- `strict` (default): query shiroa metadata from `book.typ`, including `<shiroa-book-meta>` and `<shiroa-build-meta>`.
+- `outline`: infer chapters from the outline of a Typst entry file. If the entry also contains shiroa metadata, the explicit metadata is used first.
+
+```bash
+shiroa build --meta-source outline article.typ
+```
+
 == #cli-flag;font-path
 
 The `--font-path` option adds additional directories that are recursively searched for fonts for typst source files. If multiple paths are specified, they are separated by the system's path separator (`:` on Unix-like systems and `;` on Windows).
+
+It can also be set with the `TYPST_FONT_PATHS` environment variable.
+
+```bash
+shiroa build --font-path ./fonts
+```
+
+== #cli-flag;input
+
+The `--input` option adds a string key-value pair visible through `sys.inputs`, matching `typst compile --input`.
+
+```bash
+shiroa build --input edition=web
+```
 
 == #cli-flag;package-path
 
@@ -55,8 +80,12 @@ The `--package-cache-path` option specifies a custom path to the Typst package c
 
 The `--dest-dir` (`-d`) option allows you to change the output directory for the
 book. Relative paths are interpreted relative to the book's root directory. If
-not specified it will default to the value of the `build.build-dir` key in
-`book.toml`, or to `./book`.
+not specified it will default to the value of `#build-meta(dest-dir: ...)` in
+`book.typ`, or to `./dist`.
+
+```bash
+shiroa build --dest-dir ../dist
+```
 
 == #cli-flag;path-to-root
 
@@ -68,7 +97,7 @@ shiroa build --path-to-root /shiroa/ book-project1
 
 == #cli-flag;mode
 
-The `--mode` option allows you to specify the mode of rendering typst document. The default mode is `normal`.
+The `--mode` option allows you to specify the mode of rendering typst document. The default mode is `dyn-paged`.
 - (Default) `dyn-paged`: dynamically render as paged document.
 - (Experimental) `static-html`: statically render the whole document, the embedded
   frames are not resizable.
@@ -76,6 +105,15 @@ The `--mode` option allows you to specify the mode of rendering typst document. 
   possible, and leave frames rendered dynamically.
 
 The dynamically rendering means that some elements will be rendered by a wasm renderer in the browser.
+
+== #cli-flag;allowed-url-source
+
+The `--allowed-url-source` option configures the regular expression used to allow external URL sources for command-backed HTML embeds.
+The default allows `player.bilibili.com`.
+
+```bash
+shiroa build --allowed-url-source '^(player\.bilibili\.com|www\.youtube\.com)$'
+```
 
 // todo: copy all rest files
 // ***Note:*** *The build command copies all files (excluding files with `.typ` extension) from the source directory into the build directory.*
