@@ -5,7 +5,7 @@
 #let cli-flag = "--"
 
 The serve command is used to preview a book by serving it via HTTP at
-`localhost:25520` by default:
+`127.0.0.1:25520` by default:
 
 ```bash
 shiroa serve
@@ -32,18 +32,21 @@ shiroa serve path/to/book
 
 The `serve` command will build your book once before serving the content. It is hence including all of the #cross-link("/cli/build.typ")[options] from `build` command.
 
-= Server options
+== #cli-flag;no-build
 
-The `serve` address defaults to `localhost:25520`. Either option can be specified on the command line:
+Use `--no-build` to serve the output directory without building first.
 
 ```bash
-shiroa serve path/to/book --addr 8000:127.0.0.1
+shiroa serve --no-build
 ```
 
-== #cli-flag;open
+= Server options
 
-When you use the `--open` flag, shiroa will open the rendered book in
-your default web browser after building it.
+The `serve` address defaults to `127.0.0.1:25520`. You can change it with `--addr`:
+
+```bash
+shiroa serve path/to/book --addr 127.0.0.1:8000
+```
 
 // == Specify exclude patterns
 

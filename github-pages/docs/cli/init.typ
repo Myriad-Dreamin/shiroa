@@ -2,7 +2,10 @@
 
 #show: book-page.with(title: "CLI Init Command")
 
-The `init` command will try to initialize your book to build your book successfully by default. This also means that all of the #cross-link("/cli/build.typ")[options] from `build` command are available for `init` command.
+The `init` command creates a new book directory with starter files, then builds and serves it with the same preview server used by #cross-link("/cli/serve.typ")[`shiroa serve`].
+The target directory must not already exist.
+
+Since `init` builds the generated project after creating it, the #cross-link("/cli/build.typ")[build options] are available for `init` too.
 
 For instance, Initialize a book to the directory `my-book`:
 
@@ -14,16 +17,18 @@ shiroa build my-book/
 Initialize a book with specific typst workspace directory:
 
 ```bash
-shiroa init -w . my-book/
-shiroa build -w . my-book/
+shiroa init --root . my-book/
+shiroa build --root . my-book/
 ```
 
 Initialize a book with specific `dest-dir`:
 
 ```bash
 shiroa init --dest-dir ../dist my-book/
-shiroa build my-book/ # memoryized dest-dir
+shiroa build my-book/ # remembered in book.typ
 ```
+
+The older `-w`/`--workspace` option is deprecated. Use `--root` instead.
 
 = Initializing a book project manually
 
