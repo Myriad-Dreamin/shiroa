@@ -31,7 +31,6 @@
         // - #chapter(none, "= Introduction")
         // - #chapter(none)[#text("= Introduction")]
         - #chapter("format/build-meta.typ")[Build Metadata]
-      - #chapter("format/theme.typ")[Theme]
       - #chapter("supports.typ")[Typst Support]
         - #chapter("supports/cross-ref.typ")[Cross Reference]
           - #chapter("supports/cross-ref-sample.typ")[Cross Reference Sample]
@@ -39,8 +38,10 @@
           - #chapter("supports/multimedia.typ")[Multimedia components]
         - #chapter("supports/sema-desc.typ")[Semantic Page Description]
       - #chapter("supports/render-test.typ")[Rendering Tests]
+    - #chapter("reference/typst.typ")[Typst API]
+    - #chapter("theme/builtin.typ")[Built-in Themes]
+    - #chapter("format/theme.typ")[Custom Theme]
     - #chapter(none)[For developers]
-      - #chapter(none)[Typst-side APIs]
       - #chapter(none)[shiroa CLI Internals]
       - #chapter(none)[Alternative Backends]
     // end of summary
