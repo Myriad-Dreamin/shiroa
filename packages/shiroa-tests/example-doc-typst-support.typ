@@ -8,9 +8,5 @@
 #place(dx: 1000pt)[#include "/github-pages/docs/supports/cross-ref.typ"]
 #place(dx: 1000pt)[#include "/github-pages/docs/supports/embed-html.typ"]
 #place(dx: 1000pt)[#include "/github-pages/docs/supports/theme.typ"]
-#place(dx: 1000pt)[#include "/github-pages/docs/theme/builtin.typ"]
-#place(dx: 1000pt)[#include "/github-pages/docs/format/theme.typ"]
 
 #run-doc-examples()
-
-#let test-doc-examples() = assert(true)

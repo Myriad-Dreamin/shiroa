@@ -14,9 +14,10 @@ Both packages expose one main show rule. The page template passes the complete
 The theme then reads book metadata, builds the page chrome, and places the
 chapter in the main content area.
 
-See #cross-link("/reference/typst.typ")[Typst API] for the target and metadata
-helpers used below, or #cross-link("/format/theme.typ")[Custom Theme] to build
-a theme without either package.
+See #cross-link("/supports/targets.typ")[Rendering Targets and Inputs] and
+#cross-link("/supports/metadata.typ")[Reading Metadata] for the helpers used
+below, or #cross-link("/format/theme.typ")[Custom Theme] to build a theme
+without either package.
 
 = Choosing a theme
 

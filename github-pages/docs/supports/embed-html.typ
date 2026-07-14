@@ -2,34 +2,48 @@
 
 #show: book-page.with(title: "Embed Sanitized HTML Elements")
 
-There are a few media components provided by `media` module.
+The `media` module provides portable wrappers for a small set of HTML
+elements:
 
-- `iframe`: Embed an iframe in the document.
-- `video`: Embed a video in the document.
-- `audio`: Embed an audio in the document.
-- `div`: Embed a div in the document.
+- `iframe`
+- `video`
+- `audio`
+- `div`
 
-Example:
+Import the module as a namespace:
 
 ```typ
+#import "@preview/shiroa:0.4.0": media
+```
+
+The functions share `outer-width`, `outer-height`, `inner-width`,
+`inner-height`, and an `attributes` dictionary. The outer dimensions reserve
+space in paged output; the inner dimensions control the embedded browser
+element when supplied.
+
+For example:
+
+```typ
+#import "@preview/shiroa:0.4.0": media
+
 #media.iframe(
   outer-width: 640pt,
   outer-height: 360pt,
+  inner-width: none,
+  inner-height: none,
   attributes: (
-    src: "https://player.bilibili.com/player.html?aid=80433022&bvid=BV1GJ411x7h7&cid=137649199&page=1&danmaku=0&autoplay=0",
-    scrolling: "no",
-    border: "0",
+    src: "https://example.com/embed",
     width: "100%",
     height: "100%",
-    frameborder: "no",
-    framespacing: "0",
-    allowfullscreen: "true",
   ),
 )
 ```
 
-Check the #cross-link("/supports/multimedia.typ")[Multimedia Components] to see the result of the above code.
+On native HTML, a helper creates the corresponding HTML element. On paged web
+targets, it emits an embedded command that Shiroa's browser renderer replaces
+with that element. PDF output does not display the foreign HTML content, so
+provide alternative content when the media is essential.
 
-Explaination:
-- `outer-width` and `outer-height` gives a the size to render at the position. You can either use the `shiroa.page-width` or `std.layout` to determine a proper size.
-- The `media` components currently doesn't get render in PDF output, so you have to provide the alternative content when `is-pdf-target` is ```typc true```.
+See #cross-link("/supports/multimedia.typ")[Multimedia Components] for a
+rendered iframe example. Use `get-page-width()` or `layout` when the reserved
+size should follow the responsive page width.

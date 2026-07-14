@@ -41,7 +41,7 @@ shiroa will read `book.typ` file first to find metadata and all chapter files, a
 
 The sample files are from #link("https://github.com/Myriad-Dreamin/shiroa/tree/main/tests/minimal")[`tests/minimal`] directory.
 
-*Note: The sample is minimal and lacks of many show rules and theme settings to make good output. To learn more, please check #cross-link("/supports.typ")[`Typst Supports`.]*
+*Note: The sample is minimal and lacks of many show rules and theme settings to make good output. To learn more, please check #cross-link("/supports.typ")[`Typst Support`.]*
 
 #let sample-file(path) = raw(lang: "typst", block: true, read(path))
 
