@@ -1,6 +1,6 @@
 
 #import "example-shiroa-docs.typ"
-#import "example-doc-reference.typ"
+#import "example-doc-typst-support.typ"
 #import "example-doc-builtin.typ"
 #import "example-doc-custom-theme.typ"
 

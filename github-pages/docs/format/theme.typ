@@ -58,8 +58,8 @@ The predicates exported by `shiroa` are safer than repeating prefix checks:
 
 `is-html-target()` includes both `html` and `html-wrapper`.
 `is-html-target(exclude-wrapper: true)` selects only native HTML. See
-#cross-link("/reference/typst.typ")[Typst API] for the full target and input
-reference.
+#cross-link("/supports/targets.typ")[Rendering Targets and Inputs] for the full
+target and input reference.
 
 The CLI uses the targets as follows:
 
